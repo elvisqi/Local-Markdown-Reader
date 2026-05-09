@@ -108,8 +108,17 @@ select {
 }
 
 .empty-state p,
-.empty-note {
+.empty-note,
+.status-note {
   color: #647282;
+}
+
+.error-note {
+  padding: 10px 12px;
+  border: 1px solid #efb8b8;
+  border-radius: 6px;
+  background: #fff2f2;
+  color: #a23434;
 }
 
 .file-drawer {

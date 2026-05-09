@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
 
+import { selectDefaultDocument } from '../shared/fileSystem';
+import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS } from '../shared/settings';
 import type { FileTreeNode, RenderResult } from '../shared/types';
 import { FileDrawer } from './components/FileDrawer';
 import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
+import { openDirectory, readMarkdownFile, scanMarkdownDirectory } from './fileSystemAccess';
 import './App.css';
 
 const EMPTY_RENDER: RenderResult = {
@@ -18,11 +21,59 @@ const EMPTY_RENDER: RenderResult = {
 export function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [tree] = useState<FileTreeNode[]>([]);
+  const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [tree, setTree] = useState<FileTreeNode[]>([]);
   const [activePath, setActivePath] = useState<string | null>(null);
-  const [markdown] = useState('');
-  const [rendered] = useState<RenderResult>(EMPTY_RENDER);
+  const [markdown, setMarkdown] = useState('');
+  const [rendered, setRendered] = useState<RenderResult>(EMPTY_RENDER);
+  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
+
+  async function openFolder() {
+    setError(null);
+    setStatus('Choose a folder to scan for Markdown files.');
+
+    try {
+      const handle = await openDirectory();
+      const nextTree = await scanMarkdownDirectory(handle);
+      const defaultPath = selectDefaultDocument(nextTree);
+
+      setDirectoryHandle(handle);
+      setTree(nextTree);
+      setDrawerOpen(false);
+      setStatus(nextTree.length ? null : 'No Markdown files found in this folder.');
+
+      if (defaultPath) {
+        await openFile(handle, defaultPath);
+      } else {
+        setActivePath(null);
+        setMarkdown('');
+        setRendered(EMPTY_RENDER);
+      }
+    } catch (err) {
+      setStatus(null);
+      setError(err instanceof Error ? err.message : 'Unable to open folder.');
+    }
+  }
+
+  async function openFile(handle: FileSystemDirectoryHandle, path: string) {
+    setError(null);
+    setStatus(`Opening ${path}`);
+
+    try {
+      const source = await readMarkdownFile(handle, path);
+      const result = await renderMarkdown(source);
+
+      setActivePath(path);
+      setMarkdown(source);
+      setRendered(result);
+      setStatus(null);
+    } catch (err) {
+      setStatus(null);
+      setError(err instanceof Error ? err.message : `Unable to open ${path}.`);
+    }
+  }
 
   return (
     <div className={`reader-app theme-${settings.reading.theme} width-${settings.reading.width}`}>
@@ -31,7 +82,7 @@ export function App() {
         theme={settings.reading.theme}
         width={settings.reading.width}
         rawMode={settings.reading.rawMode}
-        onOpenFolder={() => undefined}
+        onOpenFolder={openFolder}
         onToggleDrawer={() => setDrawerOpen((open) => !open)}
         onThemeChange={(theme) => setSettings((current) => ({ ...current, reading: { ...current.reading, theme } }))}
         onWidthChange={(width) => setSettings((current) => ({ ...current, reading: { ...current.reading, width } }))}
@@ -45,12 +96,16 @@ export function App() {
         activePath={activePath}
         onClose={() => setDrawerOpen(false)}
         onSelect={(path) => {
-          setActivePath(path);
+          if (directoryHandle) {
+            void openFile(directoryHandle, path);
+          }
           setDrawerOpen(false);
         }}
       />
       <main className="reader-layout">
         <article className="document-reader">
+          {status && <p className="status-note">{status}</p>}
+          {error && <p className="error-note">{error}</p>}
           {activePath ? (
             settings.reading.rawMode ? (
               <pre>{markdown}</pre>
