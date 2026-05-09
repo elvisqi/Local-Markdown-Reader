@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="160" viewBox="0 0 320 160" role="img" aria-label="Sample image">
+  <rect width="320" height="160" fill="#f6f7f9"/>
+  <rect x="24" y="24" width="272" height="112" rx="8" fill="#ffffff" stroke="#c8d0da"/>
+  <text x="160" y="88" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#18202a">Sample Asset</text>
+</svg>
