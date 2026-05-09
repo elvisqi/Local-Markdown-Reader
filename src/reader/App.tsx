@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { selectDefaultDocument } from '../shared/fileSystem';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
-import type { FileTreeNode, ReaderSettings, RenderResult } from '../shared/types';
+import type { FileTreeNode, RenderResult } from '../shared/types';
 import { selectActiveHeadingId } from './activeHeading';
 import { FileDrawer } from './components/FileDrawer';
 import { OutlinePanel } from './components/OutlinePanel';
@@ -62,14 +62,6 @@ export function App() {
     };
   }, [rendered.html]);
 
-  function updateSettings(updater: (current: ReaderSettings) => ReaderSettings) {
-    setSettings((current) => {
-      const next = updater(current);
-      void saveSettings(next);
-      return next;
-    });
-  }
-
   async function openFolder() {
     setError(null);
     setStatus('请选择一个文件夹，读取其中的 Markdown 文件。');
@@ -121,23 +113,21 @@ export function App() {
     >
       <ReaderToolbar
         title={title}
-        theme={settings.reading.theme}
-        width={settings.reading.width}
-        style={settings.reading.style}
         rawMode={settings.reading.rawMode}
-        onOpenFolder={openFolder}
         onToggleDrawer={() => setDrawerOpen((open) => !open)}
-        onThemeChange={(theme) => updateSettings((current) => ({ ...current, reading: { ...current.reading, theme } }))}
-        onWidthChange={(width) => updateSettings((current) => ({ ...current, reading: { ...current.reading, width } }))}
-        onStyleChange={(style) => updateSettings((current) => ({ ...current, reading: { ...current.reading, style } }))}
         onRawModeChange={(rawMode) =>
-          updateSettings((current) => ({ ...current, reading: { ...current.reading, rawMode } }))
+          setSettings((current) => {
+            const next = { ...current, reading: { ...current.reading, rawMode } };
+            void saveSettings(next);
+            return next;
+          })
         }
       />
       <FileDrawer
         open={drawerOpen}
         tree={tree}
         activePath={activePath}
+        onOpenFolder={openFolder}
         onClose={() => setDrawerOpen(false)}
         onSelect={(path) => {
           if (directoryHandle) {
@@ -160,6 +150,9 @@ export function App() {
             <section className="empty-state">
               <h2>打开本地文件夹</h2>
               <p>选择包含 Markdown 文件的文件夹，把它作为本地文档集阅读。</p>
+              <button type="button" onClick={openFolder}>
+                打开文件夹
+              </button>
             </section>
           )}
         </article>

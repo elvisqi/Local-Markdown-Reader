@@ -171,6 +171,12 @@ select {
   margin-bottom: 12px;
 }
 
+.file-drawer__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .file-drawer h2,
 .outline-panel h2 {
   margin: 0;

@@ -20,9 +20,9 @@ A local-first Chrome/Edge Manifest V3 extension for reading Markdown folders wit
 
 ## Reading Styles / 阅读样式
 
-The reader includes style templates that can be changed from the reader toolbar or popup:
+The reader includes style templates that can be changed from the extension popup or settings page:
 
-阅读器内置可更换的样式模板，可以在 reader 工具栏或扩展弹窗中切换：
+阅读器内置可更换的样式模板，可以在扩展弹窗或设置页中切换：
 
 - `Clean Doc`: default document style for PRDs, technical docs, and structured notes.
 - `GitHub`: GitHub-like Markdown presentation.
@@ -73,22 +73,22 @@ npm run verify:dist
 
 1. Click the extension action.
 2. Click "Open Reader".
-3. In the reader, click "Open Folder".
+3. In the reader, click "Files", then click "Open Folder" in the drawer.
 4. Choose `fixtures/sample-docs`.
 5. Confirm the file drawer can switch between `README.md`, `docs/guide.md`, and `docs/api.md`.
 6. Confirm the outline panel lists headings for the current document.
 7. In `README.md`, click the relative links to Guide and API.
-8. Switch `Style` between `Clean Doc`, `GitHub`, `Paper`, and `Classic`.
+8. Switch `Style` between `Clean Doc`, `GitHub`, `Paper`, and `Classic` from the extension popup or settings page.
 9. Confirm the sample table, task list, code block, Mermaid block, and MathJax formula are visible in rendered Markdown.
 
 1. 点击扩展图标。
 2. 点击 “Open Reader”。
-3. 在 reader 页面点击 “Open Folder”。
+3. 在 reader 页面点击“文件”，再在文件抽屉中点击“打开文件夹”。
 4. 选择 `fixtures/sample-docs`。
 5. 确认左侧文件抽屉可以在 `README.md`、`docs/guide.md` 和 `docs/api.md` 之间切换。
 6. 确认右侧大纲会展示当前文档的标题结构。
 7. 在 `README.md` 中点击指向 Guide 和 API 的相对链接。
-8. 在 `Style` 中切换 `Clean Doc`、`GitHub`、`Paper` 和 `Classic`。
+8. 在扩展弹窗或设置页的 `样式` 中切换 `Clean Doc`、`GitHub`、`Paper` 和 `Classic`。
 9. 确认示例表格、任务列表、代码块、Mermaid 代码块和 MathJax 公式都能在渲染后的 Markdown 中看到。
 
 ## Notes / 说明
