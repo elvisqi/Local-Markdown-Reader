@@ -3,6 +3,7 @@
 .worktrees/
 node_modules/
 dist/
+release/
 
 # Reference extension dump used for analysis, not project source.
 /5.3_0/

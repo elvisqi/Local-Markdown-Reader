@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [react(), crx({ manifest })],
   build: {
     target: 'es2022',
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       input: {
         reader: resolve(__dirname, 'reader.html'),
