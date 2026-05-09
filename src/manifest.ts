@@ -4,7 +4,7 @@ const manifest: ManifestV3Export = {
   manifest_version: 3,
   name: 'Local Markdown Reader',
   description: 'Local-first Markdown reader with folder navigation and document outline.',
-  version: '0.1.0',
+  version: '1.1.0',
   action: {
     default_title: 'Markdown Reader',
     default_popup: 'popup.html',
