@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node", "chrome-types"]
+  },
+  "include": ["vite.config.ts", "vitest.config.ts"]
+}

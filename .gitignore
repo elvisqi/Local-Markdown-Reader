@@ -1,6 +1,8 @@
 .DS_Store
 .superpowers/
 .worktrees/
+node_modules/
+dist/
 
 # Reference extension dump used for analysis, not project source.
 /5.3_0/
