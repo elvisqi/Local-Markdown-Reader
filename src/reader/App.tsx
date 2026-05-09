@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { selectDefaultDocument } from '../shared/fileSystem';
 import { renderMarkdown } from '../shared/render/markdown';
-import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
+import { DEFAULT_SETTINGS, loadSettings, saveSettings, subscribeSettings } from '../shared/settings';
 import type { FileTreeNode, RenderResult } from '../shared/types';
 import { selectActiveHeadingId } from './activeHeading';
 import { FileDrawer } from './components/FileDrawer';
@@ -34,6 +34,10 @@ export function App() {
 
   useEffect(() => {
     void loadSettings().then(setSettings);
+  }, []);
+
+  useEffect(() => {
+    return subscribeSettings(setSettings);
   }, []);
 
   useEffect(() => {

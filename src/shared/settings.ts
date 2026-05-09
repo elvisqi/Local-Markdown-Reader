@@ -62,3 +62,24 @@ export async function saveSettings(
 
   await area.set({ [SETTINGS_KEY]: settings });
 }
+
+export function subscribeSettings(
+  onChange: (settings: ReaderSettings) => void,
+  storage: typeof chrome.storage | undefined = globalThis.chrome?.storage,
+): () => void {
+  if (!storage?.onChanged?.addListener || !storage.onChanged.removeListener) {
+    return () => {};
+  }
+
+  const listener = (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
+    if (areaName !== 'sync' || !changes[SETTINGS_KEY]) {
+      return;
+    }
+
+    onChange(mergeSettings(changes[SETTINGS_KEY].newValue as DeepPartial<ReaderSettings> | undefined));
+  };
+
+  storage.onChanged.addListener(listener);
+
+  return () => storage.onChanged.removeListener(listener);
+}
