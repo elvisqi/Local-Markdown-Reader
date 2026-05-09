@@ -1,10 +1,12 @@
 export type ThemePreference = 'light' | 'dark' | 'system';
 export type ReadingWidth = 'narrow' | 'comfortable' | 'wide' | 'full';
+export type ReadingStyle = 'clean' | 'github' | 'paper' | 'classic';
 
 export type ReaderSettings = {
   reading: {
     theme: ThemePreference;
     width: ReadingWidth;
+    style: ReadingStyle;
     rawMode: boolean;
     showOutline: boolean;
     autoReload: boolean;

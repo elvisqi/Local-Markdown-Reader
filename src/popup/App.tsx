@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
-import type { ReaderSettings, ReadingWidth, ThemePreference } from '../shared/types';
+import type { ReaderSettings, ReadingStyle, ReadingWidth, ThemePreference } from '../shared/types';
 import './App.css';
 
 export function App() {
@@ -65,6 +65,23 @@ export function App() {
           <option value="comfortable">Comfortable</option>
           <option value="wide">Wide</option>
           <option value="full">Full</option>
+        </select>
+      </label>
+      <label>
+        Style
+        <select
+          value={settings.reading.style}
+          onChange={(event) =>
+            void updateSettings({
+              ...settings,
+              reading: { ...settings.reading, style: event.target.value as ReadingStyle },
+            })
+          }
+        >
+          <option value="clean">Clean Doc</option>
+          <option value="github">GitHub</option>
+          <option value="paper">Paper</option>
+          <option value="classic">Classic</option>
         </select>
       </label>
       <label className="inline-control">

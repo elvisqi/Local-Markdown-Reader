@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { selectDefaultDocument } from '../shared/fileSystem';
 import { renderMarkdown } from '../shared/render/markdown';
-import { DEFAULT_SETTINGS } from '../shared/settings';
-import type { FileTreeNode, RenderResult } from '../shared/types';
+import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
+import type { FileTreeNode, ReaderSettings, RenderResult } from '../shared/types';
 import { FileDrawer } from './components/FileDrawer';
 import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
@@ -29,6 +29,18 @@ export function App() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
+
+  useEffect(() => {
+    void loadSettings().then(setSettings);
+  }, []);
+
+  function updateSettings(updater: (current: ReaderSettings) => ReaderSettings) {
+    setSettings((current) => {
+      const next = updater(current);
+      void saveSettings(next);
+      return next;
+    });
+  }
 
   async function openFolder() {
     setError(null);
@@ -76,18 +88,22 @@ export function App() {
   }
 
   return (
-    <div className={`reader-app theme-${settings.reading.theme} width-${settings.reading.width}`}>
+    <div
+      className={`reader-app theme-${settings.reading.theme} width-${settings.reading.width} style-${settings.reading.style}`}
+    >
       <ReaderToolbar
         title={title}
         theme={settings.reading.theme}
         width={settings.reading.width}
+        style={settings.reading.style}
         rawMode={settings.reading.rawMode}
         onOpenFolder={openFolder}
         onToggleDrawer={() => setDrawerOpen((open) => !open)}
-        onThemeChange={(theme) => setSettings((current) => ({ ...current, reading: { ...current.reading, theme } }))}
-        onWidthChange={(width) => setSettings((current) => ({ ...current, reading: { ...current.reading, width } }))}
+        onThemeChange={(theme) => updateSettings((current) => ({ ...current, reading: { ...current.reading, theme } }))}
+        onWidthChange={(width) => updateSettings((current) => ({ ...current, reading: { ...current.reading, width } }))}
+        onStyleChange={(style) => updateSettings((current) => ({ ...current, reading: { ...current.reading, style } }))}
         onRawModeChange={(rawMode) =>
-          setSettings((current) => ({ ...current, reading: { ...current.reading, rawMode } }))
+          updateSettings((current) => ({ ...current, reading: { ...current.reading, rawMode } }))
         }
       />
       <FileDrawer

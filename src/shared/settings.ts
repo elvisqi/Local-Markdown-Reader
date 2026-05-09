@@ -6,6 +6,7 @@ export const DEFAULT_SETTINGS: ReaderSettings = {
   reading: {
     theme: 'system',
     width: 'comfortable',
+    style: 'clean',
     rawMode: false,
     showOutline: true,
     autoReload: false,

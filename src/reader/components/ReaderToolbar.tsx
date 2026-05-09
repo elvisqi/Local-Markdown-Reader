@@ -1,14 +1,16 @@
-import type { ReadingWidth, ThemePreference } from '../../shared/types';
+import type { ReadingStyle, ReadingWidth, ThemePreference } from '../../shared/types';
 
 type ReaderToolbarProps = {
   title: string;
   theme: ThemePreference;
   width: ReadingWidth;
+  style: ReadingStyle;
   rawMode: boolean;
   onOpenFolder: () => void;
   onToggleDrawer: () => void;
   onThemeChange: (theme: ThemePreference) => void;
   onWidthChange: (width: ReadingWidth) => void;
+  onStyleChange: (style: ReadingStyle) => void;
   onRawModeChange: (rawMode: boolean) => void;
 };
 
@@ -16,11 +18,13 @@ export function ReaderToolbar({
   title,
   theme,
   width,
+  style,
   rawMode,
   onOpenFolder,
   onToggleDrawer,
   onThemeChange,
   onWidthChange,
+  onStyleChange,
   onRawModeChange,
 }: ReaderToolbarProps) {
   return (
@@ -50,6 +54,15 @@ export function ReaderToolbar({
             <option value="comfortable">Comfortable</option>
             <option value="wide">Wide</option>
             <option value="full">Full</option>
+          </select>
+        </label>
+        <label>
+          Style
+          <select value={style} onChange={(event) => onStyleChange(event.target.value as ReadingStyle)}>
+            <option value="clean">Clean Doc</option>
+            <option value="github">GitHub</option>
+            <option value="paper">Paper</option>
+            <option value="classic">Classic</option>
           </select>
         </label>
         <label>

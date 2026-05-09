@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
-import type { ReaderSettings, ThemePreference } from '../shared/types';
+import type { ReaderSettings, ReadingStyle, ReadingWidth, ThemePreference } from '../shared/types';
 import './App.css';
 
 export function App() {
@@ -28,7 +28,57 @@ export function App() {
       <section>
         <h2>Reading</h2>
         <label>
-          Popup and reader theme
+          Reader theme
+          <select
+            value={settings.reading.theme}
+            onChange={(event) =>
+              void updateSettings({
+                ...settings,
+                reading: { ...settings.reading, theme: event.target.value as ThemePreference },
+              })
+            }
+          >
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+        <label>
+          Reading width
+          <select
+            value={settings.reading.width}
+            onChange={(event) =>
+              void updateSettings({
+                ...settings,
+                reading: { ...settings.reading, width: event.target.value as ReadingWidth },
+              })
+            }
+          >
+            <option value="narrow">Narrow</option>
+            <option value="comfortable">Comfortable</option>
+            <option value="wide">Wide</option>
+            <option value="full">Full</option>
+          </select>
+        </label>
+        <label>
+          Reading style
+          <select
+            value={settings.reading.style}
+            onChange={(event) =>
+              void updateSettings({
+                ...settings,
+                reading: { ...settings.reading, style: event.target.value as ReadingStyle },
+              })
+            }
+          >
+            <option value="clean">Clean Doc</option>
+            <option value="github">GitHub</option>
+            <option value="paper">Paper</option>
+            <option value="classic">Classic</option>
+          </select>
+        </label>
+        <label>
+          Popup theme
           <select
             value={settings.ui.popupTheme}
             onChange={(event) =>
