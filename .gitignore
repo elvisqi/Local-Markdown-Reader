@@ -4,6 +4,6 @@
 node_modules/
 dist/
 release/
-
+docs/
 # Reference extension dump used for analysis, not project source.
 /5.3_0/
