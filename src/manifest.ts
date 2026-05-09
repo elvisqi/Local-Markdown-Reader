@@ -4,7 +4,7 @@ const manifest: ManifestV3Export = {
   manifest_version: 3,
   name: '__MSG_extensionName__',
   description: '__MSG_extensionDescription__',
-  version: '1.1.0',
+  version: '1.2.0',
   default_locale: 'en',
   icons: {
     16: 'icons/icon-16.png',

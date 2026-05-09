@@ -221,6 +221,11 @@ select {
   color: var(--reader-muted);
 }
 
+.file-tree .is-active-branch > details > summary {
+  color: var(--reader-text);
+  font-weight: 600;
+}
+
 .file-tree__file,
 .outline-panel button {
   display: block;
@@ -231,12 +236,21 @@ select {
 }
 
 .file-tree__file {
+  border-radius: 6px;
   padding: 6px 8px;
+  color: var(--reader-muted);
 }
 
+.file-tree__file:hover {
+  background: color-mix(in srgb, var(--reader-link) 8%, transparent);
+  color: var(--reader-text);
+}
+
+.file-tree__file.is-active,
 .file-tree__file[aria-current="page"] {
   background: color-mix(in srgb, var(--reader-link) 12%, transparent);
   color: var(--reader-link);
+  font-weight: 600;
 }
 
 .outline-panel {

@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+
 import type { FileTreeNode } from '../../shared/types';
 
 type FileTreeProps = {
@@ -28,24 +30,53 @@ function TreeList({ nodes, activePath, onSelect }: TreeListProps) {
   return (
     <ul>
       {nodes.map((node) => (
-        <li key={node.path}>
+        <li key={node.path} className={node.type === 'directory' && containsActivePath(node, activePath) ? 'is-active-branch' : undefined}>
           {node.type === 'directory' ? (
             <details open>
               <summary>{node.name}</summary>
               <TreeList nodes={node.children} activePath={activePath} onSelect={onSelect} />
             </details>
           ) : (
-            <button
-              type="button"
-              className="file-tree__file"
-              aria-current={node.path === activePath ? 'page' : undefined}
-              onClick={() => onSelect(node.path)}
-            >
-              {node.name}
-            </button>
+            <FileTreeButton node={node} active={node.path === activePath} onSelect={onSelect} />
           )}
         </li>
       ))}
     </ul>
   );
+}
+
+type FileTreeButtonProps = {
+  node: Extract<FileTreeNode, { type: 'file' }>;
+  active: boolean;
+  onSelect: (path: string) => void;
+};
+
+function FileTreeButton({ node, active, onSelect }: FileTreeButtonProps) {
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (active) {
+      buttonRef.current?.scrollIntoView({ block: 'center' });
+    }
+  }, [active]);
+
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      className={`file-tree__file${active ? ' is-active' : ''}`}
+      aria-current={active ? 'page' : undefined}
+      onClick={() => onSelect(node.path)}
+    >
+      {node.name}
+    </button>
+  );
+}
+
+function containsActivePath(node: FileTreeNode, activePath: string | null): boolean {
+  if (!activePath || node.type === 'file') {
+    return false;
+  }
+
+  return node.children.some((child) => child.path === activePath || containsActivePath(child, activePath));
 }
