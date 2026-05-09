@@ -13,6 +13,7 @@ import { type Plugin, unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
 import type { Root } from 'mdast';
+import type { Element, Root as HastRoot } from 'hast';
 import type { Options as SanitizeSchema } from 'rehype-sanitize';
 import type { Node } from 'unist';
 
@@ -47,6 +48,10 @@ export async function renderMarkdown(
   const schema: SanitizeSchema = {
     ...defaultSchema,
     clobberPrefix: '',
+    tagNames: [
+      ...(defaultSchema.tagNames ?? []),
+      'button',
+    ],
     attributes: {
       ...defaultSchema.attributes,
       code: [
@@ -58,6 +63,17 @@ export async function renderMarkdown(
         ['type', 'checkbox'],
         'checked',
         'disabled',
+      ],
+      div: [
+        ...(defaultSchema.attributes?.div ?? []),
+        ['className', 'table-fullscreen', 'table-fullscreen__table', 'table-fullscreen__actions'],
+      ],
+      button: [
+        ...(defaultSchema.attributes?.button ?? []),
+        ['className', 'table-fullscreen__trigger'],
+        ['type', 'button'],
+        ['ariaLabel', '最大化表格'],
+        ['title', '最大化表格'],
       ],
     },
   };
@@ -72,6 +88,7 @@ export async function renderMarkdown(
     .use(rehypeAutolinkHeadings, {
       behavior: 'wrap',
     })
+    .use(wrapTablesForFullscreen)
     .use(rehypeSanitize, schema)
     .use(rehypeStringify)
     .process(markdown);
@@ -153,6 +170,58 @@ const removeFrontmatter: Plugin<[], Root> = () => {
   };
 };
 
+const wrapTablesForFullscreen: Plugin<[], HastRoot> = () => {
+  return (tree) => {
+    visit(tree, 'element', (node, index, parent) => {
+      if (!isTableElement(node) || typeof index !== 'number' || !parent || !('children' in parent)) {
+        return;
+      }
+
+      parent.children[index] = createTableFullscreenWrapper(node) as typeof parent.children[number];
+    });
+  };
+};
+
+function createTableFullscreenWrapper(table: Element): Element {
+  return {
+    type: 'element',
+    tagName: 'div',
+    properties: {
+      className: ['table-fullscreen'],
+    },
+    children: [
+      {
+        type: 'element',
+        tagName: 'div',
+        properties: {
+          className: ['table-fullscreen__table'],
+        },
+        children: [table],
+      },
+      {
+        type: 'element',
+        tagName: 'div',
+        properties: {
+          className: ['table-fullscreen__actions'],
+        },
+        children: [
+          {
+            type: 'element',
+            tagName: 'button',
+            properties: {
+              type: 'button',
+              className: ['table-fullscreen__trigger'],
+              ariaLabel: '最大化表格',
+              title: '最大化表格',
+            },
+            children: [],
+          },
+        ],
+      },
+    ],
+  };
+}
+
 function extractYamlTitle(value: string): string | null {
   const match = /^title:\s*['"]?(.+?)['"]?\s*$/m.exec(value);
   return match?.[1] ?? null;
@@ -176,4 +245,8 @@ function isTomlNode(node: unknown): boolean {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function isTableElement(node: unknown): node is Element {
+  return isRecord(node) && node.type === 'element' && node.tagName === 'table';
 }

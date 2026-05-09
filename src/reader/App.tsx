@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { selectDefaultDocument } from '../shared/fileSystem';
 import { renderMarkdown } from '../shared/render/markdown';
@@ -8,6 +8,7 @@ import { selectActiveHeadingId } from './activeHeading';
 import { FileDrawer } from './components/FileDrawer';
 import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
+import { reloadCurrentDocument } from './currentDocumentReload';
 import { openDirectory, readMarkdownFile, scanMarkdownDirectory } from './fileSystemAccess';
 import {
   canReadDirectory,
@@ -17,6 +18,7 @@ import {
   selectRememberedDocumentPath,
   type LastDocumentRecord,
 } from './recentDocument';
+import { installTableFullscreen } from './tableFullscreen';
 import './App.css';
 
 const EMPTY_RENDER: RenderResult = {
@@ -39,6 +41,7 @@ export function App() {
   const [lastDocument, setLastDocument] = useState<LastDocumentRecord | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const renderedContentRef = useRef<HTMLDivElement | null>(null);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
 
   useEffect(() => {
@@ -78,6 +81,14 @@ export function App() {
       window.removeEventListener('resize', updateActiveHeading);
     };
   }, [rendered.html]);
+
+  useEffect(() => {
+    if (!renderedContentRef.current || settings.reading.rawMode) {
+      return undefined;
+    }
+
+    return installTableFullscreen(renderedContentRef.current);
+  }, [rendered.html, settings.reading.rawMode]);
 
   async function openFolder() {
     setError(null);
@@ -174,6 +185,22 @@ export function App() {
     }
   }
 
+  async function reloadActiveFile() {
+    await reloadCurrentDocument({
+      directoryHandle,
+      activePath,
+      scrollY: window.scrollY,
+      readMarkdownFile,
+      renderMarkdown,
+      setMarkdown,
+      setRendered,
+      setStatus,
+      setError,
+      scrollTo: (options) => window.scrollTo(options),
+      requestAnimationFrame: (callback) => window.requestAnimationFrame(callback),
+    });
+  }
+
   return (
     <div
       className={`reader-app theme-${settings.reading.theme} width-${settings.reading.width} style-${settings.reading.style}`}
@@ -182,6 +209,7 @@ export function App() {
         title={title}
         rawMode={settings.reading.rawMode}
         onToggleDrawer={() => setDrawerOpen((open) => !open)}
+        onReload={() => void reloadActiveFile()}
         onRawModeChange={(rawMode) =>
           setSettings((current) => {
             const next = { ...current, reading: { ...current.reading, rawMode } };
@@ -211,7 +239,7 @@ export function App() {
             settings.reading.rawMode ? (
               <pre>{markdown}</pre>
             ) : (
-              <div dangerouslySetInnerHTML={{ __html: rendered.html }} />
+              <div ref={renderedContentRef} dangerouslySetInnerHTML={{ __html: rendered.html }} />
             )
           ) : (
             <section className="empty-state">

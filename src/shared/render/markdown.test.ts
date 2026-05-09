@@ -5,6 +5,10 @@ describe('renderMarkdown', () => {
     const result = await renderMarkdown('| A | B |\n| - | - |\n| 1 | 2 |');
 
     expect(result.html).toContain('<table>');
+    expect(result.html).toContain('class="table-fullscreen"');
+    expect(result.html).toContain('class="table-fullscreen__table"');
+    expect(result.html).toContain('class="table-fullscreen__trigger"');
+    expect(result.html).toContain('aria-label="最大化表格"');
   });
 
   it('renders task list checkboxes', async () => {

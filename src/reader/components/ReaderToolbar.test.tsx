@@ -13,6 +13,7 @@ describe('ReaderToolbar', () => {
         title="Document"
         rawMode={false}
         onToggleDrawer={vi.fn()}
+        onReload={vi.fn()}
         onRawModeChange={onRawModeChange}
       />,
     );
@@ -27,5 +28,24 @@ describe('ReaderToolbar', () => {
     await user.click(screen.getByLabelText('原文'));
 
     expect(onRawModeChange).toHaveBeenCalledWith(true);
+  });
+
+  it('emits reload actions from the toolbar', async () => {
+    const user = userEvent.setup();
+    const onReload = vi.fn();
+
+    render(
+      <ReaderToolbar
+        title="Document"
+        rawMode={false}
+        onToggleDrawer={vi.fn()}
+        onReload={onReload}
+        onRawModeChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: '重载' }));
+
+    expect(onReload).toHaveBeenCalledOnce();
   });
 });
