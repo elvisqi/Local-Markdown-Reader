@@ -22,13 +22,13 @@ export function App() {
   return (
     <main className="options-app">
       <header>
-        <h1>Markdown Reader Settings</h1>
-        {saved && <span>Saved</span>}
+        <h1>Markdown 阅读器设置</h1>
+        {saved && <span>已保存</span>}
       </header>
       <section>
-        <h2>Reading</h2>
+        <h2>阅读</h2>
         <label>
-          Reader theme
+          阅读器主题
           <select
             value={settings.reading.theme}
             onChange={(event) =>
@@ -38,13 +38,13 @@ export function App() {
               })
             }
           >
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="system">跟随系统</option>
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
           </select>
         </label>
         <label>
-          Reading width
+          阅读宽度
           <select
             value={settings.reading.width}
             onChange={(event) =>
@@ -54,14 +54,14 @@ export function App() {
               })
             }
           >
-            <option value="narrow">Narrow</option>
-            <option value="comfortable">Comfortable</option>
-            <option value="wide">Wide</option>
-            <option value="full">Full</option>
+            <option value="narrow">窄</option>
+            <option value="comfortable">舒适</option>
+            <option value="wide">宽</option>
+            <option value="full">全宽</option>
           </select>
         </label>
         <label>
-          Reading style
+          阅读样式
           <select
             value={settings.reading.style}
             onChange={(event) =>
@@ -71,14 +71,14 @@ export function App() {
               })
             }
           >
-            <option value="clean">Clean Doc</option>
+            <option value="paper">纸张</option>
+            <option value="clean">清爽文档</option>
             <option value="github">GitHub</option>
-            <option value="paper">Paper</option>
-            <option value="classic">Classic</option>
+            <option value="classic">经典</option>
           </select>
         </label>
         <label>
-          Popup theme
+          弹窗主题
           <select
             value={settings.ui.popupTheme}
             onChange={(event) =>
@@ -88,16 +88,16 @@ export function App() {
               })
             }
           >
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="system">跟随系统</option>
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
           </select>
         </label>
       </section>
       <section>
-        <h2>Rendering</h2>
+        <h2>渲染</h2>
         <Toggle
-          label="Syntax highlighting"
+          label="语法高亮"
           checked={settings.rendering.syntaxHighlighting}
           onChange={(syntaxHighlighting) =>
             void updateSettings({
@@ -107,7 +107,7 @@ export function App() {
           }
         />
         <Toggle
-          label="Mermaid diagrams"
+          label="Mermaid 图表"
           checked={settings.rendering.mermaid}
           onChange={(mermaid) =>
             void updateSettings({
@@ -117,7 +117,7 @@ export function App() {
           }
         />
         <Toggle
-          label="MathJax formulas"
+          label="MathJax 公式"
           checked={settings.rendering.mathJax}
           onChange={(mathJax) =>
             void updateSettings({
@@ -127,7 +127,7 @@ export function App() {
           }
         />
         <Toggle
-          label="Emoji shortcodes"
+          label="Emoji 短代码"
           checked={settings.rendering.emoji}
           onChange={(emoji) =>
             void updateSettings({
@@ -138,9 +138,9 @@ export function App() {
         />
       </section>
       <section>
-        <h2>Custom CSS</h2>
+        <h2>自定义 CSS</h2>
         <label>
-          CSS applied to rendered Markdown
+          应用到 Markdown 正文的 CSS
           <textarea
             value={settings.rendering.customCss}
             rows={8}

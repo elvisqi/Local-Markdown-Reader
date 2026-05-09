@@ -13,7 +13,7 @@ describe('ReaderToolbar', () => {
         title="Document"
         theme="system"
         width="comfortable"
-        style="clean"
+        style="paper"
         rawMode={false}
         onOpenFolder={vi.fn()}
         onToggleDrawer={vi.fn()}
@@ -24,8 +24,13 @@ describe('ReaderToolbar', () => {
       />,
     );
 
-    await user.selectOptions(screen.getByLabelText('Style'), 'paper');
+    await user.selectOptions(screen.getByLabelText('样式'), 'github');
 
-    expect(onStyleChange).toHaveBeenCalledWith('paper');
+    expect(screen.getByRole('button', { name: '文件' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '打开文件夹' })).toBeInTheDocument();
+    expect(screen.getByLabelText('主题')).toBeInTheDocument();
+    expect(screen.getByLabelText('宽度')).toBeInTheDocument();
+    expect(screen.getByLabelText('原文')).toBeInTheDocument();
+    expect(onStyleChange).toHaveBeenCalledWith('github');
   });
 });

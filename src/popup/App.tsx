@@ -29,13 +29,13 @@ export function App() {
   return (
     <main className="popup-app">
       <header>
-        <h1>Markdown Reader</h1>
+        <h1>Markdown 阅读器</h1>
       </header>
       <button type="button" className="primary-button" onClick={openReader}>
-        Open Reader
+        打开阅读器
       </button>
       <label>
-        Theme
+        主题
         <select
           value={settings.reading.theme}
           onChange={(event) =>
@@ -45,13 +45,13 @@ export function App() {
             })
           }
         >
-          <option value="system">System</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
+          <option value="system">跟随系统</option>
+          <option value="light">浅色</option>
+          <option value="dark">深色</option>
         </select>
       </label>
       <label>
-        Width
+        宽度
         <select
           value={settings.reading.width}
           onChange={(event) =>
@@ -61,14 +61,14 @@ export function App() {
             })
           }
         >
-          <option value="narrow">Narrow</option>
-          <option value="comfortable">Comfortable</option>
-          <option value="wide">Wide</option>
-          <option value="full">Full</option>
+          <option value="narrow">窄</option>
+          <option value="comfortable">舒适</option>
+          <option value="wide">宽</option>
+          <option value="full">全宽</option>
         </select>
       </label>
       <label>
-        Style
+        样式
         <select
           value={settings.reading.style}
           onChange={(event) =>
@@ -78,10 +78,10 @@ export function App() {
             })
           }
         >
-          <option value="clean">Clean Doc</option>
+          <option value="paper">纸张</option>
+          <option value="clean">清爽文档</option>
           <option value="github">GitHub</option>
-          <option value="paper">Paper</option>
-          <option value="classic">Classic</option>
+          <option value="classic">经典</option>
         </select>
       </label>
       <label className="inline-control">
@@ -95,7 +95,7 @@ export function App() {
             })
           }
         />
-        Raw Markdown
+        显示原文
       </label>
       <label className="inline-control">
         <input
@@ -108,7 +108,7 @@ export function App() {
             })
           }
         />
-        Outline
+        显示大纲
       </label>
       <label className="inline-control">
         <input
@@ -121,10 +121,10 @@ export function App() {
             })
           }
         />
-        Auto Reload
+        自动刷新
       </label>
       <button type="button" onClick={openOptions}>
-        Settings
+        设置
       </button>
     </main>
   );

@@ -21,7 +21,7 @@ select {
   border-radius: 6px;
   background: var(--reader-surface);
   color: var(--reader-text);
-  min-height: 34px;
+  min-height: 30px;
 }
 
 .reader-app {
@@ -52,9 +52,9 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  min-height: 64px;
-  padding: 10px 18px;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 16px;
   border-bottom: 1px solid var(--reader-border);
   background: color-mix(in srgb, var(--reader-surface) 94%, transparent);
   backdrop-filter: blur(12px);
@@ -64,34 +64,34 @@ select {
 .reader-toolbar__actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .reader-toolbar h1 {
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 650;
 }
 
 .reader-toolbar label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   color: var(--reader-muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .reader-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 260px;
   gap: 24px;
-  padding: 24px;
+  padding: 20px 24px 24px;
 }
 
 .document-reader {
   box-sizing: border-box;
   width: min(100%, 920px);
-  min-height: calc(100vh - 112px);
+  min-height: calc(100vh - 88px);
   margin: 0 auto;
   padding: 32px;
   border: 1px solid var(--reader-border);
@@ -227,9 +227,9 @@ select {
 
 .outline-panel {
   position: sticky;
-  top: 88px;
+  top: 68px;
   align-self: start;
-  max-height: calc(100vh - 112px);
+  max-height: calc(100vh - 88px);
   overflow: auto;
   overscroll-behavior: contain;
   padding-left: 18px;
@@ -238,8 +238,15 @@ select {
 }
 
 .outline-panel button {
+  border-radius: 5px;
   padding: 5px 0;
   color: var(--reader-muted);
+}
+
+.outline-panel button.is-active {
+  background: color-mix(in srgb, var(--reader-link) 12%, transparent);
+  color: var(--reader-link);
+  font-weight: 650;
 }
 
 .document-reader > div {
@@ -256,7 +263,7 @@ select {
 .document-reader h6 {
   color: var(--reader-text);
   line-height: 1.28;
-  scroll-margin-top: 88px;
+  scroll-margin-top: 68px;
 }
 
 .document-reader h1 a,
@@ -516,6 +523,7 @@ select {
   .reader-toolbar {
     align-items: flex-start;
     flex-direction: column;
+    min-height: 0;
   }
 
   .reader-toolbar__actions {

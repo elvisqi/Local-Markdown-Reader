@@ -4,7 +4,7 @@ describe('settings', () => {
   it('defines reading, rendering, and UI defaults', () => {
     expect(DEFAULT_SETTINGS.reading.theme).toBe('system');
     expect(DEFAULT_SETTINGS.reading.width).toBe('comfortable');
-    expect(DEFAULT_SETTINGS.reading.style).toBe('clean');
+    expect(DEFAULT_SETTINGS.reading.style).toBe('paper');
     expect(DEFAULT_SETTINGS.reading.rawMode).toBe(false);
     expect(DEFAULT_SETTINGS.rendering.syntaxHighlighting).toBe(true);
     expect(DEFAULT_SETTINGS.rendering.mermaid).toBe(true);

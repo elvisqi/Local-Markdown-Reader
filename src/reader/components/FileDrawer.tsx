@@ -11,11 +11,11 @@ type FileDrawerProps = {
 
 export function FileDrawer({ open, tree, activePath, onClose, onSelect }: FileDrawerProps) {
   return (
-    <aside className={`file-drawer${open ? ' is-open' : ''}`} aria-label="Folder files">
+    <aside className={`file-drawer${open ? ' is-open' : ''}`} aria-label="文件列表">
       <div className="file-drawer__header">
-        <h2>Files</h2>
+        <h2>文件</h2>
         <button type="button" onClick={onClose}>
-          Close
+          关闭
         </button>
       </div>
       <FileTree tree={tree} activePath={activePath} onSelect={onSelect} />

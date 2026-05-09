@@ -24,10 +24,11 @@ describe('OutlinePanel', () => {
       },
     ];
 
-    render(<OutlinePanel outline={outline} onNavigate={onNavigate} />);
+    render(<OutlinePanel outline={outline} activeId="install" onNavigate={onNavigate} />);
 
     expect(screen.getByRole('button', { name: 'Intro' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Install' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Install' })).toHaveAttribute('aria-current', 'location');
+    expect(screen.getByText('文档大纲')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Install' }));
 

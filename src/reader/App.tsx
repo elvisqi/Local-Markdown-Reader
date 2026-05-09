@@ -4,6 +4,7 @@ import { selectDefaultDocument } from '../shared/fileSystem';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
 import type { FileTreeNode, ReaderSettings, RenderResult } from '../shared/types';
+import { selectActiveHeadingId } from './activeHeading';
 import { FileDrawer } from './components/FileDrawer';
 import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
@@ -26,6 +27,7 @@ export function App() {
   const [activePath, setActivePath] = useState<string | null>(null);
   const [markdown, setMarkdown] = useState('');
   const [rendered, setRendered] = useState<RenderResult>(EMPTY_RENDER);
+  const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
@@ -33,6 +35,32 @@ export function App() {
   useEffect(() => {
     void loadSettings().then(setSettings);
   }, []);
+
+  useEffect(() => {
+    setActiveHeadingId(rendered.outline[0]?.id ?? null);
+  }, [rendered.outline]);
+
+  useEffect(() => {
+    const updateActiveHeading = () => {
+      const headings = Array.from(document.querySelectorAll<HTMLElement>('.document-reader h1[id], .document-reader h2[id], .document-reader h3[id], .document-reader h4[id], .document-reader h5[id], .document-reader h6[id]')).map(
+        (heading) => ({
+          id: heading.id,
+          top: heading.getBoundingClientRect().top,
+        }),
+      );
+      const nextActiveId = selectActiveHeadingId(headings, 76);
+      setActiveHeadingId((current) => (current === nextActiveId ? current : nextActiveId));
+    };
+
+    updateActiveHeading();
+    window.addEventListener('scroll', updateActiveHeading, { passive: true });
+    window.addEventListener('resize', updateActiveHeading);
+
+    return () => {
+      window.removeEventListener('scroll', updateActiveHeading);
+      window.removeEventListener('resize', updateActiveHeading);
+    };
+  }, [rendered.html]);
 
   function updateSettings(updater: (current: ReaderSettings) => ReaderSettings) {
     setSettings((current) => {
@@ -44,7 +72,7 @@ export function App() {
 
   async function openFolder() {
     setError(null);
-    setStatus('Choose a folder to scan for Markdown files.');
+    setStatus('请选择一个文件夹，读取其中的 Markdown 文件。');
 
     try {
       const handle = await openDirectory();
@@ -54,7 +82,7 @@ export function App() {
       setDirectoryHandle(handle);
       setTree(nextTree);
       setDrawerOpen(false);
-      setStatus(nextTree.length ? null : 'No Markdown files found in this folder.');
+      setStatus(nextTree.length ? null : '这个文件夹里没有找到 Markdown 文件。');
 
       if (defaultPath) {
         await openFile(handle, defaultPath);
@@ -65,13 +93,13 @@ export function App() {
       }
     } catch (err) {
       setStatus(null);
-      setError(err instanceof Error ? err.message : 'Unable to open folder.');
+      setError(err instanceof Error ? err.message : '无法打开文件夹。');
     }
   }
 
   async function openFile(handle: FileSystemDirectoryHandle, path: string) {
     setError(null);
-    setStatus(`Opening ${path}`);
+    setStatus(`正在打开 ${path}`);
 
     try {
       const source = await readMarkdownFile(handle, path);
@@ -83,7 +111,7 @@ export function App() {
       setStatus(null);
     } catch (err) {
       setStatus(null);
-      setError(err instanceof Error ? err.message : `Unable to open ${path}.`);
+      setError(err instanceof Error ? err.message : `无法打开 ${path}。`);
     }
   }
 
@@ -130,14 +158,15 @@ export function App() {
             )
           ) : (
             <section className="empty-state">
-              <h2>Open a local folder</h2>
-              <p>Choose a folder with Markdown files to browse it as a local documentation set.</p>
+              <h2>打开本地文件夹</h2>
+              <p>选择包含 Markdown 文件的文件夹，把它作为本地文档集阅读。</p>
             </section>
           )}
         </article>
         {settings.reading.showOutline && (
           <OutlinePanel
             outline={rendered.outline}
+            activeId={activeHeadingId}
             onNavigate={(id) => document.getElementById(id)?.scrollIntoView({ block: 'start' })}
           />
         )}
