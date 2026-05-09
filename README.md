@@ -10,12 +10,14 @@ A local-first Chrome/Edge Manifest V3 extension for reading Markdown folders wit
 - Render GitHub-flavored Markdown with headings, tables, task lists, code blocks, math-ready syntax, and diagrams-ready syntax.
 - Show a document outline generated from Markdown headings.
 - Switch between sibling Markdown files in the authorized folder.
+- Restore the last opened Markdown document when browser folder permission is still available.
 - Choose reader theme, content width, raw Markdown mode, and reading style templates.
 
 - 在用户明确授权文件夹后，读取并浏览其中的 Markdown 文件。
 - 渲染 GitHub Flavored Markdown，支持标题、表格、任务列表、代码块，以及面向公式和图表的语法基础。
 - 根据 Markdown 标题生成文档大纲。
 - 在已授权文件夹内切换其他 Markdown 文件。
+- 如果浏览器仍保留文件夹权限，自动恢复上次打开的 Markdown 文档。
 - 可切换阅读主题、正文宽度、Raw Markdown 模式和阅读样式模板。
 
 ## Reading Styles / 阅读样式
@@ -78,8 +80,9 @@ npm run verify:dist
 5. Confirm the file drawer can switch between `README.md`, `docs/guide.md`, and `docs/api.md`.
 6. Confirm the outline panel lists headings for the current document.
 7. In `README.md`, click the relative links to Guide and API.
-8. Switch `Style` between `Clean Doc`, `GitHub`, `Paper`, and `Classic` from the extension popup or settings page.
-9. Confirm the sample table, task list, code block, Mermaid block, and MathJax formula are visible in rendered Markdown.
+8. Reload the reader and confirm it restores the last opened document, or offers "Restore last document" if permission must be renewed.
+9. Switch `Style` between `Clean Doc`, `GitHub`, `Paper`, and `Classic` from the extension popup or settings page.
+10. Confirm the sample table, task list, code block, Mermaid block, and MathJax formula are visible in rendered Markdown.
 
 1. 点击扩展图标。
 2. 点击 “Open Reader”。
@@ -88,8 +91,9 @@ npm run verify:dist
 5. 确认左侧文件抽屉可以在 `README.md`、`docs/guide.md` 和 `docs/api.md` 之间切换。
 6. 确认右侧大纲会展示当前文档的标题结构。
 7. 在 `README.md` 中点击指向 Guide 和 API 的相对链接。
-8. 在扩展弹窗或设置页的 `样式` 中切换 `Clean Doc`、`GitHub`、`Paper` 和 `Classic`。
-9. 确认示例表格、任务列表、代码块、Mermaid 代码块和 MathJax 公式都能在渲染后的 Markdown 中看到。
+8. 重新加载 reader，确认它会恢复上次打开的文档；如果需要重新授权，则会显示“恢复上次文档”。
+9. 在扩展弹窗或设置页的 `样式` 中切换 `Clean Doc`、`GitHub`、`Paper` 和 `Classic`。
+10. 确认示例表格、任务列表、代码块、Mermaid 代码块和 MathJax 公式都能在渲染后的 Markdown 中看到。
 
 ## Notes / 说明
 

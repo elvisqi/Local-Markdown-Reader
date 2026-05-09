@@ -9,6 +9,14 @@ import { FileDrawer } from './components/FileDrawer';
 import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
 import { openDirectory, readMarkdownFile, scanMarkdownDirectory } from './fileSystemAccess';
+import {
+  canReadDirectory,
+  loadLastDocument,
+  requestDirectoryReadPermission,
+  saveLastDocument,
+  selectRememberedDocumentPath,
+  type LastDocumentRecord,
+} from './recentDocument';
 import './App.css';
 
 const EMPTY_RENDER: RenderResult = {
@@ -28,12 +36,17 @@ export function App() {
   const [markdown, setMarkdown] = useState('');
   const [rendered, setRendered] = useState<RenderResult>(EMPTY_RENDER);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
+  const [lastDocument, setLastDocument] = useState<LastDocumentRecord | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
 
   useEffect(() => {
     void loadSettings().then(setSettings);
+  }, []);
+
+  useEffect(() => {
+    void restoreLastDocument();
   }, []);
 
   useEffect(() => {
@@ -81,7 +94,7 @@ export function App() {
       setStatus(nextTree.length ? null : '这个文件夹里没有找到 Markdown 文件。');
 
       if (defaultPath) {
-        await openFile(handle, defaultPath);
+        await openFile(handle, defaultPath, true);
       } else {
         setActivePath(null);
         setMarkdown('');
@@ -93,7 +106,7 @@ export function App() {
     }
   }
 
-  async function openFile(handle: FileSystemDirectoryHandle, path: string) {
+  async function openFile(handle: FileSystemDirectoryHandle, path: string, remember = true) {
     setError(null);
     setStatus(`正在打开 ${path}`);
 
@@ -105,9 +118,59 @@ export function App() {
       setMarkdown(source);
       setRendered(result);
       setStatus(null);
+
+      if (remember) {
+        const record = {
+          directoryHandle: handle,
+          directoryName: handle.name,
+          path,
+          updatedAt: Date.now(),
+        };
+        setLastDocument(record);
+        await saveLastDocument(record);
+      }
     } catch (err) {
       setStatus(null);
       setError(err instanceof Error ? err.message : `无法打开 ${path}。`);
+    }
+  }
+
+  async function restoreLastDocument(requestPermission = false) {
+    setError(null);
+    const record = await loadLastDocument();
+
+    if (!record) {
+      return;
+    }
+
+    setLastDocument(record);
+
+    const hasPermission = requestPermission
+      ? await requestDirectoryReadPermission(record.directoryHandle)
+      : await canReadDirectory(record.directoryHandle);
+
+    if (!hasPermission) {
+      setStatus(`可以恢复上次文档：${record.directoryName}/${record.path}`);
+      return;
+    }
+
+    setStatus(`正在恢复上次文档：${record.path}`);
+
+    try {
+      const nextTree = await scanMarkdownDirectory(record.directoryHandle);
+      const rememberedPath = selectRememberedDocumentPath(nextTree, record.path);
+
+      setDirectoryHandle(record.directoryHandle);
+      setTree(nextTree);
+
+      if (rememberedPath) {
+        await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path);
+      } else {
+        setStatus('上次打开的文件夹里没有找到 Markdown 文件。');
+      }
+    } catch (err) {
+      setStatus(null);
+      setError(err instanceof Error ? err.message : '无法恢复上次文档。');
     }
   }
 
@@ -154,9 +217,21 @@ export function App() {
             <section className="empty-state">
               <h2>打开本地文件夹</h2>
               <p>选择包含 Markdown 文件的文件夹，把它作为本地文档集阅读。</p>
-              <button type="button" onClick={openFolder}>
-                打开文件夹
-              </button>
+              {lastDocument && (
+                <p>
+                  上次打开：{lastDocument.directoryName}/{lastDocument.path}
+                </p>
+              )}
+              <div className="empty-state__actions">
+                {lastDocument && (
+                  <button type="button" onClick={() => void restoreLastDocument(true)}>
+                    恢复上次文档
+                  </button>
+                )}
+                <button type="button" onClick={openFolder}>
+                  打开文件夹
+                </button>
+              </div>
             </section>
           )}
         </article>
