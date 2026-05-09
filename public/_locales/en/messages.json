@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Local Markdown Reader",
+    "description": "Extension name shown in Microsoft Edge Add-ons."
+  },
+  "extensionShortName": {
+    "message": "Markdown Reader",
+    "description": "Short title shown in the browser toolbar."
+  },
+  "extensionDescription": {
+    "message": "Local-first Markdown reader with folder navigation and document outline.",
+    "description": "Extension description shown in Microsoft Edge Add-ons."
+  }
+}

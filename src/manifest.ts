@@ -2,11 +2,12 @@ import type { ManifestV3Export } from '@crxjs/vite-plugin';
 
 const manifest: ManifestV3Export = {
   manifest_version: 3,
-  name: 'Local Markdown Reader',
-  description: 'Local-first Markdown reader with folder navigation and document outline.',
+  name: '__MSG_extensionName__',
+  description: '__MSG_extensionDescription__',
   version: '1.1.0',
+  default_locale: 'en',
   action: {
-    default_title: 'Markdown Reader',
+    default_title: '__MSG_extensionShortName__',
     default_popup: 'popup.html',
   },
   background: {

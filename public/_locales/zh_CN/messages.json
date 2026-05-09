@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "本地 Markdown 阅读器",
+    "description": "在 Microsoft Edge 加载项中显示的扩展名称。"
+  },
+  "extensionShortName": {
+    "message": "Markdown 阅读器",
+    "description": "在浏览器工具栏中显示的短标题。"
+  },
+  "extensionDescription": {
+    "message": "本地优先的 Markdown 阅读器，支持文件夹导航、文档大纲和阅读样式切换。",
+    "description": "在 Microsoft Edge 加载项中显示的扩展描述。"
+  }
+}
