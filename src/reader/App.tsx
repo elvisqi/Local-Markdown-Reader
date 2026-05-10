@@ -18,6 +18,7 @@ import {
   selectRememberedDocumentPath,
   type LastDocumentRecord,
 } from './recentDocument';
+import { RenderedMarkdownContent } from './RenderedMarkdownContent';
 import { installTableFullscreen } from './tableFullscreen';
 import './App.css';
 
@@ -239,7 +240,9 @@ export function App() {
             settings.reading.rawMode ? (
               <pre>{markdown}</pre>
             ) : (
-              <div ref={renderedContentRef} dangerouslySetInnerHTML={{ __html: rendered.html }} />
+              <div ref={renderedContentRef}>
+                <RenderedMarkdownContent html={rendered.html} mermaidEnabled={settings.rendering.mermaid} />
+              </div>
             )
           ) : (
             <section className="empty-state">

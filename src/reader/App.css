@@ -387,10 +387,9 @@ select {
 }
 
 .document-reader table {
-  display: block;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   margin: 0;
-  overflow-x: auto;
   border-spacing: 0;
   border-collapse: collapse;
   font-size: 0.94em;
@@ -564,6 +563,130 @@ select {
 .document-reader pre code {
   padding: 0;
   background: transparent;
+}
+
+.mermaid-fullscreen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: end;
+  column-gap: 8px;
+  margin: 18px 0 24px;
+}
+
+.mermaid-diagram {
+  min-width: 0;
+  overflow-x: auto;
+  padding: 14px;
+  border: 1px solid var(--reader-border);
+  border-radius: 6px;
+  background: var(--reader-surface);
+  text-align: center;
+}
+
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mermaid-fullscreen__actions {
+  display: grid;
+  place-items: end;
+  align-self: end;
+  padding-bottom: 1px;
+}
+
+.mermaid-fullscreen__trigger {
+  position: relative;
+  display: grid;
+  visibility: hidden;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  place-items: center;
+  border-color: color-mix(in srgb, var(--reader-link) 35%, var(--reader-border));
+  background: color-mix(in srgb, var(--reader-surface) 90%, transparent);
+  box-shadow: 0 2px 8px rgba(18, 26, 36, 0.14);
+  color: var(--reader-link);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 120ms ease,
+    visibility 120ms ease;
+}
+
+.mermaid-fullscreen:hover .mermaid-fullscreen__trigger,
+.mermaid-fullscreen:focus-within .mermaid-fullscreen__trigger {
+  visibility: visible;
+  opacity: 1;
+}
+
+.mermaid-fullscreen__trigger:hover {
+  background: color-mix(in srgb, var(--reader-link) 10%, var(--reader-surface));
+}
+
+.mermaid-fullscreen__trigger::before,
+.mermaid-fullscreen__trigger::after {
+  content: "";
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  border-color: currentColor;
+  pointer-events: none;
+}
+
+.mermaid-fullscreen__trigger::before {
+  top: 7px;
+  right: 7px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.mermaid-fullscreen__trigger::after {
+  bottom: 7px;
+  left: 7px;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+}
+
+.mermaid-fullscreen__overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 18px;
+  background: rgba(16, 22, 30, 0.58);
+}
+
+.mermaid-fullscreen__body {
+  display: grid;
+  place-items: center;
+}
+
+.mermaid-fullscreen__body .mermaid-diagram {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.mermaid-fullscreen__body .mermaid-diagram svg {
+  max-width: none;
+}
+
+.mermaid-diagram.has-error {
+  border-color: #efb8b8;
+  background: #fff2f2;
+  text-align: left;
+}
+
+.mermaid-diagram__error {
+  margin: 0;
+  color: #a23434;
 }
 
 .style-clean {
