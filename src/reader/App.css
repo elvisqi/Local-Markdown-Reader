@@ -24,6 +24,11 @@ select {
   min-height: 30px;
 }
 
+.reader-toolbar button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
 .reader-app {
   --reader-page-bg: #f6f7f9;
   --reader-surface: #ffffff;

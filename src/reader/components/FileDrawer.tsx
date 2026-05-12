@@ -6,11 +6,12 @@ type FileDrawerProps = {
   tree: FileTreeNode[];
   activePath: string | null;
   onOpenFolder: () => void;
+  onReloadFolder: () => void;
   onClose: () => void;
   onSelect: (path: string) => void;
 };
 
-export function FileDrawer({ open, tree, activePath, onOpenFolder, onClose, onSelect }: FileDrawerProps) {
+export function FileDrawer({ open, tree, activePath, onOpenFolder, onReloadFolder, onClose, onSelect }: FileDrawerProps) {
   return (
     <aside className={`file-drawer${open ? ' is-open' : ''}`} aria-label="文件列表">
       <div className="file-drawer__header">
@@ -18,6 +19,9 @@ export function FileDrawer({ open, tree, activePath, onOpenFolder, onClose, onSe
         <div className="file-drawer__actions">
           <button type="button" onClick={onOpenFolder}>
             打开文件夹
+          </button>
+          <button type="button" onClick={onReloadFolder} title="重新扫描当前文件夹">
+            重载目录
           </button>
           <button type="button" onClick={onClose}>
             关闭

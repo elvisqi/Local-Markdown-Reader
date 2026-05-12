@@ -14,6 +14,10 @@ describe('ReaderToolbar', () => {
         rawMode={false}
         onToggleDrawer={vi.fn()}
         onReload={vi.fn()}
+        previousFile={null}
+        nextFile={null}
+        onOpenPrevious={vi.fn()}
+        onOpenNext={vi.fn()}
         onRawModeChange={onRawModeChange}
       />,
     );
@@ -40,6 +44,10 @@ describe('ReaderToolbar', () => {
         rawMode={false}
         onToggleDrawer={vi.fn()}
         onReload={onReload}
+        previousFile={null}
+        nextFile={null}
+        onOpenPrevious={vi.fn()}
+        onOpenNext={vi.fn()}
         onRawModeChange={vi.fn()}
       />,
     );
@@ -47,5 +55,64 @@ describe('ReaderToolbar', () => {
     await user.click(screen.getByRole('button', { name: '重载' }));
 
     expect(onReload).toHaveBeenCalledOnce();
+  });
+
+  it('shows sibling file navigation with target filenames in tooltips', async () => {
+    const user = userEvent.setup();
+    const onOpenPrevious = vi.fn();
+    const onOpenNext = vi.fn();
+
+    render(
+      <ReaderToolbar
+        title="Document"
+        rawMode={false}
+        onToggleDrawer={vi.fn()}
+        onReload={vi.fn()}
+        previousFile={{ name: '01-intro.md', path: 'docs/01-intro.md' }}
+        nextFile={{ name: '03-api.md', path: 'docs/03-api.md' }}
+        onOpenPrevious={onOpenPrevious}
+        onOpenNext={onOpenNext}
+        onRawModeChange={vi.fn()}
+      />,
+    );
+
+    const previousButton = screen.getByRole('button', { name: '上一个' });
+    const nextButton = screen.getByRole('button', { name: '下一个' });
+
+    expect(previousButton).toHaveAttribute('title', '上一个文件：01-intro.md');
+    expect(nextButton).toHaveAttribute('title', '下一个文件：03-api.md');
+
+    await user.click(previousButton);
+    await user.click(nextButton);
+
+    expect(onOpenPrevious).toHaveBeenCalledOnce();
+    expect(onOpenNext).toHaveBeenCalledOnce();
+  });
+
+  it('disables sibling navigation at folder boundaries with explanatory tooltips', () => {
+    render(
+      <ReaderToolbar
+        title="Document"
+        rawMode={false}
+        onToggleDrawer={vi.fn()}
+        onReload={vi.fn()}
+        previousFile={null}
+        nextFile={null}
+        onOpenPrevious={vi.fn()}
+        onOpenNext={vi.fn()}
+        onRawModeChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: '上一个' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '上一个' })).toHaveAttribute(
+      'title',
+      '当前已经是本文件夹第一个 Markdown 文件',
+    );
+    expect(screen.getByRole('button', { name: '下一个' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '下一个' })).toHaveAttribute(
+      'title',
+      '当前已经是本文件夹最后一个 Markdown 文件',
+    );
   });
 });

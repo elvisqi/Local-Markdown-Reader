@@ -48,4 +48,41 @@ describe('FileTree', () => {
     expect(screen.getByRole('button', { name: 'guide.md' })).toHaveClass('is-active');
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'center' });
   });
+
+  it('only expands the folder branch containing the active file by default', () => {
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [
+          {
+            type: 'directory',
+            name: 'guides',
+            path: 'docs/guides',
+            children: [{ type: 'file', name: 'install.md', path: 'docs/guides/install.md' }],
+          },
+          {
+            type: 'directory',
+            name: 'archive',
+            path: 'docs/archive',
+            children: [{ type: 'file', name: 'old.md', path: 'docs/archive/old.md' }],
+          },
+        ],
+      },
+      {
+        type: 'directory',
+        name: 'notes',
+        path: 'notes',
+        children: [{ type: 'file', name: 'daily.md', path: 'notes/daily.md' }],
+      },
+    ];
+
+    render(<FileTree tree={tree} activePath="docs/guides/install.md" onSelect={vi.fn()} />);
+
+    expect(screen.getByText('docs').closest('details')).toHaveAttribute('open');
+    expect(screen.getByText('guides').closest('details')).toHaveAttribute('open');
+    expect(screen.getByText('archive').closest('details')).not.toHaveAttribute('open');
+    expect(screen.getByText('notes').closest('details')).not.toHaveAttribute('open');
+  });
 });

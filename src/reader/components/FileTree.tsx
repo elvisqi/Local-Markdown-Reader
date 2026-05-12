@@ -29,18 +29,22 @@ type TreeListProps = {
 function TreeList({ nodes, activePath, onSelect }: TreeListProps) {
   return (
     <ul>
-      {nodes.map((node) => (
-        <li key={node.path} className={node.type === 'directory' && containsActivePath(node, activePath) ? 'is-active-branch' : undefined}>
-          {node.type === 'directory' ? (
-            <details open>
-              <summary>{node.name}</summary>
-              <TreeList nodes={node.children} activePath={activePath} onSelect={onSelect} />
-            </details>
-          ) : (
-            <FileTreeButton node={node} active={node.path === activePath} onSelect={onSelect} />
-          )}
-        </li>
-      ))}
+      {nodes.map((node) => {
+        const activeBranch = node.type === 'directory' && containsActivePath(node, activePath);
+
+        return (
+          <li key={node.path} className={activeBranch ? 'is-active-branch' : undefined}>
+            {node.type === 'directory' ? (
+              <details open={activeBranch}>
+                <summary>{node.name}</summary>
+                <TreeList nodes={node.children} activePath={activePath} onSelect={onSelect} />
+              </details>
+            ) : (
+              <FileTreeButton node={node} active={node.path === activePath} onSelect={onSelect} />
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

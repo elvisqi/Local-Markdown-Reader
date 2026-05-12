@@ -15,4 +15,11 @@ describe('table layout styles', () => {
     expect(getRule('.document-reader table')).not.toMatch(/display:\s*block/);
     expect(getRule('.document-reader table')).not.toMatch(/overflow-x:\s*auto/);
   });
+
+  it('makes disabled reader toolbar buttons visually unavailable', () => {
+    const rule = getRule('.reader-toolbar button:disabled');
+
+    expect(rule).toMatch(/cursor:\s*not-allowed/);
+    expect(rule).toMatch(/opacity:\s*0\.48/);
+  });
 });
