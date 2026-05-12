@@ -29,7 +29,11 @@ if (isMarkdownPath) {
   button.style.cssText =
     'border:1px solid #1769e0;border-radius:6px;background:#1769e0;color:#fff;font:inherit;padding:6px 8px';
   button.addEventListener('click', () => {
-    void chrome.runtime.sendMessage({ type: 'openReader' });
+    void chrome.runtime.sendMessage({
+      type: 'openReader',
+      sourceUrl: window.location.href,
+      source: document.querySelector('pre')?.innerText ?? document.body.innerText,
+    });
   });
 
   banner.append(button);

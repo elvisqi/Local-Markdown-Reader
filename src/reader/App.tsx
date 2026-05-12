@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { flattenMarkdownFiles, selectDefaultDocument } from '../shared/fileSystem';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, subscribeSettings } from '../shared/settings';
+import { consumeTemporaryMarkdownDocument } from '../shared/temporaryDocument';
 import type { FileTreeNode, RenderResult } from '../shared/types';
 import { selectActiveHeadingId } from './activeHeading';
 import { FileDrawer } from './components/FileDrawer';
@@ -56,7 +57,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    void restoreLastDocument();
+    void openInitialDocument();
   }, []);
 
   useEffect(() => {
@@ -182,6 +183,41 @@ export function App() {
     } catch (err) {
       setStatus(null);
       setError(err instanceof Error ? err.message : `无法打开 ${path}。`);
+    }
+  }
+
+  async function openInitialDocument() {
+    const temporaryDocumentId = new URLSearchParams(window.location.search).get('temporaryDocument');
+
+    if (temporaryDocumentId) {
+      const temporaryDocument = await consumeTemporaryMarkdownDocument(temporaryDocumentId);
+
+      if (temporaryDocument) {
+        await openTemporaryDocument(temporaryDocument.name, temporaryDocument.source ?? temporaryDocument.url);
+        return;
+      }
+    }
+
+    await restoreLastDocument();
+  }
+
+  async function openTemporaryDocument(name: string, sourceOrUrl: string) {
+    setError(null);
+    setStatus(`正在打开 ${name}`);
+
+    try {
+      const source = isUrl(sourceOrUrl) ? await fetch(sourceOrUrl).then((response) => response.text()) : sourceOrUrl;
+      const result = await renderMarkdown(source);
+
+      setDirectoryHandle(null);
+      setTree([]);
+      setActivePath(name);
+      setMarkdown(source);
+      setRendered(result);
+      setStatus(null);
+    } catch (err) {
+      setStatus(null);
+      setError(err instanceof Error ? err.message : `无法打开 ${name}。`);
     }
   }
 
@@ -312,6 +348,15 @@ export function App() {
     }
 
     return target.closest('input, textarea, select') !== null;
+  }
+
+  function isUrl(value: string): boolean {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'file:' || url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
   }
 
   return (

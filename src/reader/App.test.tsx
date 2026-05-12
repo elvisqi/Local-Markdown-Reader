@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { FileTreeNode } from '../shared/types';
 import { App } from './App';
 import * as fileSystemAccess from './fileSystemAccess';
+import * as recentDocument from './recentDocument';
 
 vi.mock('./fileSystemAccess', async () => {
   const actual = await vi.importActual<typeof import('./fileSystemAccess')>('./fileSystemAccess');
@@ -25,6 +26,17 @@ vi.mock('./recentDocument', async () => {
     saveLastDocument: vi.fn(async () => undefined),
   };
 });
+
+vi.mock('../shared/temporaryDocument', async () => {
+  const actual = await vi.importActual<typeof import('../shared/temporaryDocument')>('../shared/temporaryDocument');
+
+  return {
+    ...actual,
+    consumeTemporaryMarkdownDocument: vi.fn(async () => null),
+  };
+});
+
+import * as temporaryDocument from '../shared/temporaryDocument';
 
 vi.mock('./mermaidRenderer', () => ({
   renderMermaidBlocks: vi.fn(async () => undefined),
@@ -48,10 +60,14 @@ describe('App file navigation and drawer behavior', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    window.history.replaceState(null, '', '/reader.html');
     Element.prototype.scrollIntoView = vi.fn();
     vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(tree);
     vi.mocked(fileSystemAccess.readMarkdownFile).mockImplementation(async (_handle, path) => `# ${path}`);
+    vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(null);
+    vi.mocked(recentDocument.saveLastDocument).mockResolvedValue(undefined);
+    vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue(null);
   });
 
   it('opens sibling files from the toolbar and exposes target filenames in tooltips', async () => {
@@ -185,5 +201,42 @@ describe('App file navigation and drawer behavior', () => {
     );
     expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0);
     expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledTimes(2);
+  });
+
+  it('opens a temporary standalone Markdown file without overwriting the remembered directory document', async () => {
+    vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue({
+      url: 'file:///Users/qiyu/Desktop/Temporary.md',
+      name: 'Temporary.md',
+      createdAt: 123,
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('# Temporary document')));
+    window.history.replaceState(null, '', '/reader.html?temporaryDocument=temp-1');
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Temporary document' })).toBeInTheDocument());
+    expect(screen.queryByLabelText('文件列表')).not.toHaveClass('is-open');
+    expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
+    expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
+
+    vi.unstubAllGlobals();
+  });
+
+  it('falls back to the remembered directory document after a consumed temporary document is refreshed', async () => {
+    const rememberedRecord = {
+      directoryHandle,
+      directoryName: 'Docs',
+      path: 'docs/02-design.md',
+      updatedAt: 456,
+    };
+    vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(rememberedRecord);
+    vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue(null);
+    window.history.replaceState(null, '', '/reader.html?temporaryDocument=temp-1');
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/02-design.md' })).not.toHaveLength(0));
+    expect(temporaryDocument.consumeTemporaryMarkdownDocument).toHaveBeenCalledWith('temp-1');
+    expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledWith(directoryHandle);
   });
 });
