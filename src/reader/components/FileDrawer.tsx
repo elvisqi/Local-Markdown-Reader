@@ -12,8 +12,12 @@ type FileDrawerProps = {
 };
 
 export function FileDrawer({ open, tree, activePath, onOpenFolder, onReloadFolder, onClose, onSelect }: FileDrawerProps) {
+  if (!open) {
+    return null;
+  }
+
   return (
-    <aside className={`file-drawer${open ? ' is-open' : ''}`} aria-label="文件列表">
+    <aside className="file-drawer is-open" aria-label="文件列表">
       <div className="file-drawer__header">
         <h2>文件</h2>
         <div className="file-drawer__actions">

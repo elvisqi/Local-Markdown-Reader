@@ -109,12 +109,32 @@ describe('App file navigation and drawer behavior', () => {
     screen.getByRole('article').addEventListener('click', contentClick);
     await user.click(screen.getByRole('article'));
 
-    await waitFor(() => expect(screen.getByLabelText('文件列表')).not.toHaveClass('is-open'));
+    await waitFor(() => expect(screen.queryByLabelText('文件列表')).not.toBeInTheDocument());
     expect(contentClick).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('article'));
 
     expect(contentClick).toHaveBeenCalledOnce();
+  });
+
+  it('removes the closed file drawer text from the page so browser find searches the visible reader first', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
+
+    expect(screen.queryByRole('button', { name: '02-design.md' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+
+    expect(screen.getByRole('button', { name: '02-design.md' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('article'));
+
+    expect(screen.queryByRole('button', { name: '02-design.md' })).not.toBeInTheDocument();
   });
 
   it('opens sibling files with left and right arrow keys outside editable controls', async () => {
@@ -215,7 +235,7 @@ describe('App file navigation and drawer behavior', () => {
     render(<App />);
 
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Temporary document' })).toBeInTheDocument());
-    expect(screen.queryByLabelText('文件列表')).not.toHaveClass('is-open');
+    expect(screen.queryByLabelText('文件列表')).not.toBeInTheDocument();
     expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
     expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
 
