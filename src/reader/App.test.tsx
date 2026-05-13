@@ -239,4 +239,55 @@ describe('App file navigation and drawer behavior', () => {
     expect(temporaryDocument.consumeTemporaryMarkdownDocument).toHaveBeenCalledWith('temp-1');
     expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledWith(directoryHandle);
   });
+
+  it('copies markdown source from raw mode inside the document page', async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByLabelText('原文'));
+    await user.click(within(screen.getByRole('article')).getByRole('button', { name: '复制原文' }));
+
+    expect(writeText).toHaveBeenCalledWith('# docs/01-intro.md');
+    expect(screen.getByText('已复制')).toBeInTheDocument();
+  });
+
+  it('saves markdown source from raw mode beside the copy action', async () => {
+    const user = userEvent.setup();
+    const write = vi.fn(async () => undefined);
+    const close = vi.fn(async () => undefined);
+    const createWritable = vi.fn(async () => ({ write, close }));
+    const showSaveFilePicker = vi.fn(async () => ({ createWritable }));
+    Object.defineProperty(window, 'showSaveFilePicker', {
+      configurable: true,
+      value: showSaveFilePicker,
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByLabelText('原文'));
+    await user.click(within(screen.getByRole('article')).getByRole('button', { name: '另存为' }));
+
+    expect(showSaveFilePicker).toHaveBeenCalledWith(
+      expect.objectContaining({
+        suggestedName: '01-intro.md',
+      }),
+    );
+    expect(write).toHaveBeenCalledWith('# docs/01-intro.md');
+    expect(close).toHaveBeenCalled();
+    expect(screen.getByText('已保存')).toBeInTheDocument();
+  });
 });

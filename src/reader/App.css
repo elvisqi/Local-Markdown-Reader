@@ -570,6 +570,29 @@ select {
   background: transparent;
 }
 
+.raw-source {
+  display: grid;
+  gap: 12px;
+}
+
+.raw-source__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  color: var(--reader-muted);
+  font-size: 12px;
+}
+
+.raw-source__toolbar button {
+  min-height: 30px;
+  padding: 5px 10px;
+}
+
+.raw-source pre {
+  margin-top: 0;
+}
+
 .mermaid-fullscreen {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 34px;

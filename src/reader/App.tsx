@@ -45,6 +45,7 @@ export function App() {
   const [lastDocument, setLastDocument] = useState<LastDocumentRecord | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rawActionStatus, setRawActionStatus] = useState<string | null>(null);
   const renderedContentRef = useRef<HTMLDivElement | null>(null);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
   const fileNavigation = useMemo(
@@ -97,6 +98,10 @@ export function App() {
 
     return installTableFullscreen(renderedContentRef.current);
   }, [rendered.html, settings.reading.rawMode]);
+
+  useEffect(() => {
+    setRawActionStatus(null);
+  }, [markdown, settings.reading.rawMode]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -314,6 +319,51 @@ export function App() {
     }
   }
 
+  async function copyMarkdownSource() {
+    setRawActionStatus(null);
+
+    try {
+      await navigator.clipboard.writeText(markdown);
+      setRawActionStatus('已复制');
+    } catch (err) {
+      setRawActionStatus(err instanceof Error ? err.message : '复制失败');
+    }
+  }
+
+  async function saveMarkdownSourceAs() {
+    setRawActionStatus(null);
+
+    try {
+      const suggestedName = selectMarkdownSaveName(activePath);
+
+      if (window.showSaveFilePicker) {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName,
+          types: [
+            {
+              description: 'Markdown 文件',
+              accept: { 'text/markdown': ['.md', '.markdown'] },
+            },
+          ],
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(markdown);
+        await writable.close();
+        setRawActionStatus('已保存');
+        return;
+      }
+
+      downloadMarkdownSource(markdown, suggestedName);
+      setRawActionStatus('已下载');
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return;
+      }
+
+      setRawActionStatus(err instanceof Error ? err.message : '保存失败');
+    }
+  }
+
   function openSiblingFile(path: string | null | undefined) {
     if (!directoryHandle || !path) {
       return;
@@ -400,7 +450,18 @@ export function App() {
           {error && <p className="error-note">{error}</p>}
           {activePath ? (
             settings.reading.rawMode ? (
-              <pre>{markdown}</pre>
+              <section className="raw-source">
+                <div className="raw-source__toolbar">
+                  <button type="button" onClick={() => void copyMarkdownSource()}>
+                    复制原文
+                  </button>
+                  <button type="button" onClick={() => void saveMarkdownSourceAs()}>
+                    另存为
+                  </button>
+                  {rawActionStatus && <span role="status">{rawActionStatus}</span>}
+                </div>
+                <pre>{markdown}</pre>
+              </section>
             ) : (
               <div ref={renderedContentRef}>
                 <RenderedMarkdownContent html={rendered.html} mermaidEnabled={settings.rendering.mermaid} />
@@ -438,4 +499,27 @@ export function App() {
       </main>
     </div>
   );
+}
+
+function selectMarkdownSaveName(path: string | null): string {
+  const fallbackName = 'document.md';
+  const name = path?.split('/').filter(Boolean).at(-1) ?? fallbackName;
+
+  return /\.(md|markdown)$/i.test(name) ? name : `${name}.md`;
+}
+
+function downloadMarkdownSource(source: string, filename: string) {
+  const objectUrl = URL.createObjectURL(new Blob([source], { type: 'text/markdown;charset=utf-8' }));
+  const anchor = document.createElement('a');
+
+  try {
+    anchor.href = objectUrl;
+    anchor.download = filename;
+    anchor.rel = 'noopener';
+    document.body.append(anchor);
+    anchor.click();
+  } finally {
+    anchor.remove();
+    URL.revokeObjectURL(objectUrl);
+  }
 }
