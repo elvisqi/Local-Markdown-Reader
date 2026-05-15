@@ -577,6 +577,7 @@ select {
 
 .raw-source {
   display: grid;
+  min-width: 0;
   gap: 12px;
 }
 
@@ -812,6 +813,7 @@ select {
 
 .large-document-reader {
   display: grid;
+  min-width: 0;
   gap: 12px;
 }
 
@@ -877,6 +879,7 @@ select {
 }
 
 .large-document-reader__source {
+  min-width: 0;
   overflow: auto;
   padding: 16px;
   border: 1px solid var(--reader-border);
@@ -892,6 +895,7 @@ select {
 }
 
 .large-document-reader__virtual-source {
+  min-width: 0;
   overflow: auto;
   height: min(72vh, 820px);
   border: 1px solid var(--reader-border);
@@ -919,6 +923,7 @@ select {
 }
 
 .large-document-reader__virtual-row code {
+  min-width: 0;
   flex: 1;
   font: inherit;
 }
@@ -933,7 +938,12 @@ select {
 
 .chunked-markdown-document {
   display: grid;
+  min-width: 0;
   gap: 12px;
+}
+
+.chunked-markdown-document > div {
+  min-width: 0;
 }
 
 .chunked-markdown-document__meta {

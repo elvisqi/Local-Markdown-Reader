@@ -29,4 +29,13 @@ describe('table layout styles', () => {
     expect(getRule('.document-reader pre')).toMatch(/max-width:\s*100%/);
     expect(getRule('.document-reader pre')).toMatch(/overflow-x:\s*auto/);
   });
+
+  it('keeps long code lines from widening large-file preview and raw views', () => {
+    expect(getRule('.large-document-reader')).toMatch(/min-width:\s*0/);
+    expect(getRule('.chunked-markdown-document')).toMatch(/min-width:\s*0/);
+    expect(getRule('.chunked-markdown-document > div')).toMatch(/min-width:\s*0/);
+    expect(getRule('.raw-source')).toMatch(/min-width:\s*0/);
+    expect(getRule('.large-document-reader__virtual-source')).toMatch(/min-width:\s*0/);
+    expect(getRule('.large-document-reader__virtual-row code')).toMatch(/min-width:\s*0/);
+  });
 });
