@@ -334,6 +334,28 @@ describe('App file navigation and drawer behavior', () => {
     vi.unstubAllGlobals();
   });
 
+  it('asks for file authorization when a temporary standalone source is empty and unavailable', async () => {
+    vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue({
+      url: 'file:///Users/qiyu/Desktop/huge.md',
+      name: 'huge.md',
+      sourceSize: 0,
+      sourceAvailable: false,
+      createdAt: 123,
+    });
+    window.history.replaceState(null, '', '/reader.html?temporaryDocument=temp-1');
+
+    render(<App />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          '这个临时 Markdown 文件太大，浏览器无法从当前页面安全传递完整内容。请通过“打开文件”或“打开文件夹”授权读取后继续阅读。',
+        ),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByRole('button', { name: '打开文件' })).toBeInTheDocument();
+  });
+
   it('does not fetch omitted temporary source when the recorded file is large', async () => {
     vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue({
       url: 'file:///Users/qiyu/Desktop/huge.md',

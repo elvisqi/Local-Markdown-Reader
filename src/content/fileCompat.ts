@@ -6,6 +6,7 @@ const INLINE_TEMPORARY_SOURCE_LIMIT_CHARS = 2 * 1024 * 1024;
 if (isMarkdownPath) {
   document.documentElement.dataset.markdownReaderCompatible = 'true';
   const banner = document.createElement('div');
+  banner.dataset.markdownReaderBanner = 'true';
   banner.style.cssText = [
     'position:fixed',
     'z-index:2147483647',
@@ -30,8 +31,8 @@ if (isMarkdownPath) {
   button.style.cssText =
     'border:1px solid #1769e0;border-radius:6px;background:#1769e0;color:#fff;font:inherit;padding:6px 8px';
   button.addEventListener('click', () => {
-    const source = document.querySelector('pre')?.textContent ?? document.body.textContent ?? '';
-    const canInlineSource = source.length <= INLINE_TEMPORARY_SOURCE_LIMIT_CHARS;
+    const source = readMarkdownSource();
+    const canInlineSource = source.length > 0 && source.length <= INLINE_TEMPORARY_SOURCE_LIMIT_CHARS;
 
     void chrome.runtime.sendMessage({
       type: 'openReader',
@@ -45,3 +46,16 @@ if (isMarkdownPath) {
   banner.append(button);
   document.body.append(banner);
 }
+
+function readMarkdownSource(): string {
+  const preSource = document.querySelector('pre')?.textContent;
+  if (preSource && preSource.length > 0) {
+    return preSource;
+  }
+
+  const bodyClone = document.body.cloneNode(true) as HTMLElement;
+  bodyClone.querySelector('[data-markdown-reader-banner="true"]')?.remove();
+  return bodyClone.textContent ?? '';
+}
+
+export {};
