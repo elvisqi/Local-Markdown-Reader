@@ -42,6 +42,7 @@ describe('table layout styles', () => {
   it('keeps large markdown table previews readable in the reader grid', () => {
     expect(getRule('.large-markdown-table-preview')).toMatch(/overflow-x:\s*auto/);
     expect(getRule('.large-markdown-table-preview table')).toMatch(/table-layout:\s*fixed/);
+    expect(getRule('.large-markdown-table-preview th')).toMatch(/overflow-wrap:\s*anywhere/);
     expect(getRule('.large-markdown-table-preview td')).toMatch(/overflow-wrap:\s*anywhere/);
   });
 });

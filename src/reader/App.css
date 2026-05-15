@@ -964,6 +964,11 @@ select {
   table-layout: fixed;
 }
 
+.large-markdown-table-preview th {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
 .large-markdown-table-preview td {
   overflow-wrap: anywhere;
   word-break: normal;
