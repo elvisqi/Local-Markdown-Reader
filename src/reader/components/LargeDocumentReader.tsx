@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { createLineWindow, formatDocumentBytes, LARGE_LINE_WINDOW_SIZE } from '../largeDocument';
-import type { LargeDocumentIndex, LargeDocumentLineRange, LargeDocumentSearchResult } from '../largeDocumentIndex';
+import { formatDocumentBytes, LARGE_LINE_WINDOW_SIZE } from '../largeDocument';
+import type { LargeDocumentIndex, LargeDocumentSearchResult } from '../largeDocumentIndex';
 import type { LargeDocumentWorkerClient } from '../largeDocumentWorkerClient';
+import { VirtualLargeDocumentReader } from './VirtualLargeDocumentReader';
 
 export function LargeDocumentReader({
   file,
@@ -19,40 +20,11 @@ export function LargeDocumentReader({
   anchorLine: number;
   onNavigateLine: (line: number) => void;
 }) {
-  const [range, setRange] = useState<LargeDocumentLineRange | null>(null);
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<LargeDocumentSearchResult[]>([]);
   const [status, setStatus] = useState<string | null>(null);
+  const [searchTargetLine, setSearchTargetLine] = useState<number | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    const nextWindow = createLineWindow({
-      lineCount: index.lineCount,
-      anchorLine,
-      windowSize: LARGE_LINE_WINDOW_SIZE,
-    });
-
-    let cancelled = false;
-    setStatus('正在读取当前窗口');
-
-    void client.readLines(file, index, nextWindow).then(
-      (nextRange) => {
-        if (!cancelled) {
-          setRange(nextRange);
-          setStatus(null);
-        }
-      },
-      (error) => {
-        if (!cancelled) {
-          setStatus(error instanceof Error ? error.message : '读取失败');
-        }
-      },
-    );
-
-    return () => {
-      cancelled = true;
-    };
-  }, [anchorLine, client, file, index]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -80,10 +52,9 @@ export function LargeDocumentReader({
 
   function jumpToLine(line: number) {
     const nextLine = Math.min(Math.max(1, line), index.lineCount);
+    setSearchTargetLine(nextLine);
     onNavigateLine(nextLine);
   }
-
-  const lines = range?.text.replace(/\n$/, '').split('\n') ?? [];
 
   return (
     <section className="large-document-reader" aria-label="大文件阅读器">
@@ -142,15 +113,13 @@ export function LargeDocumentReader({
         </ol>
       )}
 
-      <pre className="large-document-reader__source">
-        {lines.map((line, index) => (
-          <code key={`${range?.startLine ?? 1}:${index}`}>
-            <span className="large-document-reader__line-number">{(range?.startLine ?? 1) + index}</span>
-            {line}
-            {'\n'}
-          </code>
-        ))}
-      </pre>
+      <VirtualLargeDocumentReader
+        file={file}
+        index={index}
+        client={client}
+        anchorLine={anchorLine}
+        searchTargetLine={searchTargetLine}
+      />
     </section>
   );
 }

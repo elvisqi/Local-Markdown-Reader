@@ -873,6 +873,38 @@ select {
   display: block;
 }
 
+.large-document-reader__virtual-source {
+  overflow: auto;
+  height: min(72vh, 820px);
+  border: 1px solid var(--reader-border);
+  border-radius: 8px;
+  background: var(--reader-code-bg);
+  color: var(--reader-code-text);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+}
+
+.large-document-reader__virtual-spacer {
+  position: relative;
+  min-width: 100%;
+}
+
+.large-document-reader__virtual-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  min-height: 32px;
+  padding: 5px 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.large-document-reader__virtual-row code {
+  flex: 1;
+  font: inherit;
+}
+
 .large-document-reader__line-number {
   display: inline-block;
   min-width: 5ch;

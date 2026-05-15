@@ -1,8 +1,12 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { LargeDocumentIndex } from '../largeDocumentIndex';
 import { LargeDocumentReader } from './LargeDocumentReader';
+
+vi.mock('./VirtualLargeDocumentReader', () => ({
+  VirtualLargeDocumentReader: () => <div data-testid="virtual-large-document-reader">virtual rows</div>,
+}));
 
 function createIndex(): LargeDocumentIndex {
   return {
@@ -17,7 +21,7 @@ function createIndex(): LargeDocumentIndex {
 }
 
 describe('LargeDocumentReader', () => {
-  it('loads and pages line windows through the worker client', async () => {
+  it('renders the large document shell and virtualized source', () => {
     const client = {
       readLines: vi.fn(async () => ({ startLine: 1, endLine: 240, text: 'a\nb\nc\n' })),
       search: vi.fn(),
@@ -36,12 +40,8 @@ describe('LargeDocumentReader', () => {
       />,
     );
 
-    await waitFor(() => expect(screen.getByText('a')).toBeInTheDocument());
     expect(screen.getByText('大文件安全模式')).toBeInTheDocument();
-    expect(client.readLines).toHaveBeenCalledWith(expect.any(File), expect.any(Object), {
-      startLine: 1,
-      endLine: 240,
-    });
+    expect(screen.getByTestId('virtual-large-document-reader')).toBeInTheDocument();
   });
 
   it('focuses custom search when Ctrl+F is pressed in large mode', async () => {
