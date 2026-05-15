@@ -58,4 +58,25 @@ describe('background reader opening', () => {
     );
     expect(openReaderPage).toHaveBeenCalledWith('temp-1');
   });
+
+  it('opens reader with temporary metadata when standalone source is too large to inline', async () => {
+    const { openReaderFromMessage } = await import('./index');
+
+    await openReaderFromMessage({
+      type: 'openReader',
+      sourceUrl: 'file:///Users/qiyu/Desktop/huge.md',
+      sourceSize: 108 * 1024 * 1024,
+      sourceAvailable: false,
+    });
+
+    expect(saveTemporaryMarkdownDocument).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: 'file:///Users/qiyu/Desktop/huge.md',
+        name: 'huge.md',
+        sourceSize: 108 * 1024 * 1024,
+        sourceAvailable: false,
+      }),
+    );
+    expect(openReaderPage).toHaveBeenCalledWith('temp-1');
+  });
 });

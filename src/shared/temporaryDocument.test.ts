@@ -79,4 +79,19 @@ describe('temporary markdown documents', () => {
 
     vi.unstubAllGlobals();
   });
+
+  it('stores metadata for temporary documents whose source is not available inline', async () => {
+    const storage = createStorage();
+    const document = {
+      url: 'file:///Users/qiyu/Desktop/huge.md',
+      name: 'huge.md',
+      sourceSize: 108 * 1024 * 1024,
+      sourceAvailable: false,
+      createdAt: 123,
+    };
+
+    const id = await saveTemporaryMarkdownDocument(document, storage, () => 'huge-1');
+
+    await expect(consumeTemporaryMarkdownDocument(id, storage)).resolves.toEqual(document);
+  });
 });

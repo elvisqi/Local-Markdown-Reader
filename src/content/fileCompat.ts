@@ -1,6 +1,7 @@
 const isMarkdownPath = /\.(?:md|markdown|mdown|mkdn|mdtxt|mdtext)(?:[#?].*)?$/i.test(
   window.location.pathname,
 );
+const INLINE_TEMPORARY_SOURCE_LIMIT_CHARS = 2 * 1024 * 1024;
 
 if (isMarkdownPath) {
   document.documentElement.dataset.markdownReaderCompatible = 'true';
@@ -29,10 +30,15 @@ if (isMarkdownPath) {
   button.style.cssText =
     'border:1px solid #1769e0;border-radius:6px;background:#1769e0;color:#fff;font:inherit;padding:6px 8px';
   button.addEventListener('click', () => {
+    const source = document.querySelector('pre')?.textContent ?? document.body.textContent ?? '';
+    const canInlineSource = source.length <= INLINE_TEMPORARY_SOURCE_LIMIT_CHARS;
+
     void chrome.runtime.sendMessage({
       type: 'openReader',
       sourceUrl: window.location.href,
-      source: document.querySelector('pre')?.innerText ?? document.body.innerText,
+      source: canInlineSource ? source : undefined,
+      sourceSize: source.length,
+      sourceAvailable: canInlineSource,
     });
   });
 

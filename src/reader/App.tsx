@@ -3,15 +3,32 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { flattenMarkdownFiles, selectDefaultDocument } from '../shared/fileSystem';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, subscribeSettings } from '../shared/settings';
-import { consumeTemporaryMarkdownDocument } from '../shared/temporaryDocument';
+import { consumeTemporaryMarkdownDocument, type TemporaryMarkdownDocument } from '../shared/temporaryDocument';
 import type { FileTreeNode, RenderResult } from '../shared/types';
 import { selectActiveHeadingId } from './activeHeading';
 import { FileDrawer } from './components/FileDrawer';
+import { LargeDocumentReader } from './components/LargeDocumentReader';
 import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
 import { reloadCurrentDocument } from './currentDocumentReload';
 import { selectSiblingMarkdownNavigation } from './fileNavigation';
-import { openDirectory, readMarkdownFile, scanMarkdownDirectory } from './fileSystemAccess';
+import {
+  openDirectory,
+  openMarkdownFile,
+  readMarkdownFile,
+  readMarkdownFileSlice,
+  readMarkdownFileSnapshot,
+  scanMarkdownDirectory,
+  type MarkdownFileSnapshot,
+} from './fileSystemAccess';
+import {
+  classifyMarkdownDocument,
+  LARGE_SAMPLE_BYTES,
+  type LargeDocumentKind,
+  type LargeOutlineItem,
+} from './largeDocument';
+import type { LargeDocumentIndex } from './largeDocumentIndex';
+import { createLargeDocumentWorkerClient, type LargeDocumentWorkerClient } from './largeDocumentWorkerClient';
 import {
   canReadDirectory,
   loadLastDocument,
@@ -33,6 +50,15 @@ const EMPTY_RENDER: RenderResult = {
 };
 const KEYBOARD_SCROLL_STEP = 160;
 
+type LargeDocumentSession = {
+  kind: Exclude<LargeDocumentKind, 'normal'>;
+  reason: string;
+  file: File;
+  index: LargeDocumentIndex;
+  client: LargeDocumentWorkerClient;
+  rememberRecord?: LastDocumentRecord;
+};
+
 export function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -46,6 +72,8 @@ export function App() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rawActionStatus, setRawActionStatus] = useState<string | null>(null);
+  const [largeDocument, setLargeDocument] = useState<LargeDocumentSession | null>(null);
+  const [largeAnchorLine, setLargeAnchorLine] = useState(1);
   const renderedContentRef = useRef<HTMLDivElement | null>(null);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
   const fileNavigation = useMemo(
@@ -64,6 +92,10 @@ export function App() {
   useEffect(() => {
     return subscribeSettings(setSettings);
   }, []);
+
+  useEffect(() => {
+    return () => largeDocument?.client.terminate();
+  }, [largeDocument?.client]);
 
   useEffect(() => {
     setActiveHeadingId(rendered.outline[0]?.id ?? null);
@@ -162,17 +194,86 @@ export function App() {
     }
   }
 
-  async function openFile(handle: FileSystemDirectoryHandle, path: string, remember = true) {
+  async function openStandaloneFile() {
+    setError(null);
+    setStatus('请选择一个 Markdown 文件。');
+
+    try {
+      const snapshot = await openMarkdownFile();
+      const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
+      const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
+
+      setDirectoryHandle(null);
+      setTree([]);
+      setDrawerOpen(false);
+
+      if (classification.kind !== 'normal') {
+        await openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+          anchorLine: 1,
+        });
+        return;
+      }
+
+      closeLargeDocument();
+      const source = await snapshot.file.text();
+      const result = await renderMarkdown(source);
+
+      setActivePath(snapshot.name);
+      setMarkdown(source);
+      setRendered(result);
+      setLargeAnchorLine(1);
+      setStatus(null);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setStatus(null);
+        return;
+      }
+
+      setStatus(null);
+      setError(err instanceof Error ? err.message : '无法打开文件。');
+    }
+  }
+
+  async function openFile(
+    handle: FileSystemDirectoryHandle,
+    path: string,
+    remember = true,
+    options: { anchorLine?: number } = {},
+  ) {
     setError(null);
     setStatus(`正在打开 ${path}`);
 
     try {
+      const snapshot = await readMarkdownFileSnapshot(handle, path);
+      const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
+      const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
+
+      if (classification.kind !== 'normal') {
+        const record = remember
+          ? {
+              directoryHandle: handle,
+              directoryName: handle.name,
+              path,
+              updatedAt: Date.now(),
+            }
+          : undefined;
+
+        await openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+          rememberRecord: record,
+          anchorLine: options.anchorLine ?? 1,
+        });
+        return;
+      }
+
+      closeLargeDocument();
+
       const source = await readMarkdownFile(handle, path);
       const result = await renderMarkdown(source);
 
       setActivePath(path);
       setMarkdown(source);
       setRendered(result);
+      setLargeAnchorLine(1);
       setStatus(null);
 
       if (remember) {
@@ -191,6 +292,47 @@ export function App() {
     }
   }
 
+  async function openLargeDocument(
+    snapshot: MarkdownFileSnapshot,
+    kind: Exclude<LargeDocumentKind, 'normal'>,
+    reason: string,
+    options: { rememberRecord?: LastDocumentRecord; anchorLine?: number } = {},
+  ) {
+    closeLargeDocument();
+    const client = createLargeDocumentWorkerClient();
+    setStatus(`正在建立大文件索引：${snapshot.path}`);
+    const index = await client.buildIndex(snapshot.file);
+
+    setActivePath(snapshot.path);
+    setMarkdown('');
+    setRendered({
+      ...EMPTY_RENDER,
+      title: index.title ?? snapshot.path,
+      outline: index.outline,
+      diagnostics: index.warnings.map((message) => ({ level: 'warning', message })),
+    });
+    setLargeAnchorLine(options.anchorLine ?? 1);
+    setLargeDocument({
+      kind,
+      reason,
+      file: snapshot.file,
+      index,
+      client,
+      rememberRecord: options.rememberRecord,
+    });
+    setStatus(null);
+
+    if (options.rememberRecord) {
+      setLastDocument(options.rememberRecord);
+      await saveLastDocument(options.rememberRecord);
+    }
+  }
+
+  function closeLargeDocument() {
+    largeDocument?.client.terminate();
+    setLargeDocument(null);
+  }
+
   async function openInitialDocument() {
     const temporaryDocumentId = new URLSearchParams(window.location.search).get('temporaryDocument');
 
@@ -198,7 +340,7 @@ export function App() {
       const temporaryDocument = await consumeTemporaryMarkdownDocument(temporaryDocumentId);
 
       if (temporaryDocument) {
-        await openTemporaryDocument(temporaryDocument.name, temporaryDocument.source ?? temporaryDocument.url);
+        await openTemporaryDocument(temporaryDocument);
         return;
       }
     }
@@ -206,14 +348,16 @@ export function App() {
     await restoreLastDocument();
   }
 
-  async function openTemporaryDocument(name: string, sourceOrUrl: string) {
+  async function openTemporaryDocument(temporaryDocument: TemporaryMarkdownDocument) {
+    const { name } = temporaryDocument;
     setError(null);
     setStatus(`正在打开 ${name}`);
 
     try {
-      const source = isUrl(sourceOrUrl) ? await fetch(sourceOrUrl).then((response) => response.text()) : sourceOrUrl;
+      const source = await readTemporaryDocumentSource(temporaryDocument);
       const result = await renderMarkdown(source);
 
+      closeLargeDocument();
       setDirectoryHandle(null);
       setTree([]);
       setActivePath(name);
@@ -221,9 +365,29 @@ export function App() {
       setRendered(result);
       setStatus(null);
     } catch (err) {
+      if (temporaryDocument.sourceAvailable === false) {
+        closeLargeDocument();
+        setDirectoryHandle(null);
+        setTree([]);
+        setActivePath(null);
+        setMarkdown('');
+        setRendered(EMPTY_RENDER);
+        setStatus('这个临时 Markdown 文件太大，浏览器无法从当前页面安全传递完整内容。请通过“打开文件”或“打开文件夹”授权读取后继续阅读。');
+        setError(null);
+        return;
+      }
+
       setStatus(null);
       setError(err instanceof Error ? err.message : `无法打开 ${name}。`);
     }
+  }
+
+  async function readTemporaryDocumentSource(temporaryDocument: TemporaryMarkdownDocument): Promise<string> {
+    if (typeof temporaryDocument.source === 'string') {
+      return temporaryDocument.source;
+    }
+
+    return fetch(temporaryDocument.url).then((response) => response.text());
   }
 
   async function restoreLastDocument(requestPermission = false) {
@@ -266,6 +430,12 @@ export function App() {
   }
 
   async function reloadActiveFile() {
+    if (largeDocument && directoryHandle && activePath) {
+      const currentLine = largeAnchorLine;
+      await openFile(directoryHandle, activePath, false, { anchorLine: currentLine });
+      return;
+    }
+
     await reloadCurrentDocument({
       directoryHandle,
       activePath,
@@ -400,15 +570,6 @@ export function App() {
     return target.closest('input, textarea, select') !== null;
   }
 
-  function isUrl(value: string): boolean {
-    try {
-      const url = new URL(value);
-      return url.protocol === 'file:' || url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  }
-
   return (
     <div
       className={`reader-app theme-${settings.reading.theme} width-${settings.reading.width} style-${settings.reading.style}`}
@@ -449,7 +610,20 @@ export function App() {
           {status && <p className="status-note">{status}</p>}
           {error && <p className="error-note">{error}</p>}
           {activePath ? (
-            settings.reading.rawMode ? (
+            largeDocument ? (
+              <LargeDocumentReader
+                file={largeDocument.file}
+                index={largeDocument.index}
+                reason={largeDocument.reason}
+                client={largeDocument.client}
+                anchorLine={largeAnchorLine}
+                onNavigateLine={(line) => {
+                  setLargeAnchorLine(line);
+                  const heading = findNearestLargeHeading(largeDocument.index.outline, line);
+                  setActiveHeadingId(heading?.id ?? activeHeadingId);
+                }}
+              />
+            ) : settings.reading.rawMode ? (
               <section className="raw-source">
                 <div className="raw-source__toolbar">
                   <button type="button" onClick={() => void copyMarkdownSource()}>
@@ -482,6 +656,9 @@ export function App() {
                     恢复上次文档
                   </button>
                 )}
+                <button type="button" onClick={() => void openStandaloneFile()}>
+                  打开文件
+                </button>
                 <button type="button" onClick={openFolder}>
                   打开文件夹
                 </button>
@@ -493,7 +670,18 @@ export function App() {
           <OutlinePanel
             outline={rendered.outline}
             activeId={activeHeadingId}
-            onNavigate={(id) => document.getElementById(id)?.scrollIntoView({ block: 'start' })}
+            onNavigate={(id) => {
+              if (largeDocument) {
+                const line = findLargeOutlineLine(largeDocument.index.outline, id);
+                if (line) {
+                  setLargeAnchorLine(line);
+                  setActiveHeadingId(id);
+                }
+                return;
+              }
+
+              document.getElementById(id)?.scrollIntoView({ block: 'start' });
+            }}
           />
         )}
       </main>
@@ -522,4 +710,35 @@ function downloadMarkdownSource(source: string, filename: string) {
     anchor.remove();
     URL.revokeObjectURL(objectUrl);
   }
+}
+
+function findLargeOutlineLine(items: LargeOutlineItem[], id: string): number | null {
+  for (const item of items) {
+    if (item.id === id) {
+      return item.line;
+    }
+
+    const childLine = findLargeOutlineLine(item.children, id);
+    if (childLine) {
+      return childLine;
+    }
+  }
+
+  return null;
+}
+
+function findNearestLargeHeading(items: LargeOutlineItem[], line: number): LargeOutlineItem | null {
+  let nearest: LargeOutlineItem | null = null;
+
+  for (const item of flattenLargeOutline(items)) {
+    if (item.line <= line && (!nearest || item.line >= nearest.line)) {
+      nearest = item;
+    }
+  }
+
+  return nearest;
+}
+
+function flattenLargeOutline(items: LargeOutlineItem[]): LargeOutlineItem[] {
+  return items.flatMap((item) => [item, ...flattenLargeOutline(item.children)]);
 }

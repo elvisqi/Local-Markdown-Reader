@@ -12,6 +12,7 @@ A local-first Chrome/Edge Manifest V3 extension for reading Markdown folders wit
 - Switch between sibling Markdown files in the authorized folder.
 - Restore the last opened Markdown document when browser folder permission is still available.
 - Choose reader theme, content width, raw Markdown mode, and reading style templates.
+- Open large Markdown files in a safe mode that avoids compiling or mounting the full document at once.
 
 - 在用户明确授权文件夹后，读取并浏览其中的 Markdown 文件。
 - 渲染 GitHub Flavored Markdown，支持标题、表格、任务列表、代码块，以及面向公式和图表的语法基础。
@@ -19,6 +20,7 @@ A local-first Chrome/Edge Manifest V3 extension for reading Markdown folders wit
 - 在已授权文件夹内切换其他 Markdown 文件。
 - 如果浏览器仍保留文件夹权限，自动恢复上次打开的 Markdown 文档。
 - 可切换阅读主题、正文宽度、Raw Markdown 模式和阅读样式模板。
+- 大 Markdown 文件会进入安全模式，避免一次性编译或挂载整篇文档。
 
 ## Reading Styles / 阅读样式
 
@@ -35,6 +37,20 @@ The reader includes style templates that can be changed from the extension popup
 - `GitHub`：接近 GitHub Markdown 的展示方式。
 - `Paper`：留白更充足的长文阅读风格。
 - `Classic`：更接近原始的简单渲染样式。
+
+## Large File Reading / 大文件阅读
+
+Markdown files larger than 2MB open in safe large-file mode. This mode reads and displays line windows on demand, builds the document index in a worker, and avoids full-document Markdown rendering so very large files can open without freezing the browser.
+
+2MB 以上的 Markdown 会进入大文件安全模式。安全模式按需读取并展示行窗口，在 Worker 中建立文档索引，并避免整篇 Markdown 渲染，因此可以打开超大文件而不锁死浏览器。
+
+Use the in-page search box in large-file mode. Browser native `Ctrl+F` remains best for ordinary files, but it cannot search text that has not been mounted in a virtual or paged large-file view.
+
+大文件模式下请使用页面内搜索框。浏览器原生 `Ctrl+F` 仍适合普通文件，但无法搜索虚拟/分页大文件视图中尚未挂载到页面的文本。
+
+Very large standalone files opened from a `file://` tab may require explicit authorization through "Open File" or "Open Folder"; this prevents the content script from copying huge source text into extension storage.
+
+通过 `file://` 标签页打开的超大单文件，可能需要通过“打开文件”或“打开文件夹”再次授权读取；这样可以避免 content script 把超大正文复制进扩展存储。
 
 ## Development / 开发
 

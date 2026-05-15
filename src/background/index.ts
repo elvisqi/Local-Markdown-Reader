@@ -27,8 +27,10 @@ export async function openReaderFromMessage(message: unknown): Promise<void> {
   }
 
   const source = getSource(message);
+  const sourceAvailable = getSourceAvailable(message);
+  const sourceSize = getSourceSize(message);
 
-  if (!source) {
+  if (!source && sourceAvailable !== false) {
     await openReaderPage();
     return;
   }
@@ -36,7 +38,9 @@ export async function openReaderFromMessage(message: unknown): Promise<void> {
   const temporaryDocumentId = await saveTemporaryMarkdownDocument({
     url: sourceUrl,
     name: createTemporaryMarkdownDocumentName(sourceUrl),
-    source,
+    source: source ?? undefined,
+    sourceSize: sourceSize ?? undefined,
+    sourceAvailable: sourceAvailable ?? Boolean(source),
     createdAt: Date.now(),
   });
 
@@ -64,6 +68,32 @@ function getSource(message: unknown): string | null {
     typeof message.source === 'string'
   ) {
     return message.source;
+  }
+
+  return null;
+}
+
+function getSourceAvailable(message: unknown): boolean | null {
+  if (
+    typeof message === 'object' &&
+    message !== null &&
+    'sourceAvailable' in message &&
+    typeof message.sourceAvailable === 'boolean'
+  ) {
+    return message.sourceAvailable;
+  }
+
+  return null;
+}
+
+function getSourceSize(message: unknown): number | null {
+  if (
+    typeof message === 'object' &&
+    message !== null &&
+    'sourceSize' in message &&
+    typeof message.sourceSize === 'number'
+  ) {
+    return message.sourceSize;
   }
 
   return null;

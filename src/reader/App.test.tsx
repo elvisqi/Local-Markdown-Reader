@@ -12,10 +12,24 @@ vi.mock('./fileSystemAccess', async () => {
   return {
     ...actual,
     openDirectory: vi.fn(),
+    openMarkdownFile: vi.fn(),
     readMarkdownFile: vi.fn(),
+    readMarkdownFileSlice: vi.fn(),
+    readMarkdownFileSnapshot: vi.fn(),
     scanMarkdownDirectory: vi.fn(),
   };
 });
+
+const largeDocumentClient = {
+  buildIndex: vi.fn(),
+  readLines: vi.fn(),
+  search: vi.fn(),
+  terminate: vi.fn(),
+};
+
+vi.mock('./largeDocumentWorkerClient', () => ({
+  createLargeDocumentWorkerClient: vi.fn(() => largeDocumentClient),
+}));
 
 vi.mock('./recentDocument', async () => {
   const actual = await vi.importActual<typeof import('./recentDocument')>('./recentDocument');
@@ -65,6 +79,30 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(tree);
     vi.mocked(fileSystemAccess.readMarkdownFile).mockImplementation(async (_handle, path) => `# ${path}`);
+    vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('# sample');
+    vi.mocked(fileSystemAccess.openMarkdownFile).mockRejectedValue(new DOMException('AbortError', 'AbortError'));
+    largeDocumentClient.buildIndex.mockResolvedValue({
+      name: 'big.md',
+      size: 2 * 1024 * 1024,
+      lineCount: 2,
+      lineStarts: [0, 6],
+      title: 'Big',
+      outline: [{ id: 'big', text: 'Big', depth: 1, line: 1, children: [] }],
+      warnings: [],
+    });
+    largeDocumentClient.readLines.mockResolvedValue({ startLine: 1, endLine: 2, text: '# Big\ncontent\n' });
+    largeDocumentClient.search.mockResolvedValue([]);
     vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(null);
     vi.mocked(recentDocument.saveLastDocument).mockResolvedValue(undefined);
     vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue(null);
@@ -240,6 +278,154 @@ describe('App file navigation and drawer behavior', () => {
     expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
 
     vi.unstubAllGlobals();
+  });
+
+  it('opens large directory documents without full markdown rendering', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['# Big\n'.padEnd(2 * 1024 * 1024, 'x')], 'big.md', {
+      type: 'text/markdown',
+    });
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'big.md', path: 'big.md' },
+    ]);
+    vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockResolvedValue({
+      path: 'big.md',
+      name: 'big.md',
+      size: largeFile.size,
+      type: 'text/markdown',
+      lastModified: largeFile.lastModified,
+      file: largeFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('# Big\n');
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+    expect(fileSystemAccess.readMarkdownFile).not.toHaveBeenCalled();
+  });
+
+  it('asks for file authorization when a temporary standalone file is too large to inline', async () => {
+    vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue({
+      url: 'file:///Users/qiyu/Desktop/huge.md',
+      name: 'huge.md',
+      sourceSize: 108 * 1024 * 1024,
+      sourceAvailable: false,
+      createdAt: 123,
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))));
+    window.history.replaceState(null, '', '/reader.html?temporaryDocument=temp-1');
+
+    render(<App />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          '这个临时 Markdown 文件太大，浏览器无法从当前页面安全传递完整内容。请通过“打开文件”或“打开文件夹”授权读取后继续阅读。',
+        ),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByRole('button', { name: '打开文件' })).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
+  });
+
+  it('navigates large document outline items by line window', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['# Big\n## Deep\ncontent'.padEnd(2 * 1024 * 1024, 'x')], 'big.md', {
+      type: 'text/markdown',
+    });
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'big.md', path: 'big.md' },
+    ]);
+    vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockResolvedValue({
+      path: 'big.md',
+      name: 'big.md',
+      size: largeFile.size,
+      type: 'text/markdown',
+      lastModified: largeFile.lastModified,
+      file: largeFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('# Big\n');
+    largeDocumentClient.buildIndex.mockResolvedValue({
+      name: 'big.md',
+      size: largeFile.size,
+      lineCount: 500,
+      lineStarts: [0, 6],
+      title: 'Big',
+      outline: [{ id: 'deep', text: 'Deep', depth: 2, line: 240, children: [] }],
+      warnings: [],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+
+    await user.click(within(screen.getByLabelText('文档大纲')).getByRole('button', { name: 'Deep' }));
+
+    await waitFor(() =>
+      expect(largeDocumentClient.readLines).toHaveBeenLastCalledWith(expect.any(File), expect.any(Object), {
+        startLine: 120,
+        endLine: 359,
+      }),
+    );
+  });
+
+  it('reloads large documents through the large-file path and keeps the current line window', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['# Big\ncontent'.padEnd(2 * 1024 * 1024, 'x')], 'big.md', {
+      type: 'text/markdown',
+    });
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'big.md', path: 'big.md' },
+    ]);
+    vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockResolvedValue({
+      path: 'big.md',
+      name: 'big.md',
+      size: largeFile.size,
+      type: 'text/markdown',
+      lastModified: largeFile.lastModified,
+      file: largeFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('# Big\n');
+    largeDocumentClient.buildIndex.mockResolvedValue({
+      name: 'big.md',
+      size: largeFile.size,
+      lineCount: 500,
+      lineStarts: [0, 6],
+      title: 'Big',
+      outline: [],
+      warnings: [],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: '下一页' }));
+    await waitFor(() =>
+      expect(largeDocumentClient.readLines).toHaveBeenLastCalledWith(expect.any(File), expect.any(Object), {
+        startLine: 121,
+        endLine: 360,
+      }),
+    );
+
+    await user.click(screen.getByRole('button', { name: '重载' }));
+
+    await waitFor(() => expect(largeDocumentClient.buildIndex).toHaveBeenCalledTimes(2));
+    expect(largeDocumentClient.readLines).toHaveBeenLastCalledWith(expect.any(File), expect.any(Object), {
+      startLine: 121,
+      endLine: 360,
+    });
   });
 
   it('falls back to the remembered directory document after a consumed temporary document is refreshed', async () => {

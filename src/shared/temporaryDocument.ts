@@ -6,6 +6,8 @@ export type TemporaryMarkdownDocument = {
   url: string;
   name: string;
   source?: string;
+  sourceSize?: number;
+  sourceAvailable?: boolean;
   createdAt: number;
 };
 
@@ -78,6 +80,8 @@ function isTemporaryMarkdownDocument(value: unknown): value is TemporaryMarkdown
     typeof value.name === 'string' &&
     'createdAt' in value &&
     typeof value.createdAt === 'number' &&
-    (!('source' in value) || typeof value.source === 'string')
+    (!('source' in value) || typeof value.source === 'string') &&
+    (!('sourceSize' in value) || typeof value.sourceSize === 'number') &&
+    (!('sourceAvailable' in value) || typeof value.sourceAvailable === 'boolean')
   );
 }
