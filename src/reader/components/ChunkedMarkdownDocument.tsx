@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { renderMarkdown } from '../../shared/render/markdown';
+import type { LargeOutlineItem } from '../largeDocument';
 import type { LargeDocumentIndex } from '../largeDocumentIndex';
 import type { LargeDocumentWorkerClient } from '../largeDocumentWorkerClient';
 import type { MarkdownChunk } from '../largeMarkdownChunks';
@@ -33,6 +34,7 @@ export function ChunkedMarkdownDocument({
   );
   const [chunkStates, setChunkStates] = useState<Record<string, ChunkState>>({});
   const requestedChunksRef = useRef(new Set<string>());
+  const sectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     requestedChunksRef.current.clear();
@@ -95,14 +97,28 @@ export function ChunkedMarkdownDocument({
     };
   }, [activeChunk, client, file, index]);
 
-  if (!activeChunk) {
+  const state = activeChunk ? chunkStates[activeChunk.id] ?? { status: 'loading' } : null;
+  const activeHeading = activeChunk
+    ? findNearestHeadingInLineRange(index.outline, activeLine, activeChunk.startLine, activeChunk.endLine)
+    : null;
+
+  useEffect(() => {
+    if (state?.status !== 'rendered' || !activeHeading) {
+      return;
+    }
+
+    const headingElement = sectionRef.current?.querySelector<HTMLElement>(`#${CSS.escape(activeHeading.id)}`);
+    if (typeof headingElement?.scrollIntoView === 'function') {
+      headingElement.scrollIntoView({ block: 'start' });
+    }
+  }, [activeHeading, state?.status, state?.status === 'rendered' ? state.html : null]);
+
+  if (!activeChunk || !state) {
     return <p className="empty-note">当前文档没有可预览的分块。</p>;
   }
 
-  const state = chunkStates[activeChunk.id] ?? { status: 'loading' };
-
   return (
-    <section className="chunked-markdown-document" aria-label="分块预览">
+    <section ref={sectionRef} className="chunked-markdown-document" aria-label="分块预览">
       <div className="chunked-markdown-document__meta">
         第 {activeChunk.startLine}-{activeChunk.endLine} 行
       </div>
@@ -124,4 +140,29 @@ export function ChunkedMarkdownDocument({
       {state.status === 'error' && <p className="status-note">无法读取当前分块：{state.message}</p>}
     </section>
   );
+}
+
+function findNearestHeadingInLineRange(
+  outline: LargeOutlineItem[],
+  line: number,
+  startLine: number,
+  endLine: number,
+): LargeOutlineItem | null {
+  let nearest: LargeOutlineItem | null = null;
+
+  for (const item of flattenOutline(outline)) {
+    if (item.line < startLine || item.line > endLine || item.line > line) {
+      continue;
+    }
+
+    if (!nearest || item.line >= nearest.line) {
+      nearest = item;
+    }
+  }
+
+  return nearest;
+}
+
+function flattenOutline(items: LargeOutlineItem[]): LargeOutlineItem[] {
+  return items.flatMap((item) => [item, ...flattenOutline(item.children)]);
 }

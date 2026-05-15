@@ -12,7 +12,15 @@ function createIndex(): LargeDocumentIndex {
     lineCount: 20,
     lineStarts: [0],
     title: 'Big',
-    outline: [],
+    outline: [
+      {
+        id: 'chunk',
+        text: 'Chunk',
+        depth: 1,
+        line: 1,
+        children: [{ id: 'deep', text: 'Deep', depth: 2, line: 3, children: [] }],
+      },
+    ],
     warnings: [],
   };
 }
@@ -133,6 +141,60 @@ describe('ChunkedMarkdownDocument', () => {
 
     await waitFor(() => expect(screen.getByText('无法读取当前分块：permission lost')).toBeInTheDocument());
     expect(renderMarkdown).not.toHaveBeenCalled();
+
+    renderMarkdown.mockRestore();
+  });
+
+  it('scrolls to headings inside the already rendered active chunk', async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    const renderMarkdown = vi.spyOn(markdownRenderer, 'renderMarkdown').mockResolvedValue({
+      html: '<h1 id="chunk">Chunk</h1><p>body</p><h2 id="deep">Deep</h2>',
+      outline: [],
+      title: null,
+      links: [],
+      diagnostics: [],
+    });
+    const client = {
+      readLines: vi.fn(async () => ({ startLine: 1, endLine: 4, text: '# Chunk\nbody\n## Deep\nmore' })),
+      search: vi.fn(),
+      buildIndex: vi.fn(),
+      terminate: vi.fn(),
+    };
+    const file = new File([''], 'big.md');
+    const index = createIndex();
+    const chunks: MarkdownChunk[] = [
+      { id: 'merged', startLine: 1, endLine: 4, startByte: 0, endByte: 60, headingId: 'chunk', renderable: true },
+    ];
+
+    const { rerender } = render(
+      <ChunkedMarkdownDocument
+        file={file}
+        index={index}
+        chunks={chunks}
+        client={client}
+        activeLine={1}
+        mermaidEnabled={false}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Deep' })).toBeInTheDocument());
+    const readCountBeforeNavigation = client.readLines.mock.calls.length;
+    scrollIntoView.mockClear();
+
+    rerender(
+      <ChunkedMarkdownDocument
+        file={file}
+        index={index}
+        chunks={chunks}
+        client={client}
+        activeLine={3}
+        mermaidEnabled={false}
+      />,
+    );
+
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start' }));
+    expect(client.readLines).toHaveBeenCalledTimes(readCountBeforeNavigation);
 
     renderMarkdown.mockRestore();
   });
