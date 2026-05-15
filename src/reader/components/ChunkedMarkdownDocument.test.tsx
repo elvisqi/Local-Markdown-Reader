@@ -198,4 +198,49 @@ describe('ChunkedMarkdownDocument', () => {
 
     renderMarkdown.mockRestore();
   });
+
+  it('scrolls duplicate headings by chunk-local ordinal instead of global slug', async () => {
+    const scrolledHeadingIds: string[] = [];
+    Element.prototype.scrollIntoView = vi.fn(function recordScrolledHeading(this: Element) {
+      scrolledHeadingIds.push(this.id);
+    });
+    const renderMarkdown = vi.spyOn(markdownRenderer, 'renderMarkdown').mockResolvedValue({
+      html: '<h1 id="api">API</h1><p>first</p><h1 id="api-1">API</h1><p>second</p>',
+      outline: [],
+      title: null,
+      links: [],
+      diagnostics: [],
+    });
+    const index: LargeDocumentIndex = {
+      ...createIndex(),
+      outline: [
+        { id: 'api', text: 'API', depth: 1, line: 1, children: [] },
+        { id: 'api-1', text: 'API', depth: 1, line: 20, children: [] },
+        { id: 'api-2', text: 'API', depth: 1, line: 40, children: [] },
+      ],
+    };
+    const client = {
+      readLines: vi.fn(async () => ({ startLine: 20, endLine: 60, text: '# API\nbody\n# API\nbody' })),
+      search: vi.fn(),
+      buildIndex: vi.fn(),
+      terminate: vi.fn(),
+    };
+
+    render(
+      <ChunkedMarkdownDocument
+        file={new File([''], 'big.md')}
+        index={index}
+        chunks={[{ id: 'api-1', startLine: 20, endLine: 60, startByte: 100, endByte: 300, headingId: 'api-1', renderable: true }]}
+        client={client}
+        activeLine={40}
+        mermaidEnabled={false}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'API' })).toHaveLength(2));
+    await waitFor(() => expect(scrolledHeadingIds).toContain('api-1'));
+    expect(scrolledHeadingIds).not.toContain('api');
+
+    renderMarkdown.mockRestore();
+  });
 });

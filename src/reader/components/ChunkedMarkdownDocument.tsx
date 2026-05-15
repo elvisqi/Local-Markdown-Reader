@@ -32,6 +32,7 @@ export function ChunkedMarkdownDocument({
     () => chunks.find((chunk) => activeLine >= chunk.startLine && activeLine <= chunk.endLine) ?? chunks[0],
     [activeLine, chunks],
   );
+  const flatOutline = useMemo(() => flattenOutline(index.outline), [index.outline]);
   const [chunkStates, setChunkStates] = useState<Record<string, ChunkState>>({});
   const requestedChunksRef = useRef(new Set<string>());
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -99,19 +100,22 @@ export function ChunkedMarkdownDocument({
 
   const state = activeChunk ? chunkStates[activeChunk.id] ?? { status: 'loading' } : null;
   const activeHeading = activeChunk
-    ? findNearestHeadingInLineRange(index.outline, activeLine, activeChunk.startLine, activeChunk.endLine)
+    ? findNearestHeadingInLineRange(flatOutline, activeLine, activeChunk.startLine, activeChunk.endLine)
     : null;
+  const activeHeadingIndexInChunk = activeChunk && activeHeading
+    ? findHeadingIndexInLineRange(flatOutline, activeHeading, activeChunk.startLine, activeChunk.endLine)
+    : -1;
 
   useEffect(() => {
-    if (state?.status !== 'rendered' || !activeHeading) {
+    if (state?.status !== 'rendered' || activeHeadingIndexInChunk < 0) {
       return;
     }
 
-    const headingElement = sectionRef.current?.querySelector<HTMLElement>(`#${CSS.escape(activeHeading.id)}`);
+    const headingElement = sectionRef.current?.querySelectorAll<HTMLElement>('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]')[activeHeadingIndexInChunk];
     if (typeof headingElement?.scrollIntoView === 'function') {
       headingElement.scrollIntoView({ block: 'start' });
     }
-  }, [activeHeading, state?.status, state?.status === 'rendered' ? state.html : null]);
+  }, [activeHeadingIndexInChunk, state?.status, state?.status === 'rendered' ? state.html : null]);
 
   if (!activeChunk || !state) {
     return <p className="empty-note">当前文档没有可预览的分块。</p>;
@@ -150,7 +154,7 @@ function findNearestHeadingInLineRange(
 ): LargeOutlineItem | null {
   let nearest: LargeOutlineItem | null = null;
 
-  for (const item of flattenOutline(outline)) {
+  for (const item of outline) {
     if (item.line < startLine || item.line > endLine || item.line > line) {
       continue;
     }
@@ -161,6 +165,15 @@ function findNearestHeadingInLineRange(
   }
 
   return nearest;
+}
+
+function findHeadingIndexInLineRange(
+  outline: LargeOutlineItem[],
+  heading: LargeOutlineItem,
+  startLine: number,
+  endLine: number,
+): number {
+  return outline.filter((item) => item.line >= startLine && item.line <= endLine).findIndex((item) => item.id === heading.id);
 }
 
 function flattenOutline(items: LargeOutlineItem[]): LargeOutlineItem[] {
