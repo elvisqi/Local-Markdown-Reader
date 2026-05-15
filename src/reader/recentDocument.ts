@@ -16,6 +16,7 @@ export type LastDocumentRecord = {
 export type ReaderStateStore = {
   get: (key: string) => Promise<unknown>;
   set: (key: string, value: unknown) => Promise<void>;
+  remove: (key: string) => Promise<void>;
 };
 
 type PermissionAwareDirectoryHandle = FileSystemDirectoryHandle & {
@@ -47,6 +48,16 @@ export async function loadLastDocument(
 
   const record = await store.get(LAST_DOCUMENT_KEY);
   return isLastDocumentRecord(record) ? record : null;
+}
+
+export async function clearLastDocument(
+  store: ReaderStateStore | null = createIndexedDbReaderStateStore(),
+): Promise<void> {
+  if (!store) {
+    return;
+  }
+
+  await store.remove(LAST_DOCUMENT_KEY);
 }
 
 export function selectRememberedDocumentPath(tree: FileTreeNode[], rememberedPath: string): string | null {
@@ -83,6 +94,10 @@ function createIndexedDbReaderStateStore(indexedDB: IDBFactory | undefined = glo
     set: async (key, value) => {
       const db = await openReaderStateDb(indexedDB);
       await runStoreRequest(db, 'readwrite', (store) => store.put(value, key));
+    },
+    remove: async (key) => {
+      const db = await openReaderStateDb(indexedDB);
+      await runStoreRequest(db, 'readwrite', (store) => store.delete(key));
     },
   };
 }

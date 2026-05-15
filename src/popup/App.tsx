@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 
+import { clearLastDocument, loadLastDocument, type LastDocumentRecord } from '../reader/recentDocument';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
 import type { ReaderSettings, ReadingStyle, ReadingWidth, ThemePreference } from '../shared/types';
 import './App.css';
 
 export function App() {
   const [settings, setSettings] = useState<ReaderSettings>(DEFAULT_SETTINGS);
+  const [lastDocument, setLastDocument] = useState<LastDocumentRecord | null>(null);
 
   useEffect(() => {
     void loadSettings().then(setSettings);
+    void loadLastDocument().then(setLastDocument);
   }, []);
 
   async function updateSettings(next: ReaderSettings) {
@@ -26,6 +29,11 @@ export function App() {
     window.close();
   }
 
+  async function clearRememberedDocument() {
+    await clearLastDocument();
+    setLastDocument(null);
+  }
+
   return (
     <main className="popup-app">
       <header>
@@ -34,6 +42,19 @@ export function App() {
       <button type="button" className="primary-button" onClick={openReader}>
         打开阅读器
       </button>
+      <section className="last-document" aria-label="上次打开">
+        <div>
+          <span>上次打开</span>
+          <strong title={lastDocument ? `${lastDocument.directoryName}/${lastDocument.path}` : undefined}>
+            {lastDocument ? `${lastDocument.directoryName}/${lastDocument.path}` : '未记录'}
+          </strong>
+        </div>
+        {lastDocument && (
+          <button type="button" onClick={() => void clearRememberedDocument()}>
+            清空上次打开
+          </button>
+        )}
+      </section>
       <label>
         主题
         <select

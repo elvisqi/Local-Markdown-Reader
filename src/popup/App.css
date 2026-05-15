@@ -38,6 +38,34 @@ body {
   border-color: #1769e0;
 }
 
+.popup-app .last-document {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #d8e0ea;
+  border-radius: 6px;
+  background: #f7f9fc;
+}
+
+.popup-app .last-document div {
+  display: grid;
+  gap: 4px;
+}
+
+.popup-app .last-document span {
+  color: #4c5968;
+  font-size: 12px;
+}
+
+.popup-app .last-document strong {
+  overflow: hidden;
+  color: #17202a;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .popup-app .inline-control {
   display: flex;
   align-items: center;

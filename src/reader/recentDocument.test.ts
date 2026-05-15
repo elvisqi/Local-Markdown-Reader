@@ -1,6 +1,7 @@
 import type { FileTreeNode } from '../shared/types';
 import {
   canReadDirectory,
+  clearLastDocument,
   loadLastDocument,
   requestDirectoryReadPermission,
   saveLastDocument,
@@ -16,6 +17,9 @@ function memoryStore(): ReaderStateStore {
     get: async (key) => values.get(key),
     set: async (key, value) => {
       values.set(key, value);
+    },
+    remove: async (key) => {
+      values.delete(key);
     },
   };
 }
@@ -33,6 +37,21 @@ describe('recentDocument', () => {
     await saveLastDocument(record, store);
 
     await expect(loadLastDocument(store)).resolves.toEqual(record);
+  });
+
+  it('clears the last opened document', async () => {
+    const store = memoryStore();
+    const record: LastDocumentRecord = {
+      directoryHandle: { kind: 'directory', name: 'docs' } as FileSystemDirectoryHandle,
+      directoryName: 'docs',
+      path: 'guide.md',
+      updatedAt: 123,
+    };
+
+    await saveLastDocument(record, store);
+    await clearLastDocument(store);
+
+    await expect(loadLastDocument(store)).resolves.toBeNull();
   });
 
   it('returns null when there is no available state store', async () => {
