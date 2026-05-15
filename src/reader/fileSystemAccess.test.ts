@@ -1,9 +1,15 @@
-import { readMarkdownFile, scanMarkdownDirectory } from './fileSystemAccess';
+import {
+  openMarkdownFile,
+  readMarkdownFile,
+  readMarkdownFileSlice,
+  readMarkdownFileSnapshot,
+  scanMarkdownDirectory,
+} from './fileSystemAccess';
 
 type FakeFileHandle = {
   kind: 'file';
   name: string;
-  getFile: () => Promise<{ text: () => Promise<string>; type: string }>;
+  getFile: () => Promise<{ text: () => Promise<string>; type: string; name?: string; size?: number; lastModified?: number; slice?: File['slice'] }>;
 };
 
 type FakeDirectoryHandle = {
@@ -20,6 +26,19 @@ function file(name: string, text = ''): FakeFileHandle {
       text: async () => text,
       type: 'text/markdown',
     }),
+  };
+}
+
+function realFile(name: string, text: string): FakeFileHandle {
+  const value = new File([text], name, {
+    type: 'text/markdown',
+    lastModified: 1700000000000,
+  });
+
+  return {
+    kind: 'file',
+    name,
+    getFile: async () => value,
   };
 }
 
@@ -62,6 +81,54 @@ describe('fileSystemAccess', () => {
     await expect(readMarkdownFile(root as unknown as FileSystemDirectoryHandle, 'docs/guide.md')).resolves.toBe(
       '# Guide',
     );
+  });
+
+  it('reads a markdown file snapshot without reading the full text', async () => {
+    const root = dir('root', [realFile('big.md', '# Big\ncontent')]);
+
+    const snapshot = await readMarkdownFileSnapshot(root as unknown as FileSystemDirectoryHandle, 'big.md');
+
+    expect(snapshot).toMatchObject({
+      path: 'big.md',
+      name: 'big.md',
+      size: 13,
+      type: 'text/markdown',
+      lastModified: 1700000000000,
+    });
+    expect(snapshot.file).toBeInstanceOf(File);
+  });
+
+  it('reads a byte slice from a markdown File', async () => {
+    const source = new File(['line 1\nline 2\nline 3'], 'big.md', { type: 'text/markdown' });
+
+    await expect(readMarkdownFileSlice(source, 7, 13)).resolves.toBe('line 2');
+  });
+
+  it('opens a standalone markdown file through the file picker', async () => {
+    const selected = new File(['# Standalone'], 'standalone.md', {
+      type: 'text/markdown',
+      lastModified: 1700000000000,
+    });
+    const getFile = vi.fn(async () => selected);
+    const showOpenFilePicker = vi.fn(async () => [{ getFile }]);
+    vi.stubGlobal('showOpenFilePicker', showOpenFilePicker);
+
+    await expect(openMarkdownFile()).resolves.toMatchObject({
+      path: 'standalone.md',
+      name: 'standalone.md',
+      size: 12,
+      type: 'text/markdown',
+      lastModified: 1700000000000,
+      file: selected,
+    });
+
+    expect(showOpenFilePicker).toHaveBeenCalledWith(
+      expect.objectContaining({
+        multiple: false,
+      }),
+    );
+
+    vi.unstubAllGlobals();
   });
 
   it('throws a useful error when a path cannot be found', async () => {

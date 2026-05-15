@@ -10,6 +10,15 @@ type DirectoryLike = Pick<FileSystemDirectoryHandle, 'kind' | 'name' | 'entries'
 type FileLike = Pick<FileSystemFileHandle, 'kind' | 'name' | 'getFile'>;
 type DirectoryNode = Extract<FileTreeNode, { type: 'directory' }>;
 
+export type MarkdownFileSnapshot = {
+  path: string;
+  name: string;
+  size: number;
+  type: string;
+  lastModified: number;
+  file: File;
+};
+
 export async function openDirectory(): Promise<FileSystemDirectoryHandle> {
   const picker = globalThis.showDirectoryPicker;
   if (!picker) {
@@ -17,6 +26,28 @@ export async function openDirectory(): Promise<FileSystemDirectoryHandle> {
   }
 
   return picker({ mode: 'read' });
+}
+
+export async function openMarkdownFile(): Promise<MarkdownFileSnapshot> {
+  const picker = window.showOpenFilePicker;
+  if (!picker) {
+    throw new Error('This browser does not support file access.');
+  }
+
+  const [fileHandle] = await picker({
+    multiple: false,
+    types: [
+      {
+        description: 'Markdown 文件',
+        accept: {
+          'text/markdown': ['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext'],
+        },
+      },
+    ],
+  });
+  const file = await fileHandle.getFile();
+
+  return createMarkdownFileSnapshot(file.name, file);
 }
 
 export async function scanMarkdownDirectory(handle: DirectoryLike): Promise<FileTreeNode[]> {
@@ -53,6 +84,22 @@ export async function readMarkdownFile(handle: DirectoryLike, path: string): Pro
   return (await fileHandle.getFile()).text();
 }
 
+export async function readMarkdownFileSnapshot(
+  handle: DirectoryLike,
+  path: string,
+): Promise<MarkdownFileSnapshot> {
+  const fileHandle = await getFileHandle(handle, path);
+  if (!fileHandle) {
+    throw new Error(`File not found: ${path}`);
+  }
+
+  return createMarkdownFileSnapshot(path, await fileHandle.getFile());
+}
+
+export async function readMarkdownFileSlice(file: Blob, start: number, end: number): Promise<string> {
+  return file.slice(start, end).text();
+}
+
 export async function readAssetBlobUrl(handle: DirectoryLike, path: string): Promise<string | null> {
   const fileHandle = await getFileHandle(handle, path);
   if (!fileHandle) {
@@ -60,6 +107,17 @@ export async function readAssetBlobUrl(handle: DirectoryLike, path: string): Pro
   }
 
   return URL.createObjectURL(await fileHandle.getFile());
+}
+
+function createMarkdownFileSnapshot(path: string, file: File): MarkdownFileSnapshot {
+  return {
+    path,
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    lastModified: file.lastModified,
+    file,
+  };
 }
 
 async function scanDirectory(handle: DirectoryLike, pathParts: string[]): Promise<DirectoryNode> {
