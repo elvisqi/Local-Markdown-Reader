@@ -10,6 +10,9 @@ export type MarkdownChunk = {
   renderable: boolean;
 };
 
+type ChunkAnchor = { id: string; line: number; headingId: string | null };
+type ChunkSection = Omit<MarkdownChunk, 'renderable'>;
+
 export function createMarkdownChunks({
   lineCount,
   lineStarts,
@@ -25,47 +28,20 @@ export function createMarkdownChunks({
 }): MarkdownChunk[] {
   const headings = flattenHeadings(outline);
   const anchors = createChunkAnchors(headings);
-  const chunks: MarkdownChunk[] = [];
+  const sections = anchors.map((heading, index) => createSection({
+    heading,
+    nextHeading: anchors[index + 1],
+    lineCount,
+    lineStarts,
+    size,
+  }));
 
-  anchors.forEach((heading, index) => {
-    const startLine = heading.line;
-    const nextHeading = anchors[index + 1];
-    const endLine = nextHeading ? nextHeading.line - 1 : lineCount;
-    const startByte = lineStarts[startLine - 1] ?? 0;
-    const endByte = getLineEndByte(lineStarts, size, endLine);
+  const mergedSections = mergeSmallSections(sections, maxChunkBytes);
 
-    if (endByte - startByte <= maxChunkBytes) {
-      chunks.push(createChunk({ id: heading.id, startLine, endLine, startByte, endByte, headingId: heading.headingId, maxChunkBytes }));
-      return;
-    }
-
-    let partStartLine = startLine;
-    let partStartByte = startByte;
-    let part = 1;
-
-    for (let line = startLine; line <= endLine; line += 1) {
-      const currentLineEndByte = getLineEndByte(lineStarts, size, line);
-      if (currentLineEndByte - partStartByte >= maxChunkBytes || line === endLine) {
-        chunks.push(createChunk({
-          id: `${heading.id}-${part}`,
-          startLine: partStartLine,
-          endLine: line,
-          startByte: partStartByte,
-          endByte: currentLineEndByte,
-          headingId: heading.headingId,
-          maxChunkBytes,
-        }));
-        part += 1;
-        partStartLine = line + 1;
-        partStartByte = currentLineEndByte;
-      }
-    }
-  });
-
-  return chunks;
+  return mergedSections.flatMap((section) => splitSection(section, lineStarts, size, maxChunkBytes));
 }
 
-function createChunkAnchors(headings: Array<{ id: string; line: number }>): Array<{ id: string; line: number; headingId: string | null }> {
+function createChunkAnchors(headings: Array<{ id: string; line: number }>): ChunkAnchor[] {
   if (headings.length === 0) {
     return [{ id: 'document', line: 1, headingId: null }];
   }
@@ -75,6 +51,96 @@ function createChunkAnchors(headings: Array<{ id: string; line: number }>): Arra
   }
 
   return headings.map((heading) => ({ ...heading, headingId: heading.id }));
+}
+
+function createSection({
+  heading,
+  nextHeading,
+  lineCount,
+  lineStarts,
+  size,
+}: {
+  heading: ChunkAnchor;
+  nextHeading: ChunkAnchor | undefined;
+  lineCount: number;
+  lineStarts: number[];
+  size: number;
+}): ChunkSection {
+  const startLine = heading.line;
+  const endLine = nextHeading ? nextHeading.line - 1 : lineCount;
+  const startByte = lineStarts[startLine - 1] ?? 0;
+  const endByte = getLineEndByte(lineStarts, size, endLine);
+
+  return {
+    id: heading.id,
+    startLine,
+    endLine,
+    startByte,
+    endByte,
+    headingId: heading.headingId,
+  };
+}
+
+function mergeSmallSections(sections: ChunkSection[], maxChunkBytes: number): ChunkSection[] {
+  const merged: ChunkSection[] = [];
+  let current: ChunkSection | null = null;
+
+  for (const section of sections) {
+    if (!current) {
+      current = { ...section };
+      continue;
+    }
+
+    const nextSize = section.endByte - current.startByte;
+    if (nextSize <= maxChunkBytes) {
+      current = {
+        ...current,
+        endLine: section.endLine,
+        endByte: section.endByte,
+      };
+      continue;
+    }
+
+    merged.push(current);
+    current = { ...section };
+  }
+
+  if (current) {
+    merged.push(current);
+  }
+
+  return merged;
+}
+
+function splitSection(section: ChunkSection, lineStarts: number[], size: number, maxChunkBytes: number): MarkdownChunk[] {
+  if (section.endByte - section.startByte <= maxChunkBytes) {
+    return [createChunk({ ...section, maxChunkBytes })];
+  }
+
+  const chunks: MarkdownChunk[] = [];
+  let partStartLine = section.startLine;
+  let partStartByte = section.startByte;
+  let part = 1;
+
+  for (let line = section.startLine; line <= section.endLine; line += 1) {
+    const currentLineEndByte = getLineEndByte(lineStarts, size, line);
+    if (currentLineEndByte - partStartByte >= maxChunkBytes || line === section.endLine) {
+      chunks.push(createChunk({
+        id: `${section.id}-${part}`,
+        startLine: partStartLine,
+        endLine: line,
+        startByte: partStartByte,
+        endByte: currentLineEndByte,
+        headingId: section.headingId,
+        maxChunkBytes,
+      }));
+      part += 1;
+      partStartLine = line + 1;
+      partStartByte = currentLineEndByte;
+    }
+  }
+
+  return chunks;
 }
 
 function createChunk({

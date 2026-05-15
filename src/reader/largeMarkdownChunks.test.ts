@@ -19,6 +19,30 @@ describe('largeMarkdownChunks', () => {
     ]);
   });
 
+  it('merges consecutive small heading sections into readable chunks', () => {
+    expect(
+      createMarkdownChunks({
+        lineCount: 120,
+        lineStarts: Array.from({ length: 120 }, (_value, index) => index * 100),
+        size: 12000,
+        outline: [
+          { id: 'title', text: 'Title', depth: 1, line: 1, children: [] },
+          { id: 'a', text: 'A', depth: 2, line: 5, children: [] },
+          { id: 'b', text: 'B', depth: 2, line: 20, children: [] },
+          { id: 'c', text: 'C', depth: 2, line: 36, children: [] },
+          { id: 'd', text: 'D', depth: 2, line: 52, children: [] },
+          { id: 'e', text: 'E', depth: 2, line: 68, children: [] },
+        ],
+        maxChunkBytes: 5000,
+      }),
+    ).toEqual([
+      { id: 'title', startLine: 1, endLine: 35, startByte: 0, endByte: 3500, headingId: 'title', renderable: true },
+      { id: 'c', startLine: 36, endLine: 67, startByte: 3500, endByte: 6700, headingId: 'c', renderable: true },
+      { id: 'e-1', startLine: 68, endLine: 117, startByte: 6700, endByte: 11700, headingId: 'e', renderable: true },
+      { id: 'e-2', startLine: 118, endLine: 120, startByte: 11700, endByte: 12000, headingId: 'e', renderable: true },
+    ]);
+  });
+
   it('splits oversized heading sections into bounded chunks', () => {
     expect(
       createMarkdownChunks({
