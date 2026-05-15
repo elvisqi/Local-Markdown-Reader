@@ -21,6 +21,7 @@ import type { MarkdownLink, OutlineItem, RenderDiagnostic, RenderResult } from '
 
 type RenderOptions = {
   allowHtml?: boolean;
+  chunkMode?: boolean;
 };
 
 type HeadingNode = {
@@ -77,17 +78,22 @@ export async function renderMarkdown(
       ],
     },
   };
-  const file = await unified()
+  const processor = unified()
     .use(remarkParse)
     .use(remarkFrontmatter, ['yaml', 'toml'])
     .use(removeFrontmatter)
     .use(remarkGfm)
     .use(remarkMath)
     .use(remarkRehype, { allowDangerousHtml: options.allowHtml ?? false })
-    .use(rehypeSlug)
-    .use(rehypeAutolinkHeadings, {
+    .use(rehypeSlug);
+
+  if (!options.chunkMode) {
+    processor.use(rehypeAutolinkHeadings, {
       behavior: 'wrap',
-    })
+    });
+  }
+
+  const file = await processor
     .use(wrapTablesForFullscreen)
     .use(rehypeSanitize, schema)
     .use(rehypeStringify)

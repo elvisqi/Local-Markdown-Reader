@@ -77,4 +77,11 @@ describe('renderMarkdown', () => {
 
     expect(result.links).toEqual([{ href: 'docs/guide.md#intro', text: 'Guide' }]);
   });
+
+  it('renders chunk markdown with expensive decorations disabled', async () => {
+    const result = await renderMarkdown('# Chunk', { chunkMode: true });
+
+    expect(result.html).toContain('<h1 id="chunk">Chunk</h1>');
+    expect(result.html).not.toContain('href="#chunk"');
+  });
 });
