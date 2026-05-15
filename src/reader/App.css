@@ -841,6 +841,19 @@ select {
   gap: 6px;
 }
 
+.large-document-reader__view-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  border: 1px solid var(--reader-border);
+  border-radius: 8px;
+}
+
+.large-document-reader__view-toggle button[aria-pressed="true"] {
+  background: var(--reader-link);
+  color: #ffffff;
+}
+
 .large-document-reader__search-results {
   max-height: 220px;
   overflow: auto;
@@ -911,6 +924,16 @@ select {
   margin-right: 12px;
   color: var(--reader-muted);
   user-select: none;
+}
+
+.chunked-markdown-document {
+  display: grid;
+  gap: 12px;
+}
+
+.chunked-markdown-document__meta {
+  color: var(--reader-muted);
+  font-size: 13px;
 }
 
 .theme-dark {

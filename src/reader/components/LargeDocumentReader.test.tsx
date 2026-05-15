@@ -8,6 +8,10 @@ vi.mock('./VirtualLargeDocumentReader', () => ({
   VirtualLargeDocumentReader: () => <div data-testid="virtual-large-document-reader">virtual rows</div>,
 }));
 
+vi.mock('./ChunkedMarkdownDocument', () => ({
+  ChunkedMarkdownDocument: () => <div data-testid="chunked-markdown-document">chunk preview</div>,
+}));
+
 function createIndex(): LargeDocumentIndex {
   return {
     name: 'big.md',
@@ -32,7 +36,7 @@ describe('LargeDocumentReader', () => {
     render(
       <LargeDocumentReader
         file={new File(['a\nb\nc'], 'big.md')}
-        index={createIndex()}
+        index={{ ...createIndex(), size: 60 * 1024 * 1024 }}
         reason="文件超过 2.0 MB，已进入大文件安全模式。"
         client={client}
         anchorLine={1}
@@ -95,5 +99,42 @@ describe('LargeDocumentReader', () => {
     await user.click(await screen.findByRole('button', { name: /第 42 行/ }));
 
     expect(onNavigateLine).toHaveBeenCalledWith(42);
+  });
+
+  it('defaults to chunked preview for large documents and raw view for extreme documents', () => {
+    const client = {
+      readLines: vi.fn(),
+      search: vi.fn(),
+      buildIndex: vi.fn(),
+      terminate: vi.fn(),
+    };
+    const { rerender } = render(
+      <LargeDocumentReader
+        file={new File([''], 'big.md')}
+        index={{ ...createIndex(), size: 3 * 1024 * 1024 }}
+        reason="大文件"
+        client={client}
+        anchorLine={1}
+        onNavigateLine={vi.fn()}
+        mermaidEnabled={false}
+      />,
+    );
+
+    expect(screen.getByTestId('chunked-markdown-document')).toBeInTheDocument();
+
+    rerender(
+      <LargeDocumentReader
+        file={new File([''], 'huge.md')}
+        index={{ ...createIndex(), size: 60 * 1024 * 1024 }}
+        reason="超大文件"
+        client={client}
+        anchorLine={1}
+        onNavigateLine={vi.fn()}
+        mermaidEnabled={false}
+      />,
+    );
+
+    expect(screen.getByTestId('virtual-large-document-reader')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '分块预览' })).toBeDisabled();
   });
 });

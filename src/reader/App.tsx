@@ -617,6 +617,7 @@ export function App() {
                 reason={largeDocument.reason}
                 client={largeDocument.client}
                 anchorLine={largeAnchorLine}
+                mermaidEnabled={settings.rendering.mermaid}
                 onNavigateLine={(line) => {
                   setLargeAnchorLine(line);
                   const heading = findNearestLargeHeading(largeDocument.index.outline, line);

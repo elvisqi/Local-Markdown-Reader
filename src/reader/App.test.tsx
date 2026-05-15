@@ -371,8 +371,8 @@ describe('App file navigation and drawer behavior', () => {
 
     await waitFor(() =>
       expect(largeDocumentClient.readLines).toHaveBeenLastCalledWith(expect.any(File), expect.any(Object), {
-        startLine: 120,
-        endLine: 359,
+        startLine: 240,
+        endLine: 500,
       }),
     );
   });
@@ -389,7 +389,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockResolvedValue({
       path: 'big.md',
       name: 'big.md',
-      size: largeFile.size,
+      size: 60 * 1024 * 1024,
       type: 'text/markdown',
       lastModified: largeFile.lastModified,
       file: largeFile,
@@ -397,7 +397,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('# Big\n');
     largeDocumentClient.buildIndex.mockResolvedValue({
       name: 'big.md',
-      size: largeFile.size,
+      size: 60 * 1024 * 1024,
       lineCount: 500,
       lineStarts: [0, 6],
       title: 'Big',
@@ -415,7 +415,7 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() =>
       expect(largeDocumentClient.readLines).toHaveBeenLastCalledWith(expect.any(File), expect.any(Object), {
         startLine: 121,
-        endLine: 360,
+        endLine: 361,
       }),
     );
 
@@ -424,7 +424,7 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(largeDocumentClient.buildIndex).toHaveBeenCalledTimes(2));
     expect(largeDocumentClient.readLines).toHaveBeenLastCalledWith(expect.any(File), expect.any(Object), {
       startLine: 121,
-      endLine: 360,
+      endLine: 361,
     });
   });
 

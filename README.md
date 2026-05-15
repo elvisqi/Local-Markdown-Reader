@@ -44,6 +44,14 @@ Markdown files larger than 2MB open in safe large-file mode. This mode reads and
 
 2MB 以上的 Markdown 会进入大文件安全模式。安全模式按需读取并展示行窗口，在 Worker 中建立文档索引，并避免整篇 Markdown 渲染，因此可以打开超大文件而不锁死浏览器。
 
+Large-file mode now has two views. Files below 50MB default to chunked Markdown preview, which renders only the active section around the current line. Files at or above 50MB default to virtual raw text, which mounts only visible rows and keeps memory usage bounded.
+
+大文件模式现在包含两种视图。50MB 以下默认使用分块 Markdown 预览，只渲染当前行所在的段落区域；50MB 及以上默认使用虚拟原文视图，只挂载当前可见行，控制内存占用。
+
+The extension popup shows the last remembered document and includes a clear action. If a very large file was remembered and causes trouble on startup, clear that record from the popup before opening the reader again.
+
+扩展弹窗会显示上次记录的文档，并提供清空操作。如果某个超大文件被记录后导致启动异常，可以先在弹窗中清空记录，再重新打开阅读器。
+
 Use the in-page search box in large-file mode. Browser native `Ctrl+F` remains best for ordinary files, but it cannot search text that has not been mounted in a virtual or paged large-file view.
 
 大文件模式下请使用页面内搜索框。浏览器原生 `Ctrl+F` 仍适合普通文件，但无法搜索虚拟/分页大文件视图中尚未挂载到页面的文本。
