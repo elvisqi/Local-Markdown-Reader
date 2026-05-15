@@ -96,6 +96,7 @@ select {
 .document-reader {
   box-sizing: border-box;
   width: min(100%, 920px);
+  min-width: 0;
   min-height: calc(100vh - 88px);
   margin: 0 auto;
   padding: 32px;
@@ -283,6 +284,7 @@ select {
 }
 
 .document-reader > div {
+  min-width: 0;
   font-size: var(--markdown-font-size, 16px);
   line-height: var(--markdown-line-height, 1.72);
   color: var(--reader-text);
@@ -557,9 +559,12 @@ select {
 }
 
 .document-reader pre {
+  box-sizing: border-box;
+  max-width: 100%;
   margin: 16px 0 22px;
   padding: 16px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--reader-border);
   border-radius: 6px;
   background: var(--reader-code-bg);

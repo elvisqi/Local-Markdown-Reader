@@ -22,4 +22,11 @@ describe('table layout styles', () => {
     expect(rule).toMatch(/cursor:\s*not-allowed/);
     expect(rule).toMatch(/opacity:\s*0\.48/);
   });
+
+  it('keeps long code lines from widening the reader grid', () => {
+    expect(getRule('.document-reader')).toMatch(/min-width:\s*0/);
+    expect(getRule('.document-reader > div')).toMatch(/min-width:\s*0/);
+    expect(getRule('.document-reader pre')).toMatch(/max-width:\s*100%/);
+    expect(getRule('.document-reader pre')).toMatch(/overflow-x:\s*auto/);
+  });
 });
