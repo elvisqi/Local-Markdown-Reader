@@ -19,8 +19,8 @@ function createIndex(): LargeDocumentIndex {
 
 function createChunks(): MarkdownChunk[] {
   return [
-    { id: 'a', startLine: 1, endLine: 4, startByte: 0, endByte: 20, headingId: 'a' },
-    { id: 'b', startLine: 5, endLine: 8, startByte: 20, endByte: 44, headingId: 'b' },
+    { id: 'a', startLine: 1, endLine: 4, startByte: 0, endByte: 20, headingId: 'a', renderable: true },
+    { id: 'b', startLine: 5, endLine: 8, startByte: 20, endByte: 44, headingId: 'b', renderable: true },
   ];
 }
 
@@ -80,6 +80,59 @@ describe('ChunkedMarkdownDocument', () => {
 
     await waitFor(() => expect(screen.getByText(/Raw fallback/)).toBeInTheDocument());
     expect(screen.getByText('分块渲染失败，已显示原文。')).toBeInTheDocument();
+
+    renderMarkdown.mockRestore();
+  });
+
+  it('does not render markdown for non-renderable chunks', async () => {
+    const renderMarkdown = vi.spyOn(markdownRenderer, 'renderMarkdown');
+    const client = {
+      readLines: vi.fn(async () => ({ startLine: 1, endLine: 1, text: 'x'.repeat(1024) })),
+      search: vi.fn(),
+      buildIndex: vi.fn(),
+      terminate: vi.fn(),
+    };
+
+    render(
+      <ChunkedMarkdownDocument
+        file={new File([''], 'big.md')}
+        index={createIndex()}
+        chunks={[{ id: 'huge-line', startLine: 1, endLine: 1, startByte: 0, endByte: 2 * 1024 * 1024, headingId: null, renderable: false }]}
+        client={client}
+        activeLine={1}
+        mermaidEnabled={false}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('x'.repeat(1024))).toBeInTheDocument());
+    expect(renderMarkdown).not.toHaveBeenCalled();
+    expect(screen.getByText('当前分块过大，已显示原文。')).toBeInTheDocument();
+
+    renderMarkdown.mockRestore();
+  });
+
+  it('shows a failure state when chunk lines cannot be loaded', async () => {
+    const renderMarkdown = vi.spyOn(markdownRenderer, 'renderMarkdown');
+    const client = {
+      readLines: vi.fn(async () => Promise.reject(new Error('permission lost'))),
+      search: vi.fn(),
+      buildIndex: vi.fn(),
+      terminate: vi.fn(),
+    };
+
+    render(
+      <ChunkedMarkdownDocument
+        file={new File([''], 'big.md')}
+        index={createIndex()}
+        chunks={createChunks()}
+        client={client}
+        activeLine={1}
+        mermaidEnabled={false}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('无法读取当前分块：permission lost')).toBeInTheDocument());
+    expect(renderMarkdown).not.toHaveBeenCalled();
 
     renderMarkdown.mockRestore();
   });

@@ -23,6 +23,7 @@ import {
 } from './fileSystemAccess';
 import {
   classifyMarkdownDocument,
+  LARGE_MARKDOWN_BYTES,
   LARGE_SAMPLE_BYTES,
   type LargeDocumentKind,
   type LargeOutlineItem,
@@ -301,7 +302,14 @@ export function App() {
     closeLargeDocument();
     const client = createLargeDocumentWorkerClient();
     setStatus(`正在建立大文件索引：${snapshot.path}`);
-    const index = await client.buildIndex(snapshot.file);
+    let index: LargeDocumentIndex;
+
+    try {
+      index = await client.buildIndex(snapshot.file);
+    } catch (error) {
+      client.terminate();
+      throw error;
+    }
 
     setActivePath(snapshot.path);
     setMarkdown('');
@@ -354,6 +362,11 @@ export function App() {
     setStatus(`正在打开 ${name}`);
 
     try {
+      if (shouldRequestTemporaryDocumentAuthorization(temporaryDocument)) {
+        showTemporaryDocumentAuthorizationPrompt();
+        return;
+      }
+
       const source = await readTemporaryDocumentSource(temporaryDocument);
       const result = await renderMarkdown(source);
 
@@ -366,14 +379,7 @@ export function App() {
       setStatus(null);
     } catch (err) {
       if (temporaryDocument.sourceAvailable === false) {
-        closeLargeDocument();
-        setDirectoryHandle(null);
-        setTree([]);
-        setActivePath(null);
-        setMarkdown('');
-        setRendered(EMPTY_RENDER);
-        setStatus('这个临时 Markdown 文件太大，浏览器无法从当前页面安全传递完整内容。请通过“打开文件”或“打开文件夹”授权读取后继续阅读。');
-        setError(null);
+        showTemporaryDocumentAuthorizationPrompt();
         return;
       }
 
@@ -382,12 +388,31 @@ export function App() {
     }
   }
 
+  function showTemporaryDocumentAuthorizationPrompt() {
+    closeLargeDocument();
+    setDirectoryHandle(null);
+    setTree([]);
+    setActivePath(null);
+    setMarkdown('');
+    setRendered(EMPTY_RENDER);
+    setStatus('这个临时 Markdown 文件太大，浏览器无法从当前页面安全传递完整内容。请通过“打开文件”或“打开文件夹”授权读取后继续阅读。');
+    setError(null);
+  }
+
   async function readTemporaryDocumentSource(temporaryDocument: TemporaryMarkdownDocument): Promise<string> {
     if (typeof temporaryDocument.source === 'string') {
       return temporaryDocument.source;
     }
 
     return fetch(temporaryDocument.url).then((response) => response.text());
+  }
+
+  function shouldRequestTemporaryDocumentAuthorization(temporaryDocument: TemporaryMarkdownDocument): boolean {
+    if (temporaryDocument.sourceAvailable === false) {
+      return true;
+    }
+
+    return typeof temporaryDocument.source !== 'string' && (temporaryDocument.sourceSize ?? 0) >= LARGE_MARKDOWN_BYTES;
   }
 
   async function restoreLastDocument(requestPermission = false) {

@@ -93,4 +93,25 @@ describe('VirtualLargeDocumentReader', () => {
 
     await waitFor(() => expect(scrollToIndex).toHaveBeenCalledWith(41, { align: 'center' }));
   });
+
+  it('shows an error when visible rows cannot be loaded', async () => {
+    const client = {
+      readLines: vi.fn(async () => Promise.reject(new Error('permission lost'))),
+      search: vi.fn(),
+      buildIndex: vi.fn(),
+      terminate: vi.fn(),
+    };
+
+    render(
+      <VirtualLargeDocumentReader
+        file={new File([''], 'big.md')}
+        index={createIndex()}
+        client={client}
+        anchorLine={1}
+        searchTargetLine={null}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('无法读取当前行范围：permission lost')).toBeInTheDocument());
+  });
 });

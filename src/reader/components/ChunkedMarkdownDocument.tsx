@@ -9,7 +9,8 @@ import { RenderedMarkdownContent } from '../RenderedMarkdownContent';
 type ChunkState =
   | { status: 'loading' }
   | { status: 'rendered'; html: string }
-  | { status: 'raw'; text: string };
+  | { status: 'raw'; text: string; reason: 'too-large' | 'render-failed' }
+  | { status: 'error'; message: string };
 
 export function ChunkedMarkdownDocument({
   file,
@@ -50,6 +51,16 @@ export function ChunkedMarkdownDocument({
     void client
       .readLines(file, index, { startLine: activeChunk.startLine, endLine: activeChunk.endLine })
       .then(async (range) => {
+        if (!activeChunk.renderable) {
+          if (!cancelled) {
+            setChunkStates((current) => ({
+              ...current,
+              [activeChunk.id]: { status: 'raw', text: range.text, reason: 'too-large' },
+            }));
+          }
+          return;
+        }
+
         try {
           const result = await renderMarkdown(range.text.replace(/\n$/, ''), { chunkMode: true });
           if (!cancelled) {
@@ -62,9 +73,20 @@ export function ChunkedMarkdownDocument({
           if (!cancelled) {
             setChunkStates((current) => ({
               ...current,
-              [activeChunk.id]: { status: 'raw', text: range.text },
+              [activeChunk.id]: { status: 'raw', text: range.text, reason: 'render-failed' },
             }));
           }
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setChunkStates((current) => ({
+            ...current,
+            [activeChunk.id]: {
+              status: 'error',
+              message: error instanceof Error ? error.message : '读取失败',
+            },
+          }));
         }
       });
 
@@ -93,10 +115,13 @@ export function ChunkedMarkdownDocument({
       )}
       {state.status === 'raw' && (
         <section className="raw-source">
-          <p className="status-note">分块渲染失败，已显示原文。</p>
+          <p className="status-note">
+            {state.reason === 'too-large' ? '当前分块过大，已显示原文。' : '分块渲染失败，已显示原文。'}
+          </p>
           <pre>{state.text}</pre>
         </section>
       )}
+      {state.status === 'error' && <p className="status-note">无法读取当前分块：{state.message}</p>}
     </section>
   );
 }

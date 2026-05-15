@@ -329,8 +329,62 @@ describe('App file navigation and drawer behavior', () => {
       ).toBeInTheDocument(),
     );
     expect(screen.getByRole('button', { name: '打开文件' })).toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
 
     vi.unstubAllGlobals();
+  });
+
+  it('does not fetch omitted temporary source when the recorded file is large', async () => {
+    vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue({
+      url: 'file:///Users/qiyu/Desktop/huge.md',
+      name: 'huge.md',
+      sourceSize: 108 * 1024 * 1024,
+      createdAt: 123,
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => Promise.resolve(new Response('# Huge'))));
+    window.history.replaceState(null, '', '/reader.html?temporaryDocument=temp-1');
+
+    render(<App />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          '这个临时 Markdown 文件太大，浏览器无法从当前页面安全传递完整内容。请通过“打开文件”或“打开文件夹”授权读取后继续阅读。',
+        ),
+      ).toBeInTheDocument(),
+    );
+    expect(fetch).not.toHaveBeenCalled();
+
+    vi.unstubAllGlobals();
+  });
+
+  it('terminates the large document worker when indexing fails', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['# Big\n'.padEnd(2 * 1024 * 1024, 'x')], 'big.md', {
+      type: 'text/markdown',
+    });
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'big.md', path: 'big.md' },
+    ]);
+    vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockResolvedValue({
+      path: 'big.md',
+      name: 'big.md',
+      size: largeFile.size,
+      type: 'text/markdown',
+      lastModified: largeFile.lastModified,
+      file: largeFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('# Big\n');
+    largeDocumentClient.buildIndex.mockRejectedValueOnce(new Error('index failed'));
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getByText('index failed')).toBeInTheDocument());
+    expect(largeDocumentClient.terminate).toHaveBeenCalled();
   });
 
   it('navigates large document outline items by line window', async () => {
@@ -355,7 +409,7 @@ describe('App file navigation and drawer behavior', () => {
       name: 'big.md',
       size: largeFile.size,
       lineCount: 500,
-      lineStarts: [0, 6],
+      lineStarts: Array.from({ length: 500 }, (_value, index) => index * 20),
       title: 'Big',
       outline: [{ id: 'deep', text: 'Deep', depth: 2, line: 240, children: [] }],
       warnings: [],

@@ -22,6 +22,7 @@ export function VirtualLargeDocumentReader({
 }) {
   const parentRef = useRef<HTMLDivElement | null>(null);
   const [loadedRange, setLoadedRange] = useState<{ startLine: number; endLine: number; lines: string[] } | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const virtualizer = useVirtualizer({
     count: index.lineCount,
     getScrollElement: () => parentRef.current,
@@ -57,17 +58,26 @@ export function VirtualLargeDocumentReader({
   useEffect(() => {
     let cancelled = false;
 
-    void client.readLines(file, index, fetchRange).then((range) => {
-      if (cancelled) {
-        return;
-      }
+    setError(null);
 
-      setLoadedRange({
-        startLine: range.startLine,
-        endLine: range.endLine,
-        lines: range.text.replace(/\n$/, '').split('\n'),
+    void client
+      .readLines(file, index, fetchRange)
+      .then((range) => {
+        if (cancelled) {
+          return;
+        }
+
+        setLoadedRange({
+          startLine: range.startLine,
+          endLine: range.endLine,
+          lines: range.text.replace(/\n$/, '').split('\n'),
+        });
+      })
+      .catch((readError) => {
+        if (!cancelled) {
+          setError(readError instanceof Error ? readError.message : '读取失败');
+        }
       });
-    });
 
     return () => {
       cancelled = true;
@@ -84,6 +94,7 @@ export function VirtualLargeDocumentReader({
 
   return (
     <div ref={parentRef} className="large-document-reader__virtual-source" data-testid="large-document-virtual-source">
+      {error && <p className="status-note">无法读取当前行范围：{error}</p>}
       <div
         className="large-document-reader__virtual-spacer"
         style={{
