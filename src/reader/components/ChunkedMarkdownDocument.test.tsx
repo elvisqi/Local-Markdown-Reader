@@ -119,6 +119,44 @@ describe('ChunkedMarkdownDocument', () => {
     renderMarkdown.mockRestore();
   });
 
+  it('shows a safe table preview for non-renderable markdown table chunks', async () => {
+    const renderMarkdown = vi.spyOn(markdownRenderer, 'renderMarkdown');
+    const client = {
+      readLines: vi.fn(async () => ({
+        startLine: 1,
+        endLine: 4,
+        text: [
+          '| 序号 | 数据文件/模型 | values 原始值 |',
+          '| --- | --- | --- |',
+          '| D1 | app_model_employ | {"leader":"WangQianQian","payload":"long"} |',
+          '| D2 | app_model_employ | {"leader":"LiLei","payload":"long"} |',
+        ].join('\n'),
+      })),
+      search: vi.fn(),
+      buildIndex: vi.fn(),
+      terminate: vi.fn(),
+    };
+
+    render(
+      <ChunkedMarkdownDocument
+        file={new File([''], 'big.md')}
+        index={createIndex()}
+        chunks={[{ id: 'table', startLine: 1, endLine: 4, startByte: 0, endByte: 2 * 1024 * 1024, headingId: null, renderable: false }]}
+        client={client}
+        activeLine={1}
+        mermaidEnabled={false}
+      />,
+    );
+
+    expect(await screen.findByText('当前分块包含超大 Markdown 表格，已显示安全表格预览。')).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: '当前分块表格预览' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '数据文件/模型' })).toBeInTheDocument();
+    expect(screen.getAllByRole('cell', { name: 'app_model_employ' })).toHaveLength(2);
+    expect(renderMarkdown).not.toHaveBeenCalled();
+
+    renderMarkdown.mockRestore();
+  });
+
   it('shows a failure state when chunk lines cannot be loaded', async () => {
     const renderMarkdown = vi.spyOn(markdownRenderer, 'renderMarkdown');
     const client = {

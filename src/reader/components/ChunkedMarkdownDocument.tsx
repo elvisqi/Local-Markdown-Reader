@@ -4,12 +4,14 @@ import { renderMarkdown } from '../../shared/render/markdown';
 import type { LargeOutlineItem } from '../largeDocument';
 import type { LargeDocumentIndex } from '../largeDocumentIndex';
 import type { LargeDocumentWorkerClient } from '../largeDocumentWorkerClient';
+import { extractMarkdownTablePreview, type MarkdownTablePreview } from '../largeMarkdownTable';
 import type { MarkdownChunk } from '../largeMarkdownChunks';
 import { RenderedMarkdownContent } from '../RenderedMarkdownContent';
 
 type ChunkState =
   | { status: 'loading' }
   | { status: 'rendered'; html: string }
+  | { status: 'table-preview'; preview: MarkdownTablePreview }
   | { status: 'raw'; text: string; reason: 'too-large' | 'render-failed' }
   | { status: 'error'; message: string };
 
@@ -55,10 +57,13 @@ export function ChunkedMarkdownDocument({
       .readLines(file, index, { startLine: activeChunk.startLine, endLine: activeChunk.endLine })
       .then(async (range) => {
         if (!activeChunk.renderable) {
+          const preview = extractMarkdownTablePreview(range.text);
           if (!cancelled) {
             setChunkStates((current) => ({
               ...current,
-              [activeChunk.id]: { status: 'raw', text: range.text, reason: 'too-large' },
+              [activeChunk.id]: preview
+                ? { status: 'table-preview', preview }
+                : { status: 'raw', text: range.text, reason: 'too-large' },
             }));
           }
           return;
@@ -133,6 +138,7 @@ export function ChunkedMarkdownDocument({
           mermaidEnabled={mermaidEnabled && activeChunk.endByte - activeChunk.startByte <= 256 * 1024}
         />
       )}
+      {state.status === 'table-preview' && <LargeMarkdownTablePreview preview={state.preview} />}
       {state.status === 'raw' && (
         <section className="raw-source">
           <p className="status-note">
@@ -142,6 +148,35 @@ export function ChunkedMarkdownDocument({
         </section>
       )}
       {state.status === 'error' && <p className="status-note">无法读取当前分块：{state.message}</p>}
+    </section>
+  );
+}
+
+function LargeMarkdownTablePreview({ preview }: { preview: MarkdownTablePreview }) {
+  return (
+    <section className="large-markdown-table-preview">
+      <p className="status-note">
+        当前分块包含超大 Markdown 表格，已显示安全表格预览。
+        {preview.truncated ? ` 当前显示前 ${preview.rows.length} 行，共 ${preview.totalRows} 行。` : null}
+      </p>
+      <table aria-label="当前分块表格预览">
+        <thead>
+          <tr>
+            {preview.headers.map((header, index) => (
+              <th key={`${index}:${header}`}>{header}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {preview.rows.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {row.map((cell, cellIndex) => (
+                <td key={cellIndex}>{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </section>
   );
 }

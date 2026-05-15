@@ -44,9 +44,9 @@ Markdown files larger than 2MB open in safe large-file mode. This mode reads and
 
 2MB 以上的 Markdown 会进入大文件安全模式。安全模式按需读取并展示行窗口，在 Worker 中建立文档索引，并避免整篇 Markdown 渲染，因此可以打开超大文件而不锁死浏览器。
 
-Large-file mode now has two views. Files below 50MB default to chunked Markdown preview, which renders only the active section around the current line. Files at or above 50MB default to virtual raw text, which mounts only visible rows and keeps memory usage bounded.
+Large-file mode now has two views. Files below 20MB default to chunked Markdown preview, which renders only the active section around the current line. Files at or above 20MB default to virtual raw text, which mounts only visible rows and keeps memory usage bounded. Oversized Markdown table chunks are shown with a safe table preview instead of raw source when possible.
 
-大文件模式现在包含两种视图。50MB 以下默认使用分块 Markdown 预览，只渲染当前行所在的段落区域；50MB 及以上默认使用虚拟原文视图，只挂载当前可见行，控制内存占用。
+大文件模式现在包含两种视图。20MB 以下默认使用分块 Markdown 预览，只渲染当前行所在的段落区域；20MB 及以上默认使用虚拟原文视图，只挂载当前可见行，控制内存占用。过大的 Markdown 表格分块会尽可能显示为安全表格预览，而不是直接显示原文源码。
 
 The extension popup shows the last remembered document and includes a clear action. If a very large file was remembered and causes trouble on startup, clear that record from the popup before opening the reader again.
 

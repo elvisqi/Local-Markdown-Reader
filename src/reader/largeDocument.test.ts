@@ -21,7 +21,7 @@ describe('largeDocument', () => {
 
     expect(classifyMarkdownDocument({ size: EXTREME_MARKDOWN_BYTES, sample: '# Extreme' })).toEqual({
       kind: 'extreme',
-      reason: '文件超过 50.0 MB，已进入超大文件安全模式。',
+      reason: '文件超过 20.0 MB，已进入超大文件安全模式。',
     });
 
     expect(classifyMarkdownDocument({ size: 1000, sample: `${'x'.repeat(70000)}\n` }).kind).toBe('large');

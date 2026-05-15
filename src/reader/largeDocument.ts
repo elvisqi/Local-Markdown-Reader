@@ -3,7 +3,7 @@ import GithubSlugger from 'github-slugger';
 import type { OutlineItem } from '../shared/types';
 
 export const LARGE_MARKDOWN_BYTES = 2 * 1024 * 1024;
-export const EXTREME_MARKDOWN_BYTES = 50 * 1024 * 1024;
+export const EXTREME_MARKDOWN_BYTES = 20 * 1024 * 1024;
 export const LARGE_SAMPLE_BYTES = 64 * 1024;
 export const LONG_LINE_SAMPLE_CHARS = 64 * 1024;
 export const LARGE_LINE_WINDOW_SIZE = 240;
@@ -23,7 +23,7 @@ export function classifyMarkdownDocument({
   sample: string;
 }): { kind: LargeDocumentKind; reason: string | null } {
   if (size >= EXTREME_MARKDOWN_BYTES) {
-    return { kind: 'extreme', reason: '文件超过 50.0 MB，已进入超大文件安全模式。' };
+    return { kind: 'extreme', reason: '文件超过 20.0 MB，已进入超大文件安全模式。' };
   }
 
   if (size >= LARGE_MARKDOWN_BYTES) {

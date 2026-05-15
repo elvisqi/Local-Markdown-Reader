@@ -125,7 +125,7 @@ describe('LargeDocumentReader', () => {
     rerender(
       <LargeDocumentReader
         file={new File([''], 'huge.md')}
-        index={{ ...createIndex(), size: 60 * 1024 * 1024 }}
+        index={{ ...createIndex(), size: 21 * 1024 * 1024 }}
         reason="超大文件"
         client={client}
         anchorLine={1}

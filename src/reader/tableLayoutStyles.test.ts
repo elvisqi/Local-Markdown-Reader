@@ -38,4 +38,10 @@ describe('table layout styles', () => {
     expect(getRule('.large-document-reader__virtual-source')).toMatch(/min-width:\s*0/);
     expect(getRule('.large-document-reader__virtual-row code')).toMatch(/min-width:\s*0/);
   });
+
+  it('keeps large markdown table previews readable in the reader grid', () => {
+    expect(getRule('.large-markdown-table-preview')).toMatch(/overflow-x:\s*auto/);
+    expect(getRule('.large-markdown-table-preview table')).toMatch(/table-layout:\s*fixed/);
+    expect(getRule('.large-markdown-table-preview td')).toMatch(/overflow-wrap:\s*anywhere/);
+  });
 });
