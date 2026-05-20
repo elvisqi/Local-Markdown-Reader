@@ -69,7 +69,7 @@ describe('recentDocument', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('uses the remembered Markdown path when it still exists', () => {
+  it('uses the remembered document path when it still exists', () => {
     const tree: FileTreeNode[] = [
       { type: 'file', name: 'README.md', path: 'README.md' },
       {
@@ -81,6 +81,19 @@ describe('recentDocument', () => {
     ];
 
     expect(selectRememberedDocumentPath(tree, 'docs/guide.md')).toBe('docs/guide.md');
+  });
+
+  it('uses remembered HTML paths when they still exist', () => {
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [{ type: 'file', name: 'report.html', path: 'docs/report.html' }],
+      },
+    ];
+
+    expect(selectRememberedDocumentPath(tree, 'docs/report.html')).toBe('docs/report.html');
   });
 
   it('falls back to the default document when the remembered path is gone', () => {

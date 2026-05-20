@@ -1,24 +1,26 @@
 # Local Markdown Reader / 本地 Markdown 阅读器
 
-A local-first Chrome/Edge Manifest V3 extension for reading Markdown folders with a document outline, file switching, and selectable reading styles.
+A local-first Chrome/Edge Manifest V3 extension for reading Markdown and HTML folders with a document outline, file switching, and selectable reading styles.
 
-一个本地优先的 Chrome/Edge Manifest V3 扩展，用于阅读本地 Markdown 文件夹，支持文档大纲、文件切换和可更换阅读样式。
+一个本地优先的 Chrome/Edge Manifest V3 扩展，用于阅读本地 Markdown 和 HTML 文件夹，支持文档大纲、文件切换和可更换阅读样式。
 
 ## Features / 功能
 
-- Open a local folder and browse Markdown files after explicit folder authorization.
+- Open a local folder and browse Markdown or HTML files after explicit folder authorization.
 - Render GitHub-flavored Markdown with headings, tables, task lists, code blocks, math-ready syntax, and diagrams-ready syntax.
-- Show a document outline generated from Markdown headings.
-- Switch between sibling Markdown files in the authorized folder.
-- Restore the last opened Markdown document when browser folder permission is still available.
+- Render local HTML files through a sanitized reader view.
+- Show a document outline generated from Markdown or HTML headings.
+- Switch between sibling document files in the authorized folder.
+- Restore the last opened document when browser folder permission is still available.
 - Choose reader theme, content width, raw Markdown mode, and reading style templates.
 - Open large Markdown files in a safe mode that avoids compiling or mounting the full document at once.
 
-- 在用户明确授权文件夹后，读取并浏览其中的 Markdown 文件。
+- 在用户明确授权文件夹后，读取并浏览其中的 Markdown 或 HTML 文件。
 - 渲染 GitHub Flavored Markdown，支持标题、表格、任务列表、代码块，以及面向公式和图表的语法基础。
-- 根据 Markdown 标题生成文档大纲。
-- 在已授权文件夹内切换其他 Markdown 文件。
-- 如果浏览器仍保留文件夹权限，自动恢复上次打开的 Markdown 文档。
+- 通过安全净化后的阅读视图展示本地 HTML 文件。
+- 根据 Markdown 或 HTML 标题生成文档大纲。
+- 在已授权文件夹内切换其他文档文件。
+- 如果浏览器仍保留文件夹权限，自动恢复上次打开的文档。
 - 可切换阅读主题、正文宽度、Raw Markdown 模式和阅读样式模板。
 - 大 Markdown 文件会进入安全模式，避免一次性编译或挂载整篇文档。
 

@@ -12,7 +12,10 @@ vi.mock('./fileSystemAccess', async () => {
   return {
     ...actual,
     openDirectory: vi.fn(),
+    openDocumentFile: vi.fn(),
     openMarkdownFile: vi.fn(),
+    readDocumentFile: vi.fn(),
+    readDocumentFileSnapshot: vi.fn(),
     readMarkdownFile: vi.fn(),
     readMarkdownFileSlice: vi.fn(),
     readMarkdownFileSnapshot: vi.fn(),
@@ -78,6 +81,20 @@ describe('App file navigation and drawer behavior', () => {
     Element.prototype.scrollIntoView = vi.fn();
     vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(tree);
+    vi.mocked(fileSystemAccess.readDocumentFile).mockImplementation(async (_handle, path) => `# ${path}`);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const type = /\.html?$/i.test(path) ? 'text/html' : 'text/markdown';
+      const body = type === 'text/html' ? `<h1>${path}</h1>` : `# ${path}`;
+      const file = new File([body], path.split('/').at(-1) ?? path, { type });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
     vi.mocked(fileSystemAccess.readMarkdownFile).mockImplementation(async (_handle, path) => `# ${path}`);
     vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockImplementation(async (_handle, path) => {
       const file = new File([`# ${path}`], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
@@ -91,6 +108,7 @@ describe('App file navigation and drawer behavior', () => {
       };
     });
     vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('# sample');
+    vi.mocked(fileSystemAccess.openDocumentFile).mockRejectedValue(new DOMException('AbortError', 'AbortError'));
     vi.mocked(fileSystemAccess.openMarkdownFile).mockRejectedValue(new DOMException('AbortError', 'AbortError'));
     largeDocumentClient.buildIndex.mockResolvedValue({
       name: 'big.md',
@@ -261,6 +279,46 @@ describe('App file navigation and drawer behavior', () => {
     expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledTimes(2);
   });
 
+  it('opens HTML files from the authorized folder without running Markdown large-file mode', async () => {
+    const user = userEvent.setup();
+    const htmlTree: FileTreeNode[] = [
+      { type: 'file', name: 'README.md', path: 'README.md' },
+      { type: 'file', name: 'report.html', path: 'report.html' },
+    ];
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(htmlTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const source = path === 'report.html'
+        ? '<!doctype html><html><head><title>Report</title><script>alert(1)</script></head><body><h1>Report</h1><h2>Section</h2></body></html>'
+        : `# ${path}`;
+      const type = path === 'report.html' ? 'text/html' : 'text/markdown';
+      const file = new File([source], path, { type });
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'README.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'report.html' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Report' })).not.toHaveLength(0));
+    expect(screen.getByRole('button', { name: '上一个' })).toHaveAttribute('title', '上一个文件：README.md');
+    expect(screen.getByLabelText('文档大纲')).toHaveTextContent('Section');
+    expect(screen.queryByText('alert(1)')).not.toBeInTheDocument();
+    expect(fileSystemAccess.readMarkdownFileSlice).toHaveBeenCalledTimes(1);
+  });
+
   it('opens a temporary standalone Markdown file without overwriting the remembered directory document', async () => {
     vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue({
       url: 'file:///Users/qiyu/Desktop/Temporary.md',
@@ -280,6 +338,30 @@ describe('App file navigation and drawer behavior', () => {
     vi.unstubAllGlobals();
   });
 
+  it('opens standalone HTML files from the file picker', async () => {
+    const user = userEvent.setup();
+    const selected = new File(['<html><body><h1>Standalone HTML</h1></body></html>'], 'standalone.html', {
+      type: 'text/html',
+    });
+
+    vi.mocked(fileSystemAccess.openDocumentFile).mockResolvedValue({
+      path: 'standalone.html',
+      name: 'standalone.html',
+      size: selected.size,
+      type: selected.type,
+      lastModified: selected.lastModified,
+      file: selected,
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '打开文件' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Standalone HTML' })).not.toHaveLength(0));
+    expect(fileSystemAccess.readMarkdownFileSlice).not.toHaveBeenCalled();
+    expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
+  });
+
   it('opens large directory documents without full markdown rendering', async () => {
     const user = userEvent.setup();
     const largeFile = new File(['# Big\n'.padEnd(2 * 1024 * 1024, 'x')], 'big.md', {
@@ -289,7 +371,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
       { type: 'file', name: 'big.md', path: 'big.md' },
     ]);
-    vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockResolvedValue({
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
       path: 'big.md',
       name: 'big.md',
       size: largeFile.size,
@@ -305,7 +387,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
 
     await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
-    expect(fileSystemAccess.readMarkdownFile).not.toHaveBeenCalled();
+    expect(fileSystemAccess.readDocumentFile).not.toHaveBeenCalled();
   });
 
   it('asks for file authorization when a temporary standalone file is too large to inline', async () => {
@@ -389,7 +471,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
       { type: 'file', name: 'big.md', path: 'big.md' },
     ]);
-    vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockResolvedValue({
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
       path: 'big.md',
       name: 'big.md',
       size: largeFile.size,
@@ -418,7 +500,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
       { type: 'file', name: 'big.md', path: 'big.md' },
     ]);
-    vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockResolvedValue({
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
       path: 'big.md',
       name: 'big.md',
       size: largeFile.size,
@@ -462,7 +544,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
       { type: 'file', name: 'big.md', path: 'big.md' },
     ]);
-    vi.mocked(fileSystemAccess.readMarkdownFileSnapshot).mockResolvedValue({
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
       path: 'big.md',
       name: 'big.md',
       size: 60 * 1024 * 1024,
@@ -537,7 +619,7 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByLabelText('原文'));
-    await user.click(within(screen.getByRole('article')).getByRole('button', { name: '复制原文' }));
+    await user.click(within(screen.getByRole('article')).getByRole('button', { name: '复制源码' }));
 
     expect(writeText).toHaveBeenCalledWith('# docs/01-intro.md');
     expect(screen.getByText('已复制')).toBeInTheDocument();

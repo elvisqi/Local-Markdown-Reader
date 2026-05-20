@@ -16,20 +16,20 @@ Privacy contact / 隐私联系邮箱: shuaiqy@gmail.com
 
 ## 2. Summary / 摘要
 
-Local Markdown Reader is a local-first Chrome/Edge extension for reading Markdown files from folders selected by the user.
+Local Markdown Reader is a local-first Chrome/Edge extension for reading Markdown and HTML files from folders selected by the user.
 
-本地 Markdown 阅读器是一个本地优先的 Chrome/Edge 扩展，用于阅读用户主动选择的本地文件夹中的 Markdown 文件。
+本地 Markdown 阅读器是一个本地优先的 Chrome/Edge 扩展，用于阅读用户主动选择的本地文件夹中的 Markdown 和 HTML 文件。
 
 - The extension does not require an account.
 - The extension does not collect analytics.
 - The extension does not sell personal data.
-- The extension does not transmit Markdown document contents to the developer or to a remote server.
+- The extension does not transmit Markdown or HTML document contents to the developer or to a remote server.
 - Local folder access only occurs after the user explicitly selects a folder through the browser's folder picker.
 
 - 本扩展不需要用户账号。
 - 本扩展不收集分析统计数据。
 - 本扩展不出售个人数据。
-- 本扩展不会把 Markdown 文档内容传输给开发者或远程服务器。
+- 本扩展不会把 Markdown 或 HTML 文档内容传输给开发者或远程服务器。
 - 只有在用户通过浏览器文件夹选择器明确选择文件夹后，本扩展才会读取该本地文件夹。
 
 ## 3. Information The Extension Handles / 本扩展处理的信息
@@ -38,21 +38,21 @@ The extension may handle the following data locally in the user's browser:
 
 本扩展可能在用户浏览器本地处理以下数据：
 
-- Markdown file contents from folders explicitly selected by the user.
+- Markdown and HTML file contents from folders explicitly selected by the user.
 - Local file and folder names needed to display the file list and current document title.
 - Reading settings, such as theme, reading width, reading style, outline visibility, and raw Markdown mode.
 - Last opened document state, including the selected folder handle, folder name, file path, and last updated timestamp, so the extension can restore the previous reading session when permission is still available.
 
-- 用户明确选择的文件夹中的 Markdown 文件内容。
+- 用户明确选择的文件夹中的 Markdown 和 HTML 文件内容。
 - 为展示文件列表和当前文档标题所需的本地文件名和文件夹名。
 - 阅读设置，例如主题、正文宽度、阅读样式、大纲显示状态和 Raw Markdown 模式。
 - 上次打开文档的状态，包括已选择的文件夹句柄、文件夹名称、文件路径和更新时间戳，用于在浏览器仍保留授权时恢复上次阅读会话。
 
 ## 4. How Information Is Collected / 信息如何产生或读取
 
-The extension reads local Markdown documents only after the user chooses a folder using the browser-provided File System Access API. The extension scans the selected folder to find Markdown files and reads the selected Markdown file for rendering.
+The extension reads local Markdown and HTML documents only after the user chooses a folder using the browser-provided File System Access API. The extension scans the selected folder to find supported document files and reads the selected document file for rendering.
 
-本扩展只有在用户通过浏览器提供的 File System Access API 选择文件夹后，才会读取本地 Markdown 文档。本扩展会扫描已选择文件夹中的 Markdown 文件，并读取用户选中的 Markdown 文件用于渲染。
+本扩展只有在用户通过浏览器提供的 File System Access API 选择文件夹后，才会读取本地 Markdown 和 HTML 文档。本扩展会扫描已选择文件夹中的受支持文档文件，并读取用户选中的文档文件用于渲染。
 
 The extension also uses browser extension storage to save user preferences. It may use IndexedDB to remember the last opened local document state.
 
@@ -64,25 +64,25 @@ The extension uses locally handled information only to provide its reader featur
 
 本扩展仅将本地处理的信息用于提供阅读器功能：
 
-- Rendering Markdown documents as readable HTML.
-- Generating a document outline from Markdown headings.
-- Displaying a local Markdown file list for the selected folder.
-- Switching between Markdown files in the selected folder.
+- Rendering Markdown documents as readable HTML and displaying sanitized local HTML documents.
+- Generating a document outline from Markdown or HTML headings.
+- Displaying a local document file list for the selected folder.
+- Switching between supported document files in the selected folder.
 - Restoring the last opened document when browser permission is still available.
 - Applying user-selected reading settings.
 
-- 将 Markdown 文档渲染为可阅读的 HTML。
-- 根据 Markdown 标题生成文档大纲。
-- 展示已选择文件夹中的本地 Markdown 文件列表。
-- 在已选择文件夹内切换 Markdown 文件。
+- 将 Markdown 文档渲染为可阅读的 HTML，并展示经过安全净化的本地 HTML 文档。
+- 根据 Markdown 或 HTML 标题生成文档大纲。
+- 展示已选择文件夹中的本地文档文件列表。
+- 在已选择文件夹内切换受支持文档文件。
 - 在浏览器仍保留授权时恢复上次打开的文档。
 - 应用用户选择的阅读设置。
 
 ## 6. Data Sharing / 数据共享
 
-The extension does not send Markdown file contents, folder contents, filenames, reading settings, or last opened document state to the developer, analytics providers, advertising networks, or other third parties.
+The extension does not send Markdown or HTML file contents, folder contents, filenames, reading settings, or last opened document state to the developer, analytics providers, advertising networks, or other third parties.
 
-本扩展不会把 Markdown 文件内容、文件夹内容、文件名、阅读设置或上次打开文档状态发送给开发者、分析服务商、广告网络或其它第三方。
+本扩展不会把 Markdown 或 HTML 文件内容、文件夹内容、文件名、阅读设置或上次打开文档状态发送给开发者、分析服务商、广告网络或其它第三方。
 
 The extension does not sell, rent, or trade user data.
 
@@ -94,9 +94,9 @@ The extension does not include analytics tracking, advertising SDKs, remote logg
 
 本扩展不包含分析追踪、广告 SDK、远程日志、支付处理、账号登录或营销像素。
 
-The extension's use of information is limited to providing or improving its local Markdown reading functionality. The extension's use of information received from Chrome APIs adheres to the Chrome Web Store User Data Policy, including the Limited Use requirements.
+The extension's use of information is limited to providing or improving its local document reading functionality. The extension's use of information received from Chrome APIs adheres to the Chrome Web Store User Data Policy, including the Limited Use requirements.
 
-本扩展对信息的使用仅限于提供或改进本地 Markdown 阅读功能。本扩展对从 Chrome API 获得的信息的使用遵守 Chrome Web Store User Data Policy，包括 Limited Use 要求。
+本扩展对信息的使用仅限于提供或改进本地文档阅读功能。本扩展对从 Chrome API 获得的信息的使用遵守 Chrome Web Store User Data Policy，包括 Limited Use 要求。
 
 If future versions add any remote service or third-party integration, this policy will be updated before release, and the Chrome Web Store privacy disclosure will be updated accordingly.
 
@@ -118,9 +118,9 @@ The extension requests the following permissions:
 
 ## 9. Data Retention / 数据保留
 
-Markdown document contents are read locally for display and are not stored by the extension as separate copies.
+Markdown and HTML document contents are read locally for display and are not stored by the extension as separate copies.
 
-Markdown 文档内容仅在本地读取并用于展示，扩展不会另行保存文档副本。
+Markdown 和 HTML 文档内容仅在本地读取并用于展示，扩展不会另行保存文档副本。
 
 Reading settings are retained in browser extension storage until the user changes them, clears browser extension data, removes the extension, or resets browser profile data.
 
@@ -150,9 +150,9 @@ Users can control the extension's access and stored data in the following ways:
 
 ## 11. Security / 安全
 
-The extension is designed to process Markdown documents locally in the browser. It does not transmit document contents to external servers. Access to local folders is mediated by browser permission prompts and the browser's File System Access API.
+The extension is designed to process Markdown and HTML documents locally in the browser. It does not transmit document contents to external servers. Access to local folders is mediated by browser permission prompts and the browser's File System Access API.
 
-本扩展设计为在浏览器本地处理 Markdown 文档，不会将文档内容传输到外部服务器。本地文件夹访问由浏览器权限提示和浏览器 File System Access API 管理。
+本扩展设计为在浏览器本地处理 Markdown 和 HTML 文档，不会将文档内容传输到外部服务器。本地文件夹访问由浏览器权限提示和浏览器 File System Access API 管理。
 
 No software system can guarantee absolute security. Users should only grant folder access to extensions they trust and may revoke access or remove the extension at any time through browser settings.
 

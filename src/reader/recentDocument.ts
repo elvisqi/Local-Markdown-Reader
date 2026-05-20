@@ -1,4 +1,4 @@
-import { flattenMarkdownFiles, selectDefaultDocument } from '../shared/fileSystem';
+import { flattenDocumentFiles, selectDefaultDocument } from '../shared/fileSystem';
 import type { FileTreeNode } from '../shared/types';
 
 const DB_NAME = 'local-markdown-reader';
@@ -61,7 +61,7 @@ export async function clearLastDocument(
 }
 
 export function selectRememberedDocumentPath(tree: FileTreeNode[], rememberedPath: string): string | null {
-  const rememberedFile = flattenMarkdownFiles(tree).find((file) => file.path === rememberedPath);
+  const rememberedFile = flattenDocumentFiles(tree).find((file) => file.path === rememberedPath);
 
   return rememberedFile?.path ?? selectDefaultDocument(tree);
 }

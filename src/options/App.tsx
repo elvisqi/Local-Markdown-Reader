@@ -140,7 +140,7 @@ export function App() {
       <section>
         <h2>自定义 CSS</h2>
         <label>
-          应用到 Markdown 正文的 CSS
+          应用到正文的 CSS
           <textarea
             value={settings.rendering.customCss}
             rows={8}

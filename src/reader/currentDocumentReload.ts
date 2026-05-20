@@ -4,8 +4,8 @@ type ReloadCurrentDocumentOptions = {
   directoryHandle: FileSystemDirectoryHandle | null;
   activePath: string | null;
   scrollY: number;
-  readMarkdownFile: (handle: FileSystemDirectoryHandle, path: string) => Promise<string>;
-  renderMarkdown: (markdown: string) => Promise<RenderResult>;
+  readDocumentFile: (handle: FileSystemDirectoryHandle, path: string) => Promise<string>;
+  renderDocument: (source: string) => Promise<RenderResult>;
   setMarkdown: (markdown: string) => void;
   setRendered: (rendered: RenderResult) => void;
   setStatus: (status: string | null) => void;
@@ -18,8 +18,8 @@ export async function reloadCurrentDocument({
   directoryHandle,
   activePath,
   scrollY,
-  readMarkdownFile,
-  renderMarkdown,
+  readDocumentFile,
+  renderDocument,
   setMarkdown,
   setRendered,
   setStatus,
@@ -35,8 +35,8 @@ export async function reloadCurrentDocument({
   setStatus(`正在重载 ${activePath}`);
 
   try {
-    const source = await readMarkdownFile(directoryHandle, activePath);
-    const result = await renderMarkdown(source);
+    const source = await readDocumentFile(directoryHandle, activePath);
+    const result = await renderDocument(source);
 
     setMarkdown(source);
     setRendered(result);

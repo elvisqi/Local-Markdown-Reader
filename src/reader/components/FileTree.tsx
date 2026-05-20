@@ -10,11 +10,11 @@ type FileTreeProps = {
 
 export function FileTree({ tree, activePath, onSelect }: FileTreeProps) {
   if (!tree.length) {
-    return <p className="empty-note">没有找到 Markdown 文件。</p>;
+    return <p className="empty-note">没有找到 Markdown 或 HTML 文件。</p>;
   }
 
   return (
-    <nav aria-label="Markdown 文件" className="file-tree">
+    <nav aria-label="文档文件" className="file-tree">
       <TreeList nodes={tree} activePath={activePath} onSelect={onSelect} />
     </nav>
   );

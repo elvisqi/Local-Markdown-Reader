@@ -3,8 +3,16 @@ import { resolveMarkdownHref } from './links';
 describe('resolveMarkdownHref', () => {
   it('resolves a relative Markdown file and hash', () => {
     expect(resolveMarkdownHref('docs/api.md#install', 'README.md')).toEqual({
-      kind: 'markdown',
+      kind: 'document',
       path: 'docs/api.md',
+      hash: 'install',
+    });
+  });
+
+  it('resolves a relative HTML file and hash', () => {
+    expect(resolveMarkdownHref('docs/report.html#install', 'README.md')).toEqual({
+      kind: 'document',
+      path: 'docs/report.html',
       hash: 'install',
     });
   });
@@ -19,7 +27,7 @@ describe('resolveMarkdownHref', () => {
 
   it('normalizes parent directory segments', () => {
     expect(resolveMarkdownHref('../README.md', 'docs/guide.md')).toEqual({
-      kind: 'markdown',
+      kind: 'document',
       path: 'README.md',
       hash: null,
     });

@@ -575,6 +575,24 @@ select {
   background: transparent;
 }
 
+.rendered-html-document {
+  min-width: 0;
+}
+
+.rendered-html-document img,
+.rendered-html-document video,
+.rendered-html-document canvas,
+.rendered-html-document svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.rendered-html-document table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .raw-source {
   display: grid;
   min-width: 0;

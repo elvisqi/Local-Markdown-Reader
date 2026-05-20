@@ -8,7 +8,7 @@
     "description": "Short title shown in the browser toolbar."
   },
   "extensionDescription": {
-    "message": "Local-first Markdown reader with folder navigation and document outline.",
+    "message": "Local-first Markdown and HTML reader with folder navigation and document outline.",
     "description": "Extension description shown in Microsoft Edge Add-ons."
   }
 }

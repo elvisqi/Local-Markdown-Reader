@@ -107,12 +107,12 @@ describe('ReaderToolbar', () => {
     expect(screen.getByRole('button', { name: '上一个' })).toBeDisabled();
     expect(screen.getByRole('button', { name: '上一个' })).toHaveAttribute(
       'title',
-      '当前已经是本文件夹第一个 Markdown 文件',
+      '当前已经是本文件夹第一个文档文件',
     );
     expect(screen.getByRole('button', { name: '下一个' })).toBeDisabled();
     expect(screen.getByRole('button', { name: '下一个' })).toHaveAttribute(
       'title',
-      '当前已经是本文件夹最后一个 Markdown 文件',
+      '当前已经是本文件夹最后一个文档文件',
     );
   });
 });

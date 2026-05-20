@@ -1,5 +1,5 @@
 import {
-  isMarkdownFile,
+  isReadableDocumentFile,
   normalizePath,
   shouldIgnoreDirectory,
   sortFileEntries,
@@ -10,7 +10,7 @@ type DirectoryLike = Pick<FileSystemDirectoryHandle, 'kind' | 'name' | 'entries'
 type FileLike = Pick<FileSystemFileHandle, 'kind' | 'name' | 'getFile'>;
 type DirectoryNode = Extract<FileTreeNode, { type: 'directory' }>;
 
-export type MarkdownFileSnapshot = {
+export type DocumentFileSnapshot = {
   path: string;
   name: string;
   size: number;
@@ -18,6 +18,8 @@ export type MarkdownFileSnapshot = {
   lastModified: number;
   file: File;
 };
+
+export type MarkdownFileSnapshot = DocumentFileSnapshot;
 
 export async function openDirectory(): Promise<FileSystemDirectoryHandle> {
   const picker = globalThis.showDirectoryPicker;
@@ -29,6 +31,10 @@ export async function openDirectory(): Promise<FileSystemDirectoryHandle> {
 }
 
 export async function openMarkdownFile(): Promise<MarkdownFileSnapshot> {
+  return openDocumentFile();
+}
+
+export async function openDocumentFile(): Promise<DocumentFileSnapshot> {
   const picker = window.showOpenFilePicker;
   if (!picker) {
     throw new Error('This browser does not support file access.');
@@ -38,19 +44,24 @@ export async function openMarkdownFile(): Promise<MarkdownFileSnapshot> {
     multiple: false,
     types: [
       {
-        description: 'Markdown 文件',
+        description: 'Markdown 或 HTML 文件',
         accept: {
           'text/markdown': ['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext'],
+          'text/html': ['.html', '.htm'],
         },
       },
     ],
   });
   const file = await fileHandle.getFile();
 
-  return createMarkdownFileSnapshot(file.name, file);
+  return createDocumentFileSnapshot(file.name, file);
 }
 
 export async function scanMarkdownDirectory(handle: DirectoryLike): Promise<FileTreeNode[]> {
+  return scanDocumentDirectory(handle);
+}
+
+export async function scanDocumentDirectory(handle: DirectoryLike): Promise<FileTreeNode[]> {
   const nodes: FileTreeNode[] = [];
 
   for await (const [, entry] of handle.entries()) {
@@ -63,7 +74,7 @@ export async function scanMarkdownDirectory(handle: DirectoryLike): Promise<File
       if (children.children.length > 0) {
         nodes.push(children);
       }
-    } else if (entry.kind === 'file' && isMarkdownFile(entry.name)) {
+    } else if (entry.kind === 'file' && isReadableDocumentFile(entry.name)) {
       nodes.push({
         type: 'file',
         name: entry.name,
@@ -76,6 +87,10 @@ export async function scanMarkdownDirectory(handle: DirectoryLike): Promise<File
 }
 
 export async function readMarkdownFile(handle: DirectoryLike, path: string): Promise<string> {
+  return readDocumentFile(handle, path);
+}
+
+export async function readDocumentFile(handle: DirectoryLike, path: string): Promise<string> {
   const fileHandle = await getFileHandle(handle, path);
   if (!fileHandle) {
     throw new Error(`File not found: ${path}`);
@@ -88,12 +103,19 @@ export async function readMarkdownFileSnapshot(
   handle: DirectoryLike,
   path: string,
 ): Promise<MarkdownFileSnapshot> {
+  return readDocumentFileSnapshot(handle, path);
+}
+
+export async function readDocumentFileSnapshot(
+  handle: DirectoryLike,
+  path: string,
+): Promise<DocumentFileSnapshot> {
   const fileHandle = await getFileHandle(handle, path);
   if (!fileHandle) {
     throw new Error(`File not found: ${path}`);
   }
 
-  return createMarkdownFileSnapshot(path, await fileHandle.getFile());
+  return createDocumentFileSnapshot(path, await fileHandle.getFile());
 }
 
 export async function readMarkdownFileSlice(file: Blob, start: number, end: number): Promise<string> {
@@ -109,7 +131,7 @@ export async function readAssetBlobUrl(handle: DirectoryLike, path: string): Pro
   return URL.createObjectURL(await fileHandle.getFile());
 }
 
-function createMarkdownFileSnapshot(path: string, file: File): MarkdownFileSnapshot {
+function createDocumentFileSnapshot(path: string, file: File): DocumentFileSnapshot {
   return {
     path,
     name: file.name,
@@ -133,7 +155,7 @@ async function scanDirectory(handle: DirectoryLike, pathParts: string[]): Promis
       if (child.children.length > 0) {
         children.push(child);
       }
-    } else if (entry.kind === 'file' && isMarkdownFile(entry.name)) {
+    } else if (entry.kind === 'file' && isReadableDocumentFile(entry.name)) {
       children.push({
         type: 'file',
         name: entry.name,

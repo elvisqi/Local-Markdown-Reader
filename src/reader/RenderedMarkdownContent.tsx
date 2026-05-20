@@ -5,9 +5,10 @@ import { renderMermaidBlocks } from './mermaidRenderer';
 type RenderedMarkdownContentProps = {
   html: string;
   mermaidEnabled: boolean;
+  className?: string;
 };
 
-function RenderedMarkdownContentComponent({ html, mermaidEnabled }: RenderedMarkdownContentProps) {
+function RenderedMarkdownContentComponent({ html, mermaidEnabled, className }: RenderedMarkdownContentProps) {
   const contentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -18,7 +19,7 @@ function RenderedMarkdownContentComponent({ html, mermaidEnabled }: RenderedMark
     void renderMermaidBlocks(contentRef.current);
   }, [html, mermaidEnabled]);
 
-  return <div ref={contentRef} dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div ref={contentRef} className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 export const RenderedMarkdownContent = memo(RenderedMarkdownContentComponent);

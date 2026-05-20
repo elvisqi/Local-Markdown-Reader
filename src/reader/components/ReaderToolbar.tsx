@@ -1,12 +1,12 @@
-import type { MarkdownFileEntry } from '../../shared/types';
+import type { DocumentFileEntry } from '../../shared/types';
 
 type ReaderToolbarProps = {
   title: string;
   rawMode: boolean;
   onToggleDrawer: () => void;
   onReload: () => void;
-  previousFile: MarkdownFileEntry | null;
-  nextFile: MarkdownFileEntry | null;
+  previousFile: DocumentFileEntry | null;
+  nextFile: DocumentFileEntry | null;
   onOpenPrevious: () => void;
   onOpenNext: () => void;
   onRawModeChange: (rawMode: boolean) => void;
@@ -35,7 +35,7 @@ export function ReaderToolbar({
         <button
           type="button"
           disabled={!previousFile}
-          title={previousFile ? `上一个文件：${previousFile.name}` : '当前已经是本文件夹第一个 Markdown 文件'}
+          title={previousFile ? `上一个文件：${previousFile.name}` : '当前已经是本文件夹第一个文档文件'}
           onClick={onOpenPrevious}
         >
           上一个
@@ -43,7 +43,7 @@ export function ReaderToolbar({
         <button
           type="button"
           disabled={!nextFile}
-          title={nextFile ? `下一个文件：${nextFile.name}` : '当前已经是本文件夹最后一个 Markdown 文件'}
+          title={nextFile ? `下一个文件：${nextFile.name}` : '当前已经是本文件夹最后一个文档文件'}
           onClick={onOpenNext}
         >
           下一个

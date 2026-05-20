@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { flattenMarkdownFiles, selectDefaultDocument } from '../shared/fileSystem';
+import { flattenDocumentFiles, getDocumentFileKind, selectDefaultDocument } from '../shared/fileSystem';
+import { renderHtmlDocument } from '../shared/render/html';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, subscribeSettings } from '../shared/settings';
 import { consumeTemporaryMarkdownDocument, type TemporaryMarkdownDocument } from '../shared/temporaryDocument';
@@ -14,12 +15,12 @@ import { reloadCurrentDocument } from './currentDocumentReload';
 import { selectSiblingMarkdownNavigation } from './fileNavigation';
 import {
   openDirectory,
-  openMarkdownFile,
-  readMarkdownFile,
+  openDocumentFile,
+  readDocumentFile,
+  readDocumentFileSnapshot,
   readMarkdownFileSlice,
-  readMarkdownFileSnapshot,
   scanMarkdownDirectory,
-  type MarkdownFileSnapshot,
+  type DocumentFileSnapshot,
 } from './fileSystemAccess';
 import {
   classifyMarkdownDocument,
@@ -60,12 +61,15 @@ type LargeDocumentSession = {
   rememberRecord?: LastDocumentRecord;
 };
 
+type ActiveDocumentKind = 'markdown' | 'html';
+
 export function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null);
   const [tree, setTree] = useState<FileTreeNode[]>([]);
   const [activePath, setActivePath] = useState<string | null>(null);
+  const [activeDocumentKind, setActiveDocumentKind] = useState<ActiveDocumentKind>('markdown');
   const [markdown, setMarkdown] = useState('');
   const [rendered, setRendered] = useState<RenderResult>(EMPTY_RENDER);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
@@ -170,7 +174,7 @@ export function App() {
 
   async function openFolder() {
     setError(null);
-    setStatus('请选择一个文件夹，读取其中的 Markdown 文件。');
+    setStatus('请选择一个文件夹，读取其中的 Markdown 或 HTML 文件。');
 
     try {
       const handle = await openDirectory();
@@ -180,12 +184,13 @@ export function App() {
       setDirectoryHandle(handle);
       setTree(nextTree);
       setDrawerOpen(false);
-      setStatus(nextTree.length ? null : '这个文件夹里没有找到 Markdown 文件。');
+      setStatus(nextTree.length ? null : '这个文件夹里没有找到 Markdown 或 HTML 文件。');
 
       if (defaultPath) {
         await openFile(handle, defaultPath, true);
       } else {
         setActivePath(null);
+        setActiveDocumentKind('markdown');
         setMarkdown('');
         setRendered(EMPTY_RENDER);
       }
@@ -197,16 +202,23 @@ export function App() {
 
   async function openStandaloneFile() {
     setError(null);
-    setStatus('请选择一个 Markdown 文件。');
+    setStatus('请选择一个 Markdown 或 HTML 文件。');
 
     try {
-      const snapshot = await openMarkdownFile();
-      const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
-      const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
+      const snapshot = await openDocumentFile();
+      const documentKind = getSnapshotDocumentKind(snapshot);
 
       setDirectoryHandle(null);
       setTree([]);
       setDrawerOpen(false);
+
+      if (documentKind === 'html') {
+        await openNormalDocumentSnapshot(snapshot, 'html');
+        return;
+      }
+
+      const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
+      const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
 
       if (classification.kind !== 'normal') {
         await openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
@@ -215,15 +227,7 @@ export function App() {
         return;
       }
 
-      closeLargeDocument();
-      const source = await snapshot.file.text();
-      const result = await renderMarkdown(source);
-
-      setActivePath(snapshot.name);
-      setMarkdown(source);
-      setRendered(result);
-      setLargeAnchorLine(1);
-      setStatus(null);
+      await openNormalDocumentSnapshot(snapshot, 'markdown');
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
         setStatus(null);
@@ -245,7 +249,19 @@ export function App() {
     setStatus(`正在打开 ${path}`);
 
     try {
-      const snapshot = await readMarkdownFileSnapshot(handle, path);
+      const snapshot = await readDocumentFileSnapshot(handle, path);
+      const documentKind = getSnapshotDocumentKind(snapshot);
+
+      if (documentKind === 'html') {
+        await openNormalDocumentSnapshot(snapshot, 'html', remember ? {
+          directoryHandle: handle,
+          directoryName: handle.name,
+          path,
+          updatedAt: Date.now(),
+        } : undefined);
+        return;
+      }
+
       const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
       const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
 
@@ -268,25 +284,12 @@ export function App() {
 
       closeLargeDocument();
 
-      const source = await readMarkdownFile(handle, path);
-      const result = await renderMarkdown(source);
-
-      setActivePath(path);
-      setMarkdown(source);
-      setRendered(result);
-      setLargeAnchorLine(1);
-      setStatus(null);
-
-      if (remember) {
-        const record = {
-          directoryHandle: handle,
-          directoryName: handle.name,
-          path,
-          updatedAt: Date.now(),
-        };
-        setLastDocument(record);
-        await saveLastDocument(record);
-      }
+      await openNormalDocumentSnapshot(snapshot, 'markdown', remember ? {
+        directoryHandle: handle,
+        directoryName: handle.name,
+        path,
+        updatedAt: Date.now(),
+      } : undefined);
     } catch (err) {
       setStatus(null);
       setError(err instanceof Error ? err.message : `无法打开 ${path}。`);
@@ -294,7 +297,7 @@ export function App() {
   }
 
   async function openLargeDocument(
-    snapshot: MarkdownFileSnapshot,
+    snapshot: DocumentFileSnapshot,
     kind: Exclude<LargeDocumentKind, 'normal'>,
     reason: string,
     options: { rememberRecord?: LastDocumentRecord; anchorLine?: number } = {},
@@ -312,6 +315,7 @@ export function App() {
     }
 
     setActivePath(snapshot.path);
+    setActiveDocumentKind('markdown');
     setMarkdown('');
     setRendered({
       ...EMPTY_RENDER,
@@ -333,6 +337,28 @@ export function App() {
     if (options.rememberRecord) {
       setLastDocument(options.rememberRecord);
       await saveLastDocument(options.rememberRecord);
+    }
+  }
+
+  async function openNormalDocumentSnapshot(
+    snapshot: DocumentFileSnapshot,
+    kind: ActiveDocumentKind,
+    rememberRecord?: LastDocumentRecord,
+  ) {
+    closeLargeDocument();
+    const source = await snapshot.file.text();
+    const result = kind === 'html' ? await renderHtmlDocument(source) : await renderMarkdown(source);
+
+    setActivePath(snapshot.path);
+    setActiveDocumentKind(kind);
+    setMarkdown(source);
+    setRendered(result);
+    setLargeAnchorLine(1);
+    setStatus(null);
+
+    if (rememberRecord) {
+      setLastDocument(rememberRecord);
+      await saveLastDocument(rememberRecord);
     }
   }
 
@@ -374,6 +400,7 @@ export function App() {
       setDirectoryHandle(null);
       setTree([]);
       setActivePath(name);
+      setActiveDocumentKind('markdown');
       setMarkdown(source);
       setRendered(result);
       setStatus(null);
@@ -393,6 +420,7 @@ export function App() {
     setDirectoryHandle(null);
     setTree([]);
     setActivePath(null);
+    setActiveDocumentKind('markdown');
     setMarkdown('');
     setRendered(EMPTY_RENDER);
     setStatus('这个临时 Markdown 文件太大，浏览器无法从当前页面安全传递完整内容。请通过“打开文件”或“打开文件夹”授权读取后继续阅读。');
@@ -446,7 +474,7 @@ export function App() {
       if (rememberedPath) {
         await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path);
       } else {
-        setStatus('上次打开的文件夹里没有找到 Markdown 文件。');
+        setStatus('上次打开的文件夹里没有找到 Markdown 或 HTML 文件。');
       }
     } catch (err) {
       setStatus(null);
@@ -465,8 +493,8 @@ export function App() {
       directoryHandle,
       activePath,
       scrollY: window.scrollY,
-      readMarkdownFile,
-      renderMarkdown,
+      readDocumentFile,
+      renderDocument: (source) => activeDocumentKind === 'html' ? renderHtmlDocument(source) : renderMarkdown(source),
       setMarkdown,
       setRendered,
       setStatus,
@@ -488,7 +516,7 @@ export function App() {
     try {
       const nextTree = await scanMarkdownDirectory(directoryHandle);
       const activeFileExists = activePath
-        ? flattenMarkdownFiles(nextTree).some((file) => file.path === activePath)
+        ? flattenDocumentFiles(nextTree).some((file) => file.path === activePath)
         : false;
       const fallbackPath = activeFileExists ? null : selectDefaultDocument(nextTree);
 
@@ -505,9 +533,10 @@ export function App() {
       }
 
       setActivePath(null);
+      setActiveDocumentKind('markdown');
       setMarkdown('');
       setRendered(EMPTY_RENDER);
-      setStatus('这个文件夹里没有找到 Markdown 文件。');
+      setStatus('这个文件夹里没有找到 Markdown 或 HTML 文件。');
     } catch (err) {
       setStatus(null);
       setError(err instanceof Error ? err.message : '无法重载目录。');
@@ -529,17 +558,21 @@ export function App() {
     setRawActionStatus(null);
 
     try {
-      const suggestedName = selectMarkdownSaveName(activePath);
+      const suggestedName = selectSourceSaveName(activePath, activeDocumentKind);
 
       if (window.showSaveFilePicker) {
-        const fileHandle = await window.showSaveFilePicker({
-          suggestedName,
-          types: [
-            {
+        const pickerType: { description: string; accept: Record<string, string[]> } = activeDocumentKind === 'html'
+          ? {
+              description: 'HTML 文件',
+              accept: { 'text/html': ['.html', '.htm'] },
+            }
+          : {
               description: 'Markdown 文件',
               accept: { 'text/markdown': ['.md', '.markdown'] },
-            },
-          ],
+            };
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName,
+          types: [pickerType],
         });
         const writable = await fileHandle.createWritable();
         await writable.write(markdown);
@@ -548,7 +581,7 @@ export function App() {
         return;
       }
 
-      downloadMarkdownSource(markdown, suggestedName);
+      downloadSource(markdown, suggestedName, activeDocumentKind);
       setRawActionStatus('已下载');
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -653,7 +686,7 @@ export function App() {
               <section className="raw-source">
                 <div className="raw-source__toolbar">
                   <button type="button" onClick={() => void copyMarkdownSource()}>
-                    复制原文
+                    复制源码
                   </button>
                   <button type="button" onClick={() => void saveMarkdownSourceAs()}>
                     另存为
@@ -664,13 +697,17 @@ export function App() {
               </section>
             ) : (
               <div ref={renderedContentRef}>
-                <RenderedMarkdownContent html={rendered.html} mermaidEnabled={settings.rendering.mermaid} />
+                <RenderedMarkdownContent
+                  html={rendered.html}
+                  mermaidEnabled={settings.rendering.mermaid && activeDocumentKind === 'markdown'}
+                  className={activeDocumentKind === 'html' ? 'rendered-html-document' : undefined}
+                />
               </div>
             )
           ) : (
             <section className="empty-state">
               <h2>打开本地文件夹</h2>
-              <p>选择包含 Markdown 文件的文件夹，把它作为本地文档集阅读。</p>
+              <p>选择包含 Markdown 或 HTML 文件的文件夹，把它作为本地文档集阅读。</p>
               {lastDocument && (
                 <p>
                   上次打开：{lastDocument.directoryName}/{lastDocument.path}
@@ -715,15 +752,18 @@ export function App() {
   );
 }
 
-function selectMarkdownSaveName(path: string | null): string {
-  const fallbackName = 'document.md';
+function selectSourceSaveName(path: string | null, kind: ActiveDocumentKind): string {
+  const fallbackName = kind === 'html' ? 'document.html' : 'document.md';
   const name = path?.split('/').filter(Boolean).at(-1) ?? fallbackName;
+  const extensionPattern = kind === 'html' ? /\.(html|htm)$/i : /\.(md|markdown)$/i;
+  const extension = kind === 'html' ? '.html' : '.md';
 
-  return /\.(md|markdown)$/i.test(name) ? name : `${name}.md`;
+  return extensionPattern.test(name) ? name : `${name}${extension}`;
 }
 
-function downloadMarkdownSource(source: string, filename: string) {
-  const objectUrl = URL.createObjectURL(new Blob([source], { type: 'text/markdown;charset=utf-8' }));
+function downloadSource(source: string, filename: string, kind: ActiveDocumentKind) {
+  const type = kind === 'html' ? 'text/html;charset=utf-8' : 'text/markdown;charset=utf-8';
+  const objectUrl = URL.createObjectURL(new Blob([source], { type }));
   const anchor = document.createElement('a');
 
   try {
@@ -736,6 +776,10 @@ function downloadMarkdownSource(source: string, filename: string) {
     anchor.remove();
     URL.revokeObjectURL(objectUrl);
   }
+}
+
+function getSnapshotDocumentKind(snapshot: DocumentFileSnapshot): ActiveDocumentKind {
+  return getDocumentFileKind(snapshot.path) ?? getDocumentFileKind(snapshot.name) ?? 'markdown';
 }
 
 function findLargeOutlineLine(items: LargeOutlineItem[], id: string): number | null {

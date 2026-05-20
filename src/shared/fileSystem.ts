@@ -1,9 +1,34 @@
-import type { FileTreeNode, MarkdownFileEntry } from './types';
+import type { DocumentFileEntry, DocumentFileKind, FileTreeNode, MarkdownFileEntry } from './types';
 
 const MARKDOWN_EXTENSIONS = new Set(['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext']);
+const HTML_EXTENSIONS = new Set(['.html', '.htm']);
 const IGNORED_DIRECTORIES = new Set(['.git', 'node_modules', 'dist', 'build', 'coverage', '.cache']);
 
 export function isMarkdownFile(name: string): boolean {
+  return hasExtension(name, MARKDOWN_EXTENSIONS);
+}
+
+export function isHtmlFile(name: string): boolean {
+  return hasExtension(name, HTML_EXTENSIONS);
+}
+
+export function isReadableDocumentFile(name: string): boolean {
+  return isMarkdownFile(name) || isHtmlFile(name);
+}
+
+export function getDocumentFileKind(name: string): DocumentFileKind | null {
+  if (isMarkdownFile(name)) {
+    return 'markdown';
+  }
+
+  if (isHtmlFile(name)) {
+    return 'html';
+  }
+
+  return null;
+}
+
+function hasExtension(name: string, extensions: Set<string>): boolean {
   const lower = name.toLowerCase();
   const dot = lower.lastIndexOf('.');
 
@@ -11,7 +36,7 @@ export function isMarkdownFile(name: string): boolean {
     return false;
   }
 
-  return MARKDOWN_EXTENSIONS.has(lower.slice(dot));
+  return extensions.has(lower.slice(dot));
 }
 
 export function shouldIgnoreDirectory(name: string): boolean {
@@ -37,21 +62,29 @@ export function sortFileEntries(entries: FileTreeNode[]): FileTreeNode[] {
 }
 
 export function flattenMarkdownFiles(tree: FileTreeNode[]): MarkdownFileEntry[] {
+  return flattenDocumentFiles(tree).filter((file) => isMarkdownFile(file.name));
+}
+
+export function flattenDocumentFiles(tree: FileTreeNode[]): DocumentFileEntry[] {
   return tree.flatMap((node) => {
     if (node.type === 'directory') {
-      return flattenMarkdownFiles(node.children);
+      return flattenDocumentFiles(node.children);
     }
 
-    return isMarkdownFile(node.name) ? [{ name: node.name, path: node.path }] : [];
+    return isReadableDocumentFile(node.name) ? [{ name: node.name, path: node.path }] : [];
   });
 }
 
 export function selectDefaultDocument(tree: FileTreeNode[]): string | null {
-  const files = flattenMarkdownFiles(sortTree(tree));
+  const files = flattenDocumentFiles(sortTree(tree));
 
   return (
     files.find((file) => file.name.toLowerCase() === 'readme.md')?.path ??
+    files.find((file) => file.name.toLowerCase() === 'readme.html')?.path ??
+    files.find((file) => file.name.toLowerCase() === 'readme.htm')?.path ??
     files.find((file) => file.name.toLowerCase() === 'index.md')?.path ??
+    files.find((file) => file.name.toLowerCase() === 'index.html')?.path ??
+    files.find((file) => file.name.toLowerCase() === 'index.htm')?.path ??
     files[0]?.path ??
     null
   );

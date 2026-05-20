@@ -9,7 +9,7 @@ describe('FileTree', () => {
     Element.prototype.scrollIntoView = vi.fn();
   });
 
-  it('renders nested folders and selects Markdown files', async () => {
+  it('renders nested folders and selects document files', async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
     const tree: FileTreeNode[] = [
@@ -18,7 +18,10 @@ describe('FileTree', () => {
         type: 'directory',
         name: 'docs',
         path: 'docs',
-        children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+        children: [
+          { type: 'file', name: 'guide.md', path: 'docs/guide.md' },
+          { type: 'file', name: 'report.html', path: 'docs/report.html' },
+        ],
       },
     ];
 
@@ -26,6 +29,7 @@ describe('FileTree', () => {
 
     expect(screen.getByText('docs')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'README.md' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'report.html' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'guide.md' }));
 

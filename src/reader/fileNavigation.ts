@@ -1,17 +1,17 @@
-import { isMarkdownFile } from '../shared/fileSystem';
-import type { FileTreeNode, MarkdownFileEntry } from '../shared/types';
+import { isReadableDocumentFile } from '../shared/fileSystem';
+import type { DocumentFileEntry, FileTreeNode } from '../shared/types';
 
 type FileNavigation = {
-  previous: MarkdownFileEntry | null;
-  next: MarkdownFileEntry | null;
+  previous: DocumentFileEntry | null;
+  next: DocumentFileEntry | null;
 };
 
-export function selectSiblingMarkdownNavigation(tree: FileTreeNode[], activePath: string | null): FileNavigation {
+export function selectSiblingDocumentNavigation(tree: FileTreeNode[], activePath: string | null): FileNavigation {
   if (!activePath) {
     return emptyNavigation();
   }
 
-  const siblings = findSiblingMarkdownFiles(tree, activePath);
+  const siblings = findSiblingDocumentFiles(tree, activePath);
   const activeIndex = siblings.findIndex((file) => file.path === activePath);
 
   if (activeIndex < 0) {
@@ -24,12 +24,14 @@ export function selectSiblingMarkdownNavigation(tree: FileTreeNode[], activePath
   };
 }
 
-function findSiblingMarkdownFiles(nodes: FileTreeNode[], activePath: string): MarkdownFileEntry[] {
+export const selectSiblingMarkdownNavigation = selectSiblingDocumentNavigation;
+
+function findSiblingDocumentFiles(nodes: FileTreeNode[], activePath: string): DocumentFileEntry[] {
   const activeDirectory = getDirectoryPath(activePath);
   const directory = activeDirectory ? findDirectory(nodes, activeDirectory) : nodes;
 
   return directory
-    .filter((node): node is Extract<FileTreeNode, { type: 'file' }> => node.type === 'file' && isMarkdownFile(node.name))
+    .filter((node): node is Extract<FileTreeNode, { type: 'file' }> => node.type === 'file' && isReadableDocumentFile(node.name))
     .map((node) => ({ name: node.name, path: node.path }));
 }
 

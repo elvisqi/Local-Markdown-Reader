@@ -1,6 +1,7 @@
 export type ThemePreference = 'light' | 'dark' | 'system';
 export type ReadingWidth = 'narrow' | 'comfortable' | 'wide' | 'full';
 export type ReadingStyle = 'clean' | 'github' | 'paper' | 'classic';
+export type DocumentFileKind = 'markdown' | 'html';
 
 export type ReaderSettings = {
   reading: {
@@ -66,7 +67,9 @@ export type FileTreeNode =
       path: string;
     };
 
-export type MarkdownFileEntry = {
+export type DocumentFileEntry = {
   name: string;
   path: string;
 };
+
+export type MarkdownFileEntry = DocumentFileEntry;

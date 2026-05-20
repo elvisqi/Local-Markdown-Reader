@@ -1,5 +1,6 @@
 import {
   openMarkdownFile,
+  openDocumentFile,
   readMarkdownFile,
   readMarkdownFileSlice,
   readMarkdownFileSnapshot,
@@ -55,9 +56,10 @@ function dir(name: string, entries: Array<FakeDirectoryHandle | FakeFileHandle>)
 }
 
 describe('fileSystemAccess', () => {
-  it('recursively scans Markdown files and ignores generated directories', async () => {
+  it('recursively scans Markdown and HTML files and ignores generated directories', async () => {
     const root = dir('root', [
       file('README.md'),
+      file('report.html'),
       file('component.mdx'),
       dir('docs', [file('guide.md'), file('image.svg')]),
       dir('node_modules', [file('ignored.md')]),
@@ -72,6 +74,7 @@ describe('fileSystemAccess', () => {
         children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
       },
       { type: 'file', name: 'README.md', path: 'README.md' },
+      { type: 'file', name: 'report.html', path: 'report.html' },
     ]);
   });
 
@@ -104,20 +107,20 @@ describe('fileSystemAccess', () => {
     await expect(readMarkdownFileSlice(source, 7, 13)).resolves.toBe('line 2');
   });
 
-  it('opens a standalone markdown file through the file picker', async () => {
-    const selected = new File(['# Standalone'], 'standalone.md', {
-      type: 'text/markdown',
+  it('opens a standalone document file through the file picker', async () => {
+    const selected = new File(['<h1>Standalone</h1>'], 'standalone.html', {
+      type: 'text/html',
       lastModified: 1700000000000,
     });
     const getFile = vi.fn(async () => selected);
     const showOpenFilePicker = vi.fn(async () => [{ getFile }]);
     vi.stubGlobal('showOpenFilePicker', showOpenFilePicker);
 
-    await expect(openMarkdownFile()).resolves.toMatchObject({
-      path: 'standalone.md',
-      name: 'standalone.md',
-      size: 12,
-      type: 'text/markdown',
+    await expect(openDocumentFile()).resolves.toMatchObject({
+      path: 'standalone.html',
+      name: 'standalone.html',
+      size: 19,
+      type: 'text/html',
       lastModified: 1700000000000,
       file: selected,
     });
@@ -127,6 +130,21 @@ describe('fileSystemAccess', () => {
         multiple: false,
       }),
     );
+
+    vi.unstubAllGlobals();
+  });
+
+  it('keeps the legacy standalone markdown picker alias', async () => {
+    const selected = new File(['# Standalone'], 'standalone.md', {
+      type: 'text/markdown',
+      lastModified: 1700000000000,
+    });
+    vi.stubGlobal('showOpenFilePicker', vi.fn(async () => [{ getFile: async () => selected }]));
+
+    await expect(openMarkdownFile()).resolves.toMatchObject({
+      path: 'standalone.md',
+      name: 'standalone.md',
+    });
 
     vi.unstubAllGlobals();
   });

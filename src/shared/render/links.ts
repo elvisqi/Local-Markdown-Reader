@@ -1,8 +1,8 @@
-import { isMarkdownFile, normalizePath } from '../fileSystem';
+import { isReadableDocumentFile, normalizePath } from '../fileSystem';
 
 export type ResolvedLink =
   | {
-      kind: 'markdown';
+      kind: 'document';
       path: string;
       hash: string | null;
     }
@@ -33,12 +33,12 @@ export function resolveMarkdownHref(href: string, currentPath: string): Resolved
   const currentDir = currentPath.split('/').slice(0, -1);
   const normalized = resolvePath([...currentDir, rawPath]);
 
-  if (!isMarkdownFile(normalized)) {
+  if (!isReadableDocumentFile(normalized)) {
     return { kind: 'external', href };
   }
 
   return {
-    kind: 'markdown',
+    kind: 'document',
     path: normalized,
     hash: rawHash ? decodeURIComponent(rawHash) : null,
   };
