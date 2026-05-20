@@ -118,6 +118,21 @@ select {
   width: 100%;
 }
 
+.document-reader--html {
+  width: 100%;
+  min-height: calc(100vh - 88px);
+  padding: 0;
+  overflow: hidden;
+}
+
+.html-preview {
+  display: block;
+  width: 100%;
+  min-height: calc(100vh - 90px);
+  border: 0;
+  background: #ffffff;
+}
+
 .empty-state {
   display: grid;
   min-height: 360px;
@@ -573,24 +588,6 @@ select {
 .document-reader pre code {
   padding: 0;
   background: transparent;
-}
-
-.rendered-html-document {
-  min-width: 0;
-}
-
-.rendered-html-document img,
-.rendered-html-document video,
-.rendered-html-document canvas,
-.rendered-html-document svg {
-  max-width: 100%;
-  height: auto;
-}
-
-.rendered-html-document table {
-  display: block;
-  max-width: 100%;
-  overflow-x: auto;
 }
 
 .raw-source {

@@ -5,7 +5,7 @@ import { renderHtmlDocument } from '../shared/render/html';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, subscribeSettings } from '../shared/settings';
 import { consumeTemporaryMarkdownDocument, type TemporaryMarkdownDocument } from '../shared/temporaryDocument';
-import type { FileTreeNode, RenderResult } from '../shared/types';
+import type { FileTreeNode, OutlineItem, RenderResult } from '../shared/types';
 import { selectActiveHeadingId } from './activeHeading';
 import { FileDrawer } from './components/FileDrawer';
 import { LargeDocumentReader } from './components/LargeDocumentReader';
@@ -80,7 +80,10 @@ export function App() {
   const [largeDocument, setLargeDocument] = useState<LargeDocumentSession | null>(null);
   const [largeAnchorLine, setLargeAnchorLine] = useState(1);
   const renderedContentRef = useRef<HTMLDivElement | null>(null);
+  const htmlPreviewRef = useRef<HTMLIFrameElement | null>(null);
+  const [htmlPreviewLoadCount, setHtmlPreviewLoadCount] = useState(0);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
+  const htmlPreviewActive = activeDocumentKind === 'html' && !largeDocument && !settings.reading.rawMode;
   const fileNavigation = useMemo(
     () => selectSiblingMarkdownNavigation(tree, activePath),
     [activePath, tree],
@@ -107,6 +110,10 @@ export function App() {
   }, [rendered.outline]);
 
   useEffect(() => {
+    if (activeDocumentKind === 'html') {
+      return undefined;
+    }
+
     const updateActiveHeading = () => {
       const headings = Array.from(document.querySelectorAll<HTMLElement>('.document-reader h1[id], .document-reader h2[id], .document-reader h3[id], .document-reader h4[id], .document-reader h5[id], .document-reader h6[id]')).map(
         (heading) => ({
@@ -126,15 +133,43 @@ export function App() {
       window.removeEventListener('scroll', updateActiveHeading);
       window.removeEventListener('resize', updateActiveHeading);
     };
-  }, [rendered.html]);
+  }, [activeDocumentKind, rendered.html]);
 
   useEffect(() => {
-    if (!renderedContentRef.current || settings.reading.rawMode) {
+    if (activeDocumentKind !== 'html') {
+      return undefined;
+    }
+
+    const frameWindow = htmlPreviewRef.current?.contentWindow;
+    const frameDocument = htmlPreviewRef.current?.contentDocument;
+
+    if (!frameWindow || !frameDocument) {
+      return undefined;
+    }
+
+    const updateActiveHeading = () => {
+      const headings = getHtmlPreviewHeadingPositions(frameDocument, rendered.outline);
+      const nextActiveId = selectActiveHeadingId(headings, 24);
+      setActiveHeadingId((current) => (current === nextActiveId ? current : nextActiveId));
+    };
+
+    updateActiveHeading();
+    frameWindow.addEventListener('scroll', updateActiveHeading, { passive: true });
+    frameWindow.addEventListener('resize', updateActiveHeading);
+
+    return () => {
+      frameWindow.removeEventListener('scroll', updateActiveHeading);
+      frameWindow.removeEventListener('resize', updateActiveHeading);
+    };
+  }, [activeDocumentKind, htmlPreviewLoadCount, rendered.outline]);
+
+  useEffect(() => {
+    if (!renderedContentRef.current || settings.reading.rawMode || activeDocumentKind === 'html') {
       return undefined;
     }
 
     return installTableFullscreen(renderedContentRef.current);
-  }, [rendered.html, settings.reading.rawMode]);
+  }, [activeDocumentKind, rendered.html, settings.reading.rawMode]);
 
   useEffect(() => {
     setRawActionStatus(null);
@@ -600,6 +635,20 @@ export function App() {
     void openFile(directoryHandle, path);
   }
 
+  function navigateHtmlPreview(id: string) {
+    const frameDocument = htmlPreviewRef.current?.contentDocument;
+
+    if (!frameDocument) {
+      return;
+    }
+
+    const outlineIds = flattenOutlineIds(rendered.outline);
+    const outlineIndex = outlineIds.indexOf(id);
+    const headings = Array.from(frameDocument.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'));
+    const target = frameDocument.getElementById(id) ?? (outlineIndex >= 0 ? headings[outlineIndex] : null);
+    target?.scrollIntoView({ block: 'start' });
+  }
+
   function closeDrawerFromReader(event: React.MouseEvent<HTMLElement>) {
     if (!drawerOpen) {
       return;
@@ -664,7 +713,7 @@ export function App() {
         }}
       />
       <main className="reader-layout" onClickCapture={closeDrawerFromReader}>
-        <article className="document-reader">
+        <article className={htmlPreviewActive ? 'document-reader document-reader--html' : 'document-reader'}>
           {status && <p className="status-note">{status}</p>}
           {error && <p className="error-note">{error}</p>}
           {activePath ? (
@@ -695,12 +744,18 @@ export function App() {
                 </div>
                 <pre>{markdown}</pre>
               </section>
+            ) : activeDocumentKind === 'html' ? (
+              <HtmlDocumentPreview
+                ref={htmlPreviewRef}
+                source={markdown}
+                title={activePath}
+                onLoad={() => setHtmlPreviewLoadCount((count) => count + 1)}
+              />
             ) : (
               <div ref={renderedContentRef}>
                 <RenderedMarkdownContent
                   html={rendered.html}
-                  mermaidEnabled={settings.rendering.mermaid && activeDocumentKind === 'markdown'}
-                  className={activeDocumentKind === 'html' ? 'rendered-html-document' : undefined}
+                  mermaidEnabled={settings.rendering.mermaid}
                 />
               </div>
             )
@@ -743,6 +798,12 @@ export function App() {
                 return;
               }
 
+              if (activeDocumentKind === 'html') {
+                navigateHtmlPreview(id);
+                setActiveHeadingId(id);
+                return;
+              }
+
               document.getElementById(id)?.scrollIntoView({ block: 'start' });
             }}
           />
@@ -750,6 +811,46 @@ export function App() {
       </main>
     </div>
   );
+}
+
+type HtmlDocumentPreviewProps = {
+  source: string;
+  title: string | null;
+  onLoad: () => void;
+};
+
+function HtmlDocumentPreview({
+  source,
+  title,
+  onLoad,
+  ref,
+}: HtmlDocumentPreviewProps & { ref: React.Ref<HTMLIFrameElement> }) {
+  return (
+    <iframe
+      ref={ref}
+      className="html-preview"
+      title={`HTML 预览：${title ?? '未命名文档'}`}
+      sandbox="allow-same-origin allow-forms allow-popups"
+      referrerPolicy="no-referrer"
+      srcDoc={source}
+      onLoad={onLoad}
+    />
+  );
+}
+
+function getHtmlPreviewHeadingPositions(frameDocument: Document, outline: OutlineItem[]) {
+  const outlineIds = flattenOutlineIds(outline);
+
+  return Array.from(frameDocument.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'))
+    .map((heading, index) => ({
+      id: heading.id || outlineIds[index],
+      top: heading.getBoundingClientRect().top,
+    }))
+    .filter((heading): heading is { id: string; top: number } => Boolean(heading.id));
+}
+
+function flattenOutlineIds(outline: OutlineItem[]): string[] {
+  return outline.flatMap((item) => [item.id, ...flattenOutlineIds(item.children)]);
 }
 
 function selectSourceSaveName(path: string | null, kind: ActiveDocumentKind): string {

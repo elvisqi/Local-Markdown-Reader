@@ -279,7 +279,7 @@ describe('App file navigation and drawer behavior', () => {
     expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledTimes(2);
   });
 
-  it('opens HTML files from the authorized folder without running Markdown large-file mode', async () => {
+  it('opens HTML files from the authorized folder in a browser preview frame', async () => {
     const user = userEvent.setup();
     const htmlTree: FileTreeNode[] = [
       { type: 'file', name: 'README.md', path: 'README.md' },
@@ -312,10 +312,14 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'report.html' }));
 
-    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Report' })).not.toHaveLength(0));
+    const preview = await screen.findByTitle('HTML 预览：report.html');
+    expect(preview).toBeInstanceOf(HTMLIFrameElement);
+    expect((preview as HTMLIFrameElement).srcdoc).toContain('<!doctype html>');
+    expect((preview as HTMLIFrameElement).srcdoc).toContain('<title>Report</title>');
+    expect((preview as HTMLIFrameElement).srcdoc).toContain('<script>alert(1)</script>');
+    expect(within(screen.getByRole('article')).queryByRole('heading', { name: 'Report' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '上一个' })).toHaveAttribute('title', '上一个文件：README.md');
     expect(screen.getByLabelText('文档大纲')).toHaveTextContent('Section');
-    expect(screen.queryByText('alert(1)')).not.toBeInTheDocument();
     expect(fileSystemAccess.readMarkdownFileSlice).toHaveBeenCalledTimes(1);
   });
 
@@ -357,7 +361,8 @@ describe('App file navigation and drawer behavior', () => {
 
     await user.click(screen.getByRole('button', { name: '打开文件' }));
 
-    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Standalone HTML' })).not.toHaveLength(0));
+    await waitFor(() => expect(screen.getByTitle('HTML 预览：standalone.html')).toBeInTheDocument());
+    expect(screen.getByTitle('HTML 预览：standalone.html')).toHaveAttribute('srcdoc', '<html><body><h1>Standalone HTML</h1></body></html>');
     expect(fileSystemAccess.readMarkdownFileSlice).not.toHaveBeenCalled();
     expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
   });
