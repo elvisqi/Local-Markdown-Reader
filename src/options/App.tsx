@@ -2,14 +2,32 @@ import { useEffect, useState } from 'react';
 
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
 import type { ReaderSettings, ReadingStyle, ReadingWidth, ThemePreference } from '../shared/types';
+import {
+  authorizeAiProjectSource,
+  clearAiProjectState,
+  EMPTY_AI_PROJECT_STATE,
+  getAiProjectProviderLabel,
+  loadAiProjectState,
+  rescanAiProjectSource,
+  saveAiProjectState,
+  type AiProjectProvider,
+  type AiProjectSourceRecord,
+  type AiProjectState,
+} from '../reader/aiProjects';
 import './App.css';
 
 export function App() {
   const [settings, setSettings] = useState<ReaderSettings>(DEFAULT_SETTINGS);
+  const [aiProjectState, setAiProjectState] = useState<AiProjectState>(EMPTY_AI_PROJECT_STATE);
   const [saved, setSaved] = useState(false);
+  const [aiProjectStatus, setAiProjectStatus] = useState<string | null>(null);
 
   useEffect(() => {
     void loadSettings().then(setSettings);
+  }, []);
+
+  useEffect(() => {
+    void loadAiProjectState().then(setAiProjectState);
   }, []);
 
   async function updateSettings(next: ReaderSettings) {
@@ -17,6 +35,36 @@ export function App() {
     await saveSettings(next);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 900);
+  }
+
+  async function updateAiProjectSource(provider: AiProjectProvider, action: 'authorize' | 'rescan') {
+    setAiProjectStatus(`${action === 'authorize' ? '请选择' : '正在重扫'} ${getAiProjectProviderLabel(provider)} 配置目录。`);
+
+    try {
+      const result = action === 'authorize'
+        ? await authorizeAiProjectSource(aiProjectState, provider)
+        : await rescanAiProjectSource(aiProjectState, provider);
+
+      setAiProjectState(result.state);
+      await saveAiProjectState(result.state);
+
+      const projectCount = result.state.sources[provider]?.projectCount ?? 0;
+      const warningText = result.warnings.length ? ` ${result.warnings.join(' ')}` : '';
+      setAiProjectStatus(`已扫描 ${getAiProjectProviderLabel(provider)}：${projectCount} 个项目。${warningText}`.trim());
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setAiProjectStatus(null);
+        return;
+      }
+
+      setAiProjectStatus(err instanceof Error ? err.message : `无法扫描 ${getAiProjectProviderLabel(provider)} 项目。`);
+    }
+  }
+
+  async function clearAiProjects() {
+    setAiProjectState(EMPTY_AI_PROJECT_STATE);
+    setAiProjectStatus('已清空 AI 项目记录。');
+    await clearAiProjectState();
   }
 
   return (
@@ -138,6 +186,31 @@ export function App() {
         />
       </section>
       <section>
+        <h2>AI 项目</h2>
+        <p className="options-note">
+          授权 Codex 或 Claude Code 的配置目录后，阅读器左侧 AI 项目工作台会列出可授权的项目。
+        </p>
+        <AiProjectSourceSettings
+          provider="codex"
+          source={aiProjectState.sources.codex}
+          onAuthorize={() => void updateAiProjectSource('codex', 'authorize')}
+          onRescan={() => void updateAiProjectSource('codex', 'rescan')}
+        />
+        <AiProjectSourceSettings
+          provider="claude"
+          source={aiProjectState.sources.claude}
+          onAuthorize={() => void updateAiProjectSource('claude', 'authorize')}
+          onRescan={() => void updateAiProjectSource('claude', 'rescan')}
+        />
+        <div className="options-actions">
+          <span>{aiProjectState.projects.length ? `${aiProjectState.projects.length} 个项目` : '尚未扫描项目'}</span>
+          <button type="button" onClick={() => void clearAiProjects()} disabled={!aiProjectState.projects.length}>
+            清空 AI 项目记录
+          </button>
+        </div>
+        {aiProjectStatus && <p className="options-status">{aiProjectStatus}</p>}
+      </section>
+      <section>
         <h2>自定义 CSS</h2>
         <label>
           应用到正文的 CSS
@@ -155,6 +228,41 @@ export function App() {
       </section>
     </main>
   );
+}
+
+function AiProjectSourceSettings({
+  provider,
+  source,
+  onAuthorize,
+  onRescan,
+}: {
+  provider: AiProjectProvider;
+  source: AiProjectSourceRecord | undefined;
+  onAuthorize: () => void;
+  onRescan: () => void;
+}) {
+  const providerName = getAiProjectProviderLabel(provider);
+
+  return (
+    <div className="ai-source-setting">
+      <div>
+        <strong>{providerName}</strong>
+        <span>{source ? `${source.rootName} · ${source.projectCount} 个项目` : getExpectedRootHint(provider)}</span>
+      </div>
+      <div>
+        <button type="button" onClick={onAuthorize}>
+          {source ? `重新授权 ${providerName}` : `授权 ${providerName}`}
+        </button>
+        <button type="button" onClick={onRescan} disabled={!source}>
+          重扫 {providerName}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function getExpectedRootHint(provider: AiProjectProvider): string {
+  return provider === 'codex' ? '选择 ~/.codex' : '选择 ~/.claude';
 }
 
 function Toggle({

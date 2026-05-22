@@ -123,12 +123,17 @@ export async function readMarkdownFileSlice(file: Blob, start: number, end: numb
 }
 
 export async function readAssetBlobUrl(handle: DirectoryLike, path: string): Promise<string | null> {
+  const file = await readAssetFile(handle, path);
+  return file ? URL.createObjectURL(file) : null;
+}
+
+export async function readAssetFile(handle: DirectoryLike, path: string): Promise<File | null> {
   const fileHandle = await getFileHandle(handle, path);
   if (!fileHandle) {
     return null;
   }
 
-  return URL.createObjectURL(await fileHandle.getFile());
+  return fileHandle.getFile();
 }
 
 function createDocumentFileSnapshot(path: string, file: File): DocumentFileSnapshot {

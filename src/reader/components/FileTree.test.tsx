@@ -89,4 +89,82 @@ describe('FileTree', () => {
     expect(screen.getByText('archive').closest('details')).not.toHaveAttribute('open');
     expect(screen.getByText('notes').closest('details')).not.toHaveAttribute('open');
   });
+
+  it('keeps manually expanded folders open after the active file changes', async () => {
+    const user = userEvent.setup();
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [
+          {
+            type: 'directory',
+            name: 'guides',
+            path: 'docs/guides',
+            children: [{ type: 'file', name: 'install.md', path: 'docs/guides/install.md' }],
+          },
+          {
+            type: 'directory',
+            name: 'archive',
+            path: 'docs/archive',
+            children: [{ type: 'file', name: 'old.md', path: 'docs/archive/old.md' }],
+          },
+        ],
+      },
+      {
+        type: 'directory',
+        name: 'notes',
+        path: 'notes',
+        children: [{ type: 'file', name: 'daily.md', path: 'notes/daily.md' }],
+      },
+    ];
+
+    const { rerender } = render(
+      <FileTree tree={tree} activePath="docs/guides/install.md" onSelect={vi.fn()} />,
+    );
+
+    await user.click(screen.getByText('archive'));
+    expect(screen.getByText('archive').closest('details')).toHaveAttribute('open');
+
+    rerender(<FileTree tree={tree} activePath="notes/daily.md" onSelect={vi.fn()} />);
+
+    expect(screen.getByText('archive').closest('details')).toHaveAttribute('open');
+    expect(screen.getByText('notes').closest('details')).toHaveAttribute('open');
+  });
+
+  it('keeps the previous active branch open after another file is selected', () => {
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [
+          {
+            type: 'directory',
+            name: 'guides',
+            path: 'docs/guides',
+            children: [{ type: 'file', name: 'install.md', path: 'docs/guides/install.md' }],
+          },
+          {
+            type: 'directory',
+            name: 'archive',
+            path: 'docs/archive',
+            children: [{ type: 'file', name: 'old.md', path: 'docs/archive/old.md' }],
+          },
+        ],
+      },
+    ];
+
+    const { rerender } = render(
+      <FileTree tree={tree} activePath="docs/guides/install.md" onSelect={vi.fn()} />,
+    );
+
+    expect(screen.getByText('guides').closest('details')).toHaveAttribute('open');
+
+    rerender(<FileTree tree={tree} activePath="docs/archive/old.md" onSelect={vi.fn()} />);
+
+    expect(screen.getByText('guides').closest('details')).toHaveAttribute('open');
+    expect(screen.getByText('archive').closest('details')).toHaveAttribute('open');
+  });
 });

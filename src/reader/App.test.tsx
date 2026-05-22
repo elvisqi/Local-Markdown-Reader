@@ -1,8 +1,9 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { FileTreeNode } from '../shared/types';
 import { App } from './App';
+import * as aiProjects from './aiProjects';
 import * as fileSystemAccess from './fileSystemAccess';
 import * as recentDocument from './recentDocument';
 
@@ -14,6 +15,7 @@ vi.mock('./fileSystemAccess', async () => {
     openDirectory: vi.fn(),
     openDocumentFile: vi.fn(),
     openMarkdownFile: vi.fn(),
+    readAssetFile: vi.fn(),
     readDocumentFile: vi.fn(),
     readDocumentFileSnapshot: vi.fn(),
     readMarkdownFile: vi.fn(),
@@ -41,6 +43,16 @@ vi.mock('./recentDocument', async () => {
     ...actual,
     loadLastDocument: vi.fn(async () => null),
     saveLastDocument: vi.fn(async () => undefined),
+  };
+});
+
+vi.mock('./aiProjects', async () => {
+  const actual = await vi.importActual<typeof import('./aiProjects')>('./aiProjects');
+
+  return {
+    ...actual,
+    loadAiProjectState: vi.fn(async () => ({ sources: {}, projects: [] })),
+    saveAiProjectState: vi.fn(async () => undefined),
   };
 });
 
@@ -77,11 +89,15 @@ describe('App file navigation and drawer behavior', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    window.localStorage.clear();
     window.history.replaceState(null, '', '/reader.html');
     Element.prototype.scrollIntoView = vi.fn();
+    URL.createObjectURL = vi.fn(() => 'blob:preview-url');
+    URL.revokeObjectURL = vi.fn();
     vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(tree);
     vi.mocked(fileSystemAccess.readDocumentFile).mockImplementation(async (_handle, path) => `# ${path}`);
+    vi.mocked(fileSystemAccess.readAssetFile).mockResolvedValue(null);
     vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
       const type = /\.html?$/i.test(path) ? 'text/html' : 'text/markdown';
       const body = type === 'text/html' ? `<h1>${path}</h1>` : `# ${path}`;
@@ -123,7 +139,82 @@ describe('App file navigation and drawer behavior', () => {
     largeDocumentClient.search.mockResolvedValue([]);
     vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(null);
     vi.mocked(recentDocument.saveLastDocument).mockResolvedValue(undefined);
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({ sources: {}, projects: [] });
+    vi.mocked(aiProjects.saveAiProjectState).mockResolvedValue(undefined);
     vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue(null);
+  });
+
+  it('restores drawer open state and width from local layout preferences without live cross-tab updates', async () => {
+    window.localStorage.setItem(
+      'localMarkdownReader.layoutPreferences',
+      JSON.stringify({ fileDrawerOpen: true, fileDrawerWidth: 420 }),
+    );
+
+    render(<App />);
+
+    const drawer = screen.getByLabelText('文件列表');
+    const shell = drawer.parentElement;
+
+    expect(drawer).toBeInTheDocument();
+    expect(shell).toHaveStyle({ '--file-drawer-width': '420px' });
+
+    window.localStorage.setItem(
+      'localMarkdownReader.layoutPreferences',
+      JSON.stringify({ fileDrawerOpen: false, fileDrawerWidth: 280 }),
+    );
+    fireEvent(
+      window,
+      new StorageEvent('storage', {
+        key: 'localMarkdownReader.layoutPreferences',
+        newValue: JSON.stringify({ fileDrawerOpen: false, fileDrawerWidth: 280 }),
+      }),
+    );
+
+    expect(screen.getByLabelText('文件列表')).toBeInTheDocument();
+    expect(shell).toHaveStyle({ '--file-drawer-width': '420px' });
+  });
+
+  it('falls back to the default drawer layout when local layout preferences are malformed', async () => {
+    const user = userEvent.setup();
+
+    window.localStorage.setItem('localMarkdownReader.layoutPreferences', '{malformed-json');
+
+    render(<App />);
+
+    expect(screen.queryByLabelText('文件列表')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+
+    expect(screen.getByLabelText('文件列表').parentElement).toHaveStyle({ '--file-drawer-width': '360px' });
+  });
+
+  it('saves drawer open state and resized width as local layout preferences', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+
+    const separator = screen.getByRole('separator', { name: '调整文件面板宽度' });
+    fireEvent.pointerDown(separator, { clientX: 360 });
+    fireEvent.pointerMove(window, { clientX: 480 });
+    fireEvent.pointerUp(window);
+
+    await waitFor(() =>
+      expect(JSON.parse(window.localStorage.getItem('localMarkdownReader.layoutPreferences') ?? '{}')).toMatchObject({
+        fileDrawerOpen: true,
+        fileDrawerWidth: 480,
+      }),
+    );
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '关闭文件面板' }));
+
+    await waitFor(() =>
+      expect(JSON.parse(window.localStorage.getItem('localMarkdownReader.layoutPreferences') ?? '{}')).toMatchObject({
+        fileDrawerOpen: false,
+        fileDrawerWidth: 480,
+      }),
+    );
   });
 
   it('opens sibling files from the toolbar and exposes target filenames in tooltips', async () => {
@@ -149,7 +240,118 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
   });
 
-  it('closes the file drawer from the reading area and prevents the first content click', async () => {
+  it('opens relative document links inside rendered Markdown using the authorized folder', async () => {
+    const user = userEvent.setup();
+    const linkTree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [{ type: 'file', name: '01-intro.md', path: 'docs/01-intro.md' }],
+      },
+      {
+        type: 'directory',
+        name: 'references',
+        path: 'references',
+        children: [{ type: 'file', name: 'guide.md', path: 'references/guide.md' }],
+      },
+    ];
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(linkTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const source = path === 'docs/01-intro.md'
+        ? '# Intro\n\n[Guide](../references/guide.md#target)'
+        : '# Guide\n\n## Target';
+      const file = new File([source], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Intro' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('link', { name: 'Guide' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Guide' })).not.toHaveLength(0));
+    expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(directoryHandle, 'references/guide.md');
+  });
+
+  it('opens URL-encoded Chinese relative document links using decoded file paths', async () => {
+    const user = userEvent.setup();
+    const linkTree: FileTreeNode[] = [
+      { type: 'file', name: 'README.md', path: 'README.md' },
+      { type: 'file', name: '业务需求基线说明书.md', path: '业务需求基线说明书.md' },
+    ];
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(linkTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const source = path === 'README.md'
+        ? '# Index\n\n[业务需求基线说明书](%E4%B8%9A%E5%8A%A1%E9%9C%80%E6%B1%82%E5%9F%BA%E7%BA%BF%E8%AF%B4%E6%98%8E%E4%B9%A6.md)'
+        : '# 业务需求基线说明书';
+      const file = new File([source], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Index' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('link', { name: '业务需求基线说明书' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: '业务需求基线说明书' })).not.toHaveLength(0));
+    expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(directoryHandle, '业务需求基线说明书.md');
+  });
+
+  it('does not open root-relative Markdown links through the authorized folder', async () => {
+    const user = userEvent.setup();
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const source = path === 'docs/01-intro.md'
+        ? '# Intro\n\n[Root Guide](/references/guide.md)'
+        : '# Should not open';
+      const file = new File([source], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Intro' })).not.toHaveLength(0));
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockClear();
+
+    const rootRelativeLink = screen.getByRole('link', { name: 'Root Guide' });
+    rootRelativeLink.addEventListener('click', (event) => event.preventDefault());
+    await user.click(rootRelativeLink);
+
+    expect(fileSystemAccess.readDocumentFileSnapshot).not.toHaveBeenCalled();
+  });
+
+  it('keeps the file drawer docked when the reading area is clicked', async () => {
     const user = userEvent.setup();
     const contentClick = vi.fn();
 
@@ -165,15 +367,11 @@ describe('App file navigation and drawer behavior', () => {
     screen.getByRole('article').addEventListener('click', contentClick);
     await user.click(screen.getByRole('article'));
 
-    await waitFor(() => expect(screen.queryByLabelText('文件列表')).not.toBeInTheDocument());
-    expect(contentClick).not.toHaveBeenCalled();
-
-    await user.click(screen.getByRole('article'));
-
+    expect(screen.getByLabelText('文件列表')).toBeInTheDocument();
     expect(contentClick).toHaveBeenCalledOnce();
   });
 
-  it('removes the closed file drawer text from the page so browser find searches the visible reader first', async () => {
+  it('removes the closed file drawer text from the page and keeps the docked drawer open while selecting files', async () => {
     const user = userEvent.setup();
 
     render(<App />);
@@ -188,9 +386,10 @@ describe('App file navigation and drawer behavior', () => {
 
     expect(screen.getByRole('button', { name: '02-design.md' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('article'));
+    await user.click(screen.getByRole('button', { name: '02-design.md' }));
 
-    expect(screen.queryByRole('button', { name: '02-design.md' })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/02-design.md' })).not.toHaveLength(0));
+    expect(screen.getByRole('button', { name: '02-design.md' })).toBeInTheDocument();
   });
 
   it('opens sibling files with left and right arrow keys outside editable controls', async () => {
@@ -279,7 +478,128 @@ describe('App file navigation and drawer behavior', () => {
     expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledTimes(2);
   });
 
-  it('opens HTML files from the authorized folder in a browser preview frame', async () => {
+  it('opens AI project directories inline in the AI project workspace', async () => {
+    const user = userEvent.setup();
+    const projectHandle = { kind: 'directory', name: 'md-viewer' } as FileSystemDirectoryHandle;
+    const aiTree: FileTreeNode[] = [
+      { type: 'file', name: 'README.md', path: 'README.md' },
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+      },
+    ];
+    const project = {
+      id: 'codex:/Users/qiyu/Github/md-viewer',
+      provider: 'codex' as const,
+      name: 'md-viewer',
+      expectedPath: '/Users/qiyu/Github/md-viewer',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'md-viewer',
+    };
+
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {
+        codex: {
+          provider: 'codex',
+          rootHandle: { kind: 'directory', name: '.codex' } as FileSystemDirectoryHandle,
+          rootName: '.codex',
+          scannedAt: 123,
+          projectCount: 1,
+        },
+      },
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(aiTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(screen.getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/md-viewer'));
+
+    const drawer = screen.getByLabelText('文件列表');
+    await waitFor(() =>
+      expect(within(drawer).getByRole('button', { name: 'README.md' })).toHaveAttribute('aria-current', 'page'),
+    );
+    expect(drawer).toBeInTheDocument();
+
+    await user.click(within(drawer).getByRole('button', { name: 'guide.md' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0));
+    expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(projectHandle, 'docs/guide.md');
+  });
+
+  it('keeps previously opened AI project trees visible after opening another project', async () => {
+    const user = userEvent.setup();
+    const projectHandleA = { kind: 'directory', name: 'alpha' } as FileSystemDirectoryHandle;
+    const projectHandleB = { kind: 'directory', name: 'beta' } as FileSystemDirectoryHandle;
+    const projectA = {
+      id: 'codex:/Users/qiyu/Github/alpha',
+      provider: 'codex' as const,
+      name: 'alpha',
+      expectedPath: '/Users/qiyu/Github/alpha',
+      discoveredAt: 123,
+      directoryHandle: projectHandleA,
+      directoryName: 'alpha',
+    };
+    const projectB = {
+      id: 'claude:/Users/qiyu/Github/beta',
+      provider: 'claude' as const,
+      name: 'beta',
+      expectedPath: '/Users/qiyu/Github/beta',
+      discoveredAt: 456,
+      directoryHandle: projectHandleB,
+      directoryName: 'beta',
+    };
+
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [projectA, projectB],
+    });
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory)
+      .mockResolvedValueOnce([{ type: 'file', name: 'alpha.md', path: 'alpha.md' }])
+      .mockResolvedValueOnce([{ type: 'file', name: 'beta.md', path: 'beta.md' }]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(screen.getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/alpha'));
+    await waitFor(() => expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'alpha.md' })).toBeInTheDocument());
+
+    await user.click(screen.getByTitle('/Users/qiyu/Github/beta'));
+
+    const drawer = screen.getByLabelText('文件列表');
+    await waitFor(() => expect(within(drawer).getByRole('button', { name: 'beta.md' })).toBeInTheDocument());
+    expect(within(drawer).getByRole('button', { name: 'alpha.md' })).toBeInTheDocument();
+  });
+
+  it('opens HTML files from the authorized folder in a raw iframe preview with scripts enabled', async () => {
     const user = userEvent.setup();
     const htmlTree: FileTreeNode[] = [
       { type: 'file', name: 'README.md', path: 'README.md' },
@@ -289,8 +609,54 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(htmlTree);
     vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
       const source = path === 'report.html'
-        ? '<!doctype html><html><head><title>Report</title><script>alert(1)</script></head><body><h1>Report</h1><h2>Section</h2></body></html>'
+        ? '<!doctype html><html><head><title>Report</title><script src="app.js"></script></head><body><h1>Report</h1><h2>Section</h2></body></html>'
         : `# ${path}`;
+      const type = path === 'report.html' ? 'text/html' : 'text/markdown';
+      const file = new File([source], path, { type });
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+    vi.mocked(fileSystemAccess.readAssetFile).mockImplementation(async (_handle, path) =>
+      path === 'app.js' ? new File(['window.reportLoaded = true'], 'app.js', { type: 'text/javascript' }) : null,
+    );
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'README.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'report.html' }));
+
+    const preview = await screen.findByTitle('HTML 预览：report.html');
+    expect(preview).toBeInstanceOf(HTMLIFrameElement);
+    expect(preview).toHaveAttribute('src', 'blob:preview-url');
+    expect(preview).toHaveAttribute('sandbox', 'allow-scripts allow-forms allow-popups allow-modals');
+    expect(fileSystemAccess.readAssetFile).toHaveBeenCalledWith(directoryHandle, 'app.js');
+    expect(URL.createObjectURL).toHaveBeenCalled();
+    expect(within(screen.getByRole('article')).queryByRole('heading', { name: 'Report' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '上一个' })).toHaveAttribute('title', '上一个文件：README.md');
+    expect(screen.getByLabelText('文档大纲')).toHaveTextContent('Section');
+    expect(fileSystemAccess.readMarkdownFileSlice).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps drawer resizing active while the pointer crosses an HTML iframe preview', async () => {
+    const user = userEvent.setup();
+    const htmlTree: FileTreeNode[] = [
+      { type: 'file', name: 'README.md', path: 'README.md' },
+      { type: 'file', name: 'report.html', path: 'report.html' },
+    ];
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(htmlTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const source = path === 'report.html' ? '<!doctype html><h1>Report</h1>' : `# ${path}`;
       const type = path === 'report.html' ? 'text/html' : 'text/markdown';
       const file = new File([source], path, { type });
       return {
@@ -313,14 +679,21 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'report.html' }));
 
     const preview = await screen.findByTitle('HTML 预览：report.html');
-    expect(preview).toBeInstanceOf(HTMLIFrameElement);
-    expect((preview as HTMLIFrameElement).srcdoc).toContain('<!doctype html>');
-    expect((preview as HTMLIFrameElement).srcdoc).toContain('<title>Report</title>');
-    expect((preview as HTMLIFrameElement).srcdoc).toContain('<script>alert(1)</script>');
-    expect(within(screen.getByRole('article')).queryByRole('heading', { name: 'Report' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '上一个' })).toHaveAttribute('title', '上一个文件：README.md');
-    expect(screen.getByLabelText('文档大纲')).toHaveTextContent('Section');
-    expect(fileSystemAccess.readMarkdownFileSlice).toHaveBeenCalledTimes(1);
+    const shell = screen.getByLabelText('文件列表').parentElement;
+    const separator = screen.getByRole('separator', { name: '调整文件面板宽度' });
+
+    fireEvent.pointerDown(separator, { clientX: 360 });
+
+    await waitFor(() => expect(shell).toHaveClass('is-resizing-file-drawer'));
+    expect(preview).toHaveClass('html-preview');
+
+    fireEvent.pointerMove(window, { clientX: 480 });
+
+    expect(shell).toHaveStyle({ '--file-drawer-width': '480px' });
+
+    fireEvent.pointerUp(window);
+
+    await waitFor(() => expect(shell).not.toHaveClass('is-resizing-file-drawer'));
   });
 
   it('opens a temporary standalone Markdown file without overwriting the remembered directory document', async () => {
@@ -362,7 +735,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '打开文件' }));
 
     await waitFor(() => expect(screen.getByTitle('HTML 预览：standalone.html')).toBeInTheDocument());
-    expect(screen.getByTitle('HTML 预览：standalone.html')).toHaveAttribute('srcdoc', '<html><body><h1>Standalone HTML</h1></body></html>');
+    expect(screen.getByTitle('HTML 预览：standalone.html')).toHaveAttribute('src', 'blob:preview-url');
     expect(fileSystemAccess.readMarkdownFileSlice).not.toHaveBeenCalled();
     expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
   });

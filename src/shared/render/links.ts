@@ -17,7 +17,7 @@ export type ResolvedLink =
     };
 
 export function resolveMarkdownHref(href: string, currentPath: string): ResolvedLink {
-  if (isAbsoluteHref(href)) {
+  if (isAbsoluteHref(href) || href.startsWith('/')) {
     return { kind: 'external', href };
   }
 
@@ -25,13 +25,13 @@ export function resolveMarkdownHref(href: string, currentPath: string): Resolved
     return {
       kind: 'hash',
       path: currentPath,
-      hash: decodeURIComponent(href.slice(1)),
+      hash: decodeHashFragment(href.slice(1)),
     };
   }
 
   const [rawPath, rawHash] = href.split('#');
   const currentDir = currentPath.split('/').slice(0, -1);
-  const normalized = resolvePath([...currentDir, rawPath]);
+  const normalized = resolvePath([...currentDir, decodePath(rawPath)]);
 
   if (!isReadableDocumentFile(normalized)) {
     return { kind: 'external', href };
@@ -40,7 +40,7 @@ export function resolveMarkdownHref(href: string, currentPath: string): Resolved
   return {
     kind: 'document',
     path: normalized,
-    hash: rawHash ? decodeURIComponent(rawHash) : null,
+    hash: rawHash ? decodeHashFragment(rawHash) : null,
   };
 }
 
@@ -60,4 +60,19 @@ function resolvePath(parts: string[]): string {
   }
 
   return stack.join('/');
+}
+
+function decodePath(path: string): string {
+  return path
+    .split('/')
+    .map((part) => decodeHashFragment(part))
+    .join('/');
+}
+
+function decodeHashFragment(hash: string): string {
+  try {
+    return decodeURIComponent(hash);
+  } catch {
+    return hash;
+  }
 }

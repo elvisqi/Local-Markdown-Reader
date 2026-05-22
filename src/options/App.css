@@ -43,11 +43,75 @@ body {
   color: #4c5968;
 }
 
+.options-note,
+.options-status,
+.options-actions,
+.ai-source-setting span {
+  color: #5c6877;
+  font-size: 13px;
+}
+
+.options-note {
+  margin: -4px 0 14px;
+}
+
+.options-status {
+  margin: 12px 0 0;
+}
+
+.options-actions,
+.ai-source-setting,
+.ai-source-setting > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.options-actions,
+.ai-source-setting {
+  justify-content: space-between;
+}
+
+.ai-source-setting {
+  padding: 10px 0;
+  border-top: 1px solid #eef1f5;
+}
+
+.ai-source-setting:last-of-type {
+  border-bottom: 1px solid #eef1f5;
+}
+
+.ai-source-setting > div {
+  min-width: 0;
+}
+
+.ai-source-setting > div:first-child {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.options-actions {
+  margin-top: 12px;
+}
+
 .options-app select,
-.options-app textarea {
+.options-app textarea,
+.options-app button {
   border: 1px solid #c8d0da;
   border-radius: 6px;
   font: inherit;
+}
+
+.options-app button {
+  min-height: 30px;
+  padding: 4px 10px;
+  background: #ffffff;
+}
+
+.options-app button:disabled {
+  color: #9aa4b2;
+  cursor: not-allowed;
 }
 
 .options-app textarea {

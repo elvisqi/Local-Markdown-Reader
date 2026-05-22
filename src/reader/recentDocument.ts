@@ -11,6 +11,8 @@ export type LastDocumentRecord = {
   directoryName: string;
   path: string;
   updatedAt: number;
+  source?: 'folder' | 'ai-project';
+  aiProjectId?: string;
 };
 
 export type ReaderStateStore = {
@@ -81,7 +83,9 @@ export async function requestDirectoryReadPermission(handle: FileSystemDirectory
   return (await permissionAwareHandle.requestPermission({ mode: 'read' })) === 'granted';
 }
 
-function createIndexedDbReaderStateStore(indexedDB: IDBFactory | undefined = globalThis.indexedDB): ReaderStateStore | null {
+export function createIndexedDbReaderStateStore(
+  indexedDB: IDBFactory | undefined = globalThis.indexedDB,
+): ReaderStateStore | null {
   if (!indexedDB) {
     return null;
   }
