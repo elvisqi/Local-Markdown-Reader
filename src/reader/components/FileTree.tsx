@@ -1,44 +1,62 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { FileTreeNode } from '../../shared/types';
 
 type FileTreeProps = {
   tree: FileTreeNode[];
   activePath: string | null;
+  expandedPaths?: string[];
+  onExpandedPathsChange?: (paths: string[]) => void;
   onSelect: (path: string) => void;
 };
 
-export function FileTree({ tree, activePath, onSelect }: FileTreeProps) {
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() => selectActiveDirectoryPaths(tree, activePath));
+export function FileTree({
+  tree,
+  activePath,
+  expandedPaths,
+  onExpandedPathsChange,
+  onSelect,
+}: FileTreeProps) {
+  const [uncontrolledExpandedPaths, setUncontrolledExpandedPaths] = useState<string[]>(() => [
+    ...selectActiveDirectoryPaths(tree, activePath),
+  ]);
+  const currentExpandedPaths = expandedPaths ?? uncontrolledExpandedPaths;
+  const expandedPathSet = useMemo(
+    () => normalizeExpandedPaths(tree, activePath, currentExpandedPaths),
+    [activePath, currentExpandedPaths, tree],
+  );
 
   useEffect(() => {
-    setExpandedPaths((current) => {
-      const validPaths = collectDirectoryPaths(tree);
-      const activePaths = selectActiveDirectoryPaths(tree, activePath);
-      const next = new Set([...current].filter((path) => validPaths.has(path)));
+    const nextPaths = [...expandedPathSet];
 
-      activePaths.forEach((path) => next.add(path));
+    if (expandedPaths && !pathsEqual(expandedPaths, nextPaths)) {
+      onExpandedPathsChange?.(nextPaths);
+      return;
+    }
 
-      return next;
-    });
-  }, [activePath, tree]);
+    if (!expandedPaths && !pathsEqual(uncontrolledExpandedPaths, nextPaths)) {
+      setUncontrolledExpandedPaths(nextPaths);
+    }
+  }, [expandedPathSet, expandedPaths, onExpandedPathsChange, uncontrolledExpandedPaths]);
 
   if (!tree.length) {
     return <p className="empty-note">没有找到 Markdown 或 HTML 文件。</p>;
   }
 
   function handleToggleDirectory(path: string, open: boolean) {
-    setExpandedPaths((current) => {
-      const next = new Set(current);
+    const next = new Set(expandedPathSet);
 
-      if (open) {
-        next.add(path);
-      } else {
-        next.delete(path);
-      }
+    if (open) {
+      next.add(path);
+    } else {
+      next.delete(path);
+    }
 
-      return next;
-    });
+    if (expandedPaths) {
+      onExpandedPathsChange?.([...next]);
+    } else {
+      setUncontrolledExpandedPaths([...next]);
+    }
   }
 
   return (
@@ -46,7 +64,7 @@ export function FileTree({ tree, activePath, onSelect }: FileTreeProps) {
       <TreeList
         nodes={tree}
         activePath={activePath}
-        expandedPaths={expandedPaths}
+        expandedPaths={expandedPathSet}
         onToggleDirectory={handleToggleDirectory}
         onSelect={onSelect}
       />
@@ -169,4 +187,22 @@ function collectDirectoryPaths(nodes: FileTreeNode[]): Set<string> {
 
   nodes.forEach(visit);
   return paths;
+}
+
+function normalizeExpandedPaths(nodes: FileTreeNode[], activePath: string | null, expandedPaths: string[]): Set<string> {
+  const validPaths = collectDirectoryPaths(nodes);
+  const activePaths = selectActiveDirectoryPaths(nodes, activePath);
+  const next = new Set(expandedPaths.filter((path) => validPaths.has(path)));
+
+  activePaths.forEach((path) => next.add(path));
+  return next;
+}
+
+function pathsEqual(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  const rightSet = new Set(right);
+  return left.every((path) => rightSet.has(path));
 }

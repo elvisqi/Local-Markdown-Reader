@@ -27,13 +27,11 @@ import { FileDrawer } from './components/FileDrawer';
 import { LargeDocumentReader } from './components/LargeDocumentReader';
 import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
-import { reloadCurrentDocument } from './currentDocumentReload';
 import { selectSiblingMarkdownNavigation } from './fileNavigation';
 import {
   openDirectory,
   openDocumentFile,
   readAssetFile,
-  readDocumentFile,
   readDocumentFileSnapshot,
   readMarkdownFileSlice,
   scanMarkdownDirectory,
@@ -90,6 +88,11 @@ type LargeDocumentSession = {
 
 type ActiveDocumentKind = 'markdown' | 'html';
 type FileDrawerTab = 'folder' | 'ai-projects';
+type DocumentSource =
+  | { type: 'folder'; handle: FileSystemDirectoryHandle }
+  | { type: 'ai-project'; projectId: string; handle: FileSystemDirectoryHandle }
+  | { type: 'standalone' }
+  | null;
 
 export function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
@@ -98,13 +101,18 @@ export function App() {
   const [drawerWidth, setDrawerWidth] = useState(initialLayoutPreferences.fileDrawerWidth);
   const [isResizingFileDrawer, setIsResizingFileDrawer] = useState(false);
   const [drawerTab, setDrawerTab] = useState<FileDrawerTab>('folder');
-  const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null);
-  const [tree, setTree] = useState<FileTreeNode[]>([]);
+  const [folderDirectoryHandle, setFolderDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [folderTree, setFolderTree] = useState<FileTreeNode[]>([]);
+  const [folderActivePath, setFolderActivePath] = useState<string | null>(null);
+  const [folderExpandedPaths, setFolderExpandedPaths] = useState<string[]>([]);
   const [activePath, setActivePath] = useState<string | null>(null);
   const [activeAiProjectId, setActiveAiProjectId] = useState<string | null>(null);
   const [aiProjectState, setAiProjectState] = useState<AiProjectState>(EMPTY_AI_PROJECT_STATE);
   const [aiProjectTrees, setAiProjectTrees] = useState<Record<string, FileTreeNode[]>>({});
+  const [aiProjectActivePaths, setAiProjectActivePaths] = useState<Record<string, string | null>>({});
+  const [aiProjectExpandedPaths, setAiProjectExpandedPaths] = useState<Record<string, string[]>>({});
   const [aiProjectStatus, setAiProjectStatus] = useState<string | null>(null);
+  const [activeDocumentSource, setActiveDocumentSource] = useState<DocumentSource>(null);
   const [activeDocumentKind, setActiveDocumentKind] = useState<ActiveDocumentKind>('markdown');
   const [markdown, setMarkdown] = useState('');
   const [rendered, setRendered] = useState<RenderResult>(EMPTY_RENDER);
@@ -116,14 +124,22 @@ export function App() {
   const [rawActionStatus, setRawActionStatus] = useState<string | null>(null);
   const [largeDocument, setLargeDocument] = useState<LargeDocumentSession | null>(null);
   const [largeAnchorLine, setLargeAnchorLine] = useState(1);
+  const openRequestIdRef = useRef(0);
   const renderedContentRef = useRef<HTMLDivElement | null>(null);
   const htmlPreviewRef = useRef<HTMLIFrameElement | null>(null);
   const [htmlPreviewLoadCount, setHtmlPreviewLoadCount] = useState(0);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
   const htmlPreviewActive = activeDocumentKind === 'html' && !largeDocument && !settings.reading.rawMode;
+  const activeNavigationTree = useMemo(() => {
+    if (activeDocumentSource?.type === 'ai-project') {
+      return aiProjectTrees[activeDocumentSource.projectId] ?? [];
+    }
+
+    return activeDocumentSource?.type === 'folder' ? folderTree : [];
+  }, [activeDocumentSource, aiProjectTrees, folderTree]);
   const fileNavigation = useMemo(
-    () => selectSiblingMarkdownNavigation(tree, activePath),
-    [activePath, tree],
+    () => selectSiblingMarkdownNavigation(activeNavigationTree, activePath),
+    [activeNavigationTree, activePath],
   );
 
   useEffect(() => {
@@ -265,68 +281,90 @@ export function App() {
     window.addEventListener('keydown', handleKeydown);
 
     return () => window.removeEventListener('keydown', handleKeydown);
-  }, [fileNavigation.next, fileNavigation.previous, directoryHandle]);
+  }, [activeDocumentSource, fileNavigation.next, fileNavigation.previous]);
 
   async function openFolder() {
+    const requestId = beginOpenRequest();
     setError(null);
     setStatus('请选择一个文件夹，读取其中的 Markdown 或 HTML 文件。');
 
     try {
       const handle = await openDirectory();
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       const nextTree = await scanMarkdownDirectory(handle);
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       const defaultPath = selectDefaultDocument(nextTree);
 
-      setDirectoryHandle(handle);
-      setActiveAiProjectId(null);
-      setTree(nextTree);
+      setFolderDirectoryHandle(handle);
+      setFolderTree(nextTree);
+      setFolderActivePath(defaultPath);
+      setFolderExpandedPaths([]);
       setDrawerOpen(false);
       setStatus(nextTree.length ? null : '这个文件夹里没有找到 Markdown 或 HTML 文件。');
 
       if (defaultPath) {
-        await openFile(handle, defaultPath, true, { aiProjectId: null });
+        await openFile(handle, defaultPath, true, { source: { type: 'folder', handle }, requestId });
       } else {
-        setActivePath(null);
-        setActiveDocumentKind('markdown');
-        setMarkdown('');
-        setRendered(EMPTY_RENDER);
-        setHtmlPreviewDocument(null);
+        clearReaderForSource({ type: 'folder', handle });
       }
     } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       setStatus(null);
       setError(err instanceof Error ? err.message : '无法打开文件夹。');
     }
   }
 
   async function openStandaloneFile() {
+    const requestId = beginOpenRequest();
     setError(null);
     setStatus('请选择一个 Markdown 或 HTML 文件。');
 
     try {
       const snapshot = await openDocumentFile();
-      const documentKind = getSnapshotDocumentKind(snapshot);
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
 
-      setDirectoryHandle(null);
-      setActiveAiProjectId(null);
-      setTree([]);
+      const documentKind = getSnapshotDocumentKind(snapshot);
+      const source: DocumentSource = { type: 'standalone' };
       setDrawerOpen(false);
 
       if (documentKind === 'html') {
-        await openNormalDocumentSnapshot(snapshot, 'html');
+        await openNormalDocumentSnapshot(snapshot, 'html', undefined, undefined, source, requestId);
         return;
       }
 
       const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
 
       if (classification.kind !== 'normal') {
         await openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
           anchorLine: 1,
+          source,
+          requestId,
         });
         return;
       }
 
-      await openNormalDocumentSnapshot(snapshot, 'markdown');
+      await openNormalDocumentSnapshot(snapshot, 'markdown', undefined, undefined, source, requestId);
     } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       if (err instanceof DOMException && err.name === 'AbortError') {
         setStatus(null);
         return;
@@ -341,48 +379,65 @@ export function App() {
     handle: FileSystemDirectoryHandle,
     path: string,
     remember = true,
-    options: { anchorLine?: number; aiProjectId?: string | null } = {},
-  ) {
+    options: { anchorLine?: number; source?: DocumentSource; requestId?: number } = {},
+  ): Promise<boolean> {
+    const requestId = options.requestId ?? beginOpenRequest();
     setError(null);
     setStatus(`正在打开 ${path}`);
 
     try {
       const snapshot = await readDocumentFileSnapshot(handle, path);
+      if (!isCurrentOpenRequest(requestId)) {
+        return false;
+      }
+
       const documentKind = getSnapshotDocumentKind(snapshot);
+      const source = options.source ?? activeDocumentSource ?? { type: 'folder', handle };
+      const rememberRecord = remember ? createLastDocumentRecord(source, path) : undefined;
 
       if (documentKind === 'html') {
-        await openNormalDocumentSnapshot(
+        return openNormalDocumentSnapshot(
           snapshot,
           'html',
-          remember ? createLastDocumentRecord(handle, path, options.aiProjectId) : undefined,
+          rememberRecord,
           handle,
+          source,
+          requestId,
         );
-        return;
       }
 
       const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
+      if (!isCurrentOpenRequest(requestId)) {
+        return false;
+      }
+
       const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
 
       if (classification.kind !== 'normal') {
-        const record = remember ? createLastDocumentRecord(handle, path, options.aiProjectId) : undefined;
-
-        await openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
-          rememberRecord: record,
+        return openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+          rememberRecord,
           anchorLine: options.anchorLine ?? 1,
+          source,
+          requestId,
         });
-        return;
       }
 
-      closeLargeDocument();
-
-      await openNormalDocumentSnapshot(
+      return openNormalDocumentSnapshot(
         snapshot,
         'markdown',
-        remember ? createLastDocumentRecord(handle, path, options.aiProjectId) : undefined,
+        rememberRecord,
+        undefined,
+        source,
+        requestId,
       );
     } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return false;
+      }
+
       setStatus(null);
       setError(err instanceof Error ? err.message : `无法打开 ${path}。`);
+      return false;
     }
   }
 
@@ -390,9 +445,12 @@ export function App() {
     snapshot: DocumentFileSnapshot,
     kind: Exclude<LargeDocumentKind, 'normal'>,
     reason: string,
-    options: { rememberRecord?: LastDocumentRecord; anchorLine?: number } = {},
-  ) {
-    closeLargeDocument();
+    options: { rememberRecord?: LastDocumentRecord; anchorLine?: number; source?: DocumentSource; requestId?: number } = {},
+  ): Promise<boolean> {
+    if (!isCurrentOpenRequest(options.requestId)) {
+      return false;
+    }
+
     const client = createLargeDocumentWorkerClient();
     setStatus(`正在建立大文件索引：${snapshot.path}`);
     let index: LargeDocumentIndex;
@@ -404,7 +462,15 @@ export function App() {
       throw error;
     }
 
+    if (!isCurrentOpenRequest(options.requestId)) {
+      client.terminate();
+      return false;
+    }
+
+    closeLargeDocument();
     setActivePath(snapshot.path);
+    updateSourceActivePath(options.source, snapshot.path);
+    setActiveDocumentSource(options.source ?? null);
     setActiveDocumentKind('markdown');
     setMarkdown('');
     setRendered({
@@ -429,22 +495,25 @@ export function App() {
       setLastDocument(options.rememberRecord);
       await saveLastDocument(options.rememberRecord);
     }
+
+    return true;
   }
 
   function createLastDocumentRecord(
-    handle: FileSystemDirectoryHandle,
+    source: DocumentSource,
     path: string,
-    aiProjectIdOverride?: string | null,
-  ): LastDocumentRecord {
-    const rememberedAiProjectId = aiProjectIdOverride === undefined ? activeAiProjectId : aiProjectIdOverride;
+  ): LastDocumentRecord | undefined {
+    if (!source || source.type === 'standalone') {
+      return undefined;
+    }
 
     return {
-      directoryHandle: handle,
-      directoryName: handle.name,
+      directoryHandle: source.handle,
+      directoryName: source.handle.name,
       path,
       updatedAt: Date.now(),
-      source: rememberedAiProjectId ? 'ai-project' : 'folder',
-      aiProjectId: rememberedAiProjectId ?? undefined,
+      source: source.type,
+      aiProjectId: source.type === 'ai-project' ? source.projectId : undefined,
     };
   }
 
@@ -453,21 +522,38 @@ export function App() {
     kind: ActiveDocumentKind,
     rememberRecord?: LastDocumentRecord,
     sourceDirectoryHandle?: FileSystemDirectoryHandle,
-  ) {
-    closeLargeDocument();
-    const source = await snapshot.file.text();
-    const result = kind === 'html' ? await renderHtmlDocument(source) : await renderMarkdown(source);
+    documentSource?: DocumentSource,
+    requestId?: number,
+  ): Promise<boolean> {
+    if (!isCurrentOpenRequest(requestId)) {
+      return false;
+    }
+
+    const sourceText = await snapshot.file.text();
+    if (!isCurrentOpenRequest(requestId)) {
+      return false;
+    }
+
+    const result = kind === 'html' ? await renderHtmlDocument(sourceText) : await renderMarkdown(sourceText);
     const nextHtmlPreviewDocument = kind === 'html'
       ? await createHtmlPreviewDocument(
-          source,
+          sourceText,
           snapshot.path,
           sourceDirectoryHandle ? (path) => readAssetFile(sourceDirectoryHandle, path) : undefined,
         )
       : null;
 
+    if (!isCurrentOpenRequest(requestId)) {
+      nextHtmlPreviewDocument?.objectUrls.forEach((url) => URL.revokeObjectURL(url));
+      return false;
+    }
+
+    closeLargeDocument();
     setActivePath(snapshot.path);
+    updateSourceActivePath(documentSource, snapshot.path);
+    setActiveDocumentSource(documentSource ?? null);
     setActiveDocumentKind(kind);
-    setMarkdown(source);
+    setMarkdown(sourceText);
     setRendered(result);
     setHtmlPreviewDocument(nextHtmlPreviewDocument);
     setLargeAnchorLine(1);
@@ -477,11 +563,50 @@ export function App() {
       setLastDocument(rememberRecord);
       await saveLastDocument(rememberRecord);
     }
+
+    return true;
   }
 
   function closeLargeDocument() {
     largeDocument?.client.terminate();
     setLargeDocument(null);
+  }
+
+  function isCurrentOpenRequest(requestId: number | undefined): boolean {
+    return requestId === undefined || requestId === openRequestIdRef.current;
+  }
+
+  function beginOpenRequest(): number {
+    openRequestIdRef.current += 1;
+    return openRequestIdRef.current;
+  }
+
+  function updateSourceActivePath(source: DocumentSource | undefined, path: string | null) {
+    if (!source) {
+      return;
+    }
+
+    if (source.type === 'folder') {
+      setFolderActivePath(path);
+      return;
+    }
+
+    if (source.type === 'ai-project') {
+      setAiProjectActivePaths((current) => ({ ...current, [source.projectId]: path }));
+      setActiveAiProjectId(source.projectId);
+    }
+  }
+
+  function clearReaderForSource(source: DocumentSource) {
+    closeLargeDocument();
+    setActivePath(null);
+    updateSourceActivePath(source ?? undefined, null);
+    setActiveDocumentSource(source ?? null);
+    setActiveDocumentKind('markdown');
+    setMarkdown('');
+    setRendered(EMPTY_RENDER);
+    setHtmlPreviewDocument(null);
+    setLargeAnchorLine(1);
   }
 
   async function openInitialDocument() {
@@ -500,6 +625,7 @@ export function App() {
   }
 
   async function openTemporaryDocument(temporaryDocument: TemporaryMarkdownDocument) {
+    const requestId = beginOpenRequest();
     const { name } = temporaryDocument;
     setError(null);
     setStatus(`正在打开 ${name}`);
@@ -511,19 +637,28 @@ export function App() {
       }
 
       const source = await readTemporaryDocumentSource(temporaryDocument);
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       const result = await renderMarkdown(source);
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
 
       closeLargeDocument();
-      setDirectoryHandle(null);
-      setActiveAiProjectId(null);
-      setTree([]);
       setActivePath(name);
+      setActiveDocumentSource({ type: 'standalone' });
       setActiveDocumentKind('markdown');
       setMarkdown(source);
       setRendered(result);
       setHtmlPreviewDocument(null);
       setStatus(null);
     } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       if (temporaryDocument.sourceAvailable === false) {
         showTemporaryDocumentAuthorizationPrompt();
         return;
@@ -535,11 +670,10 @@ export function App() {
   }
 
   function showTemporaryDocumentAuthorizationPrompt() {
+    beginOpenRequest();
     closeLargeDocument();
-    setDirectoryHandle(null);
-    setActiveAiProjectId(null);
-    setTree([]);
     setActivePath(null);
+    setActiveDocumentSource({ type: 'standalone' });
     setActiveDocumentKind('markdown');
     setMarkdown('');
     setRendered(EMPTY_RENDER);
@@ -565,8 +699,12 @@ export function App() {
   }
 
   async function restoreLastDocument(requestPermission = false) {
+    const requestId = beginOpenRequest();
     setError(null);
     const record = await loadLastDocument();
+    if (!isCurrentOpenRequest(requestId)) {
+      return;
+    }
 
     if (!record) {
       return;
@@ -577,6 +715,9 @@ export function App() {
     const hasPermission = requestPermission
       ? await requestDirectoryReadPermission(record.directoryHandle)
       : await canReadDirectory(record.directoryHandle);
+    if (!isCurrentOpenRequest(requestId)) {
+      return;
+    }
 
     if (!hasPermission) {
       setStatus(`可以恢复上次文档：${record.directoryName}/${record.path}`);
@@ -587,76 +728,102 @@ export function App() {
 
     try {
       const nextTree = await scanMarkdownDirectory(record.directoryHandle);
-      const rememberedPath = selectRememberedDocumentPath(nextTree, record.path);
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
 
-      setDirectoryHandle(record.directoryHandle);
-      setActiveAiProjectId(record.aiProjectId ?? null);
-      setTree(nextTree);
+      const rememberedPath = selectRememberedDocumentPath(nextTree, record.path);
+      const source: DocumentSource = record.source === 'ai-project' && record.aiProjectId
+        ? { type: 'ai-project', projectId: record.aiProjectId, handle: record.directoryHandle }
+        : { type: 'folder', handle: record.directoryHandle };
+
+      if (source.type === 'ai-project') {
+        setActiveAiProjectId(source.projectId);
+        setAiProjectTrees((current) => ({ ...current, [source.projectId]: nextTree }));
+        setAiProjectActivePaths((current) => ({ ...current, [source.projectId]: rememberedPath }));
+        setDrawerTab('ai-projects');
+      } else {
+        setFolderDirectoryHandle(record.directoryHandle);
+        setFolderTree(nextTree);
+        setFolderActivePath(rememberedPath);
+        setActiveAiProjectId(null);
+      }
 
       if (rememberedPath) {
-        await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path);
+        await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path, { source, requestId });
       } else {
-        setActivePath(null);
-        setActiveDocumentKind('markdown');
-        setMarkdown('');
-        setRendered(EMPTY_RENDER);
-        setHtmlPreviewDocument(null);
+        clearReaderForSource(source);
         setStatus('上次打开的文件夹里没有找到 Markdown 或 HTML 文件。');
       }
     } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       setStatus(null);
       setError(err instanceof Error ? err.message : '无法恢复上次文档。');
     }
   }
 
   async function reloadActiveFile() {
-    if (largeDocument && directoryHandle && activePath) {
-      const currentLine = largeAnchorLine;
-      await openFile(directoryHandle, activePath, false, { anchorLine: currentLine });
+    if (!activeDocumentSource || activeDocumentSource.type === 'standalone') {
+      setStatus('当前文档没有可重载的授权目录。');
       return;
     }
 
-    if (activeDocumentKind === 'html' && directoryHandle && activePath) {
-      const scrollY = window.scrollY;
-      await openFile(directoryHandle, activePath, false);
-      window.requestAnimationFrame(() => {
-        window.scrollTo({ top: scrollY, left: 0, behavior: 'instant' });
+    if (largeDocument && activePath) {
+      const currentLine = largeAnchorLine;
+      await openFile(activeDocumentSource.handle, activePath, false, {
+        anchorLine: currentLine,
+        source: activeDocumentSource,
       });
       return;
     }
 
-    await reloadCurrentDocument({
-      directoryHandle,
-      activePath,
-      scrollY: window.scrollY,
-      readDocumentFile,
-      renderDocument: (source) => activeDocumentKind === 'html' ? renderHtmlDocument(source) : renderMarkdown(source),
-      setMarkdown,
-      setRendered,
-      setStatus,
-      setError,
-      scrollTo: (options) => window.scrollTo(options),
-      requestAnimationFrame: (callback) => window.requestAnimationFrame(callback),
-    });
+    if (activePath) {
+      const scrollY = window.scrollY;
+      const requestId = beginOpenRequest();
+      const opened = await openFile(activeDocumentSource.handle, activePath, false, {
+        source: activeDocumentSource,
+        requestId,
+      });
+      if (!opened) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
+
+        window.scrollTo({ top: scrollY, left: 0, behavior: 'instant' });
+      });
+      return;
+    }
   }
 
   async function reloadFolderTree() {
-    if (!directoryHandle) {
+    if (!folderDirectoryHandle) {
       setStatus('请先打开一个文件夹。');
       return;
     }
 
+    const requestId = beginOpenRequest();
     setError(null);
     setStatus('正在重载目录');
 
     try {
-      const nextTree = await scanMarkdownDirectory(directoryHandle);
-      const activeFileExists = activePath
-        ? flattenDocumentFiles(nextTree).some((file) => file.path === activePath)
+      const nextTree = await scanMarkdownDirectory(folderDirectoryHandle);
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
+      const activeFileExists = folderActivePath
+        ? flattenDocumentFiles(nextTree).some((file) => file.path === folderActivePath)
         : false;
       const fallbackPath = activeFileExists ? null : selectDefaultDocument(nextTree);
 
-      setTree(nextTree);
+      setFolderTree(nextTree);
 
       if (activeFileExists) {
         setStatus(null);
@@ -664,17 +831,23 @@ export function App() {
       }
 
       if (fallbackPath) {
-        await openFile(directoryHandle, fallbackPath);
+        await openFile(folderDirectoryHandle, fallbackPath, true, {
+          source: { type: 'folder', handle: folderDirectoryHandle },
+          requestId,
+        });
         return;
       }
 
-      setActivePath(null);
-      setActiveDocumentKind('markdown');
-      setMarkdown('');
-      setRendered(EMPTY_RENDER);
-      setHtmlPreviewDocument(null);
+      setFolderActivePath(null);
+      if (activeDocumentSource?.type === 'folder') {
+        clearReaderForSource({ type: 'folder', handle: folderDirectoryHandle });
+      }
       setStatus('这个文件夹里没有找到 Markdown 或 HTML 文件。');
     } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       setStatus(null);
       setError(err instanceof Error ? err.message : '无法重载目录。');
     }
@@ -683,6 +856,8 @@ export function App() {
   async function clearAiProjects() {
     setAiProjectState(EMPTY_AI_PROJECT_STATE);
     setAiProjectTrees({});
+    setAiProjectActivePaths({});
+    setAiProjectExpandedPaths({});
     setActiveAiProjectId(null);
     setAiProjectStatus('已清空 AI 项目记录。');
     await clearAiProjectState();
@@ -692,7 +867,56 @@ export function App() {
     await chrome.runtime.openOptionsPage();
   }
 
+  function changeDrawerTab(tab: FileDrawerTab) {
+    beginOpenRequest();
+    setDrawerTab(tab);
+
+    if (tab === 'folder') {
+      restoreFolderSession();
+      return;
+    }
+
+    restoreActiveAiProjectSession();
+  }
+
+  function restoreFolderSession() {
+    if (!folderDirectoryHandle || !folderActivePath) {
+      return;
+    }
+
+    if (activeDocumentSource?.type === 'folder' && activePath === folderActivePath) {
+      return;
+    }
+
+    void openFile(folderDirectoryHandle, folderActivePath, false, {
+      source: { type: 'folder', handle: folderDirectoryHandle },
+    });
+  }
+
+  function restoreActiveAiProjectSession() {
+    if (!activeAiProjectId) {
+      return;
+    }
+
+    const project = aiProjectState.projects.find((entry) => entry.id === activeAiProjectId);
+    const handle = project?.directoryHandle;
+    const path = aiProjectActivePaths[activeAiProjectId];
+
+    if (!project || !handle || !path) {
+      return;
+    }
+
+    if (activeDocumentSource?.type === 'ai-project' && activeDocumentSource.projectId === activeAiProjectId && activePath === path) {
+      return;
+    }
+
+    void openFile(handle, path, false, {
+      source: { type: 'ai-project', projectId: activeAiProjectId, handle },
+    });
+  }
+
   async function openAiProject(project: AiProjectEntry) {
+    const requestId = beginOpenRequest();
     setError(null);
     setAiProjectStatus(`正在打开 ${project.name}`);
 
@@ -701,6 +925,9 @@ export function App() {
 
       if (handle) {
         const hasPermission = await requestAiProjectDirectoryPermission(project);
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
 
         if (!hasPermission) {
           handle = undefined;
@@ -710,10 +937,17 @@ export function App() {
       if (!handle) {
         setAiProjectStatus(`请选择项目目录：${project.expectedPath}`);
         handle = await openDirectory();
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
       }
 
-      await activateAiProject(project, handle, true);
+      await activateAiProject(project, handle, true, requestId);
     } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       if (err instanceof DOMException && err.name === 'AbortError') {
         setAiProjectStatus(null);
         return;
@@ -730,11 +964,15 @@ export function App() {
       return;
     }
 
+    const requestId = beginOpenRequest();
     setError(null);
     setAiProjectStatus(`正在重载 ${project.name}`);
 
     try {
       const hasPermission = await requestAiProjectDirectoryPermission(project);
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
 
       if (!hasPermission) {
         setAiProjectStatus(`需要重新授权项目目录：${project.expectedPath}`);
@@ -742,48 +980,63 @@ export function App() {
         return;
       }
 
-      await activateAiProject(project, project.directoryHandle, false);
+      await activateAiProject(project, project.directoryHandle, false, requestId);
     } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
       setAiProjectStatus(null);
       setError(err instanceof Error ? err.message : `无法重载项目 ${project.name}。`);
     }
   }
 
-  async function activateAiProject(project: AiProjectEntry, handle: FileSystemDirectoryHandle, openDefaultFile: boolean) {
+  async function activateAiProject(
+    project: AiProjectEntry,
+    handle: FileSystemDirectoryHandle,
+    openDefaultFile: boolean,
+    requestId: number,
+  ) {
     const nextTree = await scanMarkdownDirectory(handle);
+    if (!isCurrentOpenRequest(requestId)) {
+      return;
+    }
+
     const nextState = mergeAiProjectDirectory(aiProjectState, project, handle);
 
     setAiProjectState(nextState);
     await saveAiProjectState(nextState);
-    setDirectoryHandle(handle);
+    if (!isCurrentOpenRequest(requestId)) {
+      return;
+    }
+
     setActiveAiProjectId(project.id);
-    setTree(nextTree);
     setAiProjectTrees((current) => ({ ...current, [project.id]: nextTree }));
     setDrawerTab('ai-projects');
     setDrawerOpen(true);
     setAiProjectStatus(nextTree.length ? null : '这个项目目录里没有找到 Markdown 或 HTML 文件。');
 
-    const activeFileExists = activePath
-      ? flattenDocumentFiles(nextTree).some((file) => file.path === activePath)
+    const projectActivePath = aiProjectActivePaths[project.id] ?? null;
+    const activeFileExists = projectActivePath
+      ? flattenDocumentFiles(nextTree).some((file) => file.path === projectActivePath)
       : false;
     const defaultPath = selectDefaultDocument(nextTree);
+    const source: DocumentSource = { type: 'ai-project', projectId: project.id, handle };
+    const pathToOpen = activeFileExists ? projectActivePath : defaultPath;
 
-    if (openDefaultFile && defaultPath) {
-      await openFile(handle, defaultPath, true, { aiProjectId: project.id });
+    if (openDefaultFile && pathToOpen) {
+      await openFile(handle, pathToOpen, true, { source, requestId });
       return;
     }
 
     if (!activeFileExists && defaultPath) {
-      await openFile(handle, defaultPath, true, { aiProjectId: project.id });
+      await openFile(handle, defaultPath, true, { source, requestId });
       return;
     }
 
     if (!defaultPath) {
-      setActivePath(null);
-      setActiveDocumentKind('markdown');
-      setMarkdown('');
-      setRendered(EMPTY_RENDER);
-      setHtmlPreviewDocument(null);
+      setAiProjectActivePaths((current) => ({ ...current, [project.id]: null }));
+      clearReaderForSource(source);
     }
   }
 
@@ -795,10 +1048,8 @@ export function App() {
       return;
     }
 
-    setDirectoryHandle(handle);
     setActiveAiProjectId(project.id);
-    setTree(aiProjectTrees[project.id] ?? tree);
-    void openFile(handle, path, true, { aiProjectId: project.id });
+    void openFile(handle, path, true, { source: { type: 'ai-project', projectId: project.id, handle } });
   }
 
   async function copyMarkdownSource() {
@@ -851,11 +1102,11 @@ export function App() {
   }
 
   function openSiblingFile(path: string | null | undefined) {
-    if (!directoryHandle || !path) {
+    if (!activeDocumentSource || activeDocumentSource.type === 'standalone' || !path) {
       return;
     }
 
-    void openFile(directoryHandle, path);
+    void openFile(activeDocumentSource.handle, path, true, { source: activeDocumentSource });
   }
 
   function navigateHtmlPreview(id: string) {
@@ -913,7 +1164,7 @@ export function App() {
       return;
     }
 
-    if (resolved.kind !== 'document' || !directoryHandle) {
+    if (resolved.kind !== 'document' || !activeDocumentSource || activeDocumentSource.type === 'standalone') {
       return;
     }
 
@@ -922,14 +1173,22 @@ export function App() {
   }
 
   async function openLinkedDocument(path: string, hash: string | null) {
-    if (!directoryHandle) {
+    if (!activeDocumentSource || activeDocumentSource.type === 'standalone') {
       return;
     }
 
-    await openFile(directoryHandle, path);
+    const requestId = beginOpenRequest();
+    const opened = await openFile(activeDocumentSource.handle, path, true, {
+      source: activeDocumentSource,
+      requestId,
+    });
 
-    if (hash) {
+    if (hash && opened) {
       window.requestAnimationFrame(() => {
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
+
         document.getElementById(hash)?.scrollIntoView({ block: 'start' });
         setActiveHeadingId(hash);
       });
@@ -1026,26 +1285,35 @@ export function App() {
       >
         <FileDrawer
           open={drawerOpen}
-          tree={tree}
-          activePath={activePath}
+          tree={folderTree}
+          activePath={folderActivePath}
+          expandedPaths={folderExpandedPaths}
           activeTab={drawerTab}
           aiProjects={aiProjectState.projects}
           aiProjectSources={aiProjectState.sources}
           aiProjectTrees={aiProjectTrees}
+          aiProjectActivePaths={aiProjectActivePaths}
+          aiProjectExpandedPaths={aiProjectExpandedPaths}
           aiProjectStatus={aiProjectStatus}
           activeAiProjectId={activeAiProjectId}
           onOpenFolder={openFolder}
           onReloadFolder={() => void reloadFolderTree()}
-          onTabChange={setDrawerTab}
+          onFolderExpandedPathsChange={setFolderExpandedPaths}
+          onTabChange={changeDrawerTab}
           onOpenAiProjectSettings={() => void openAiProjectSettings()}
           onClearAiProjects={() => void clearAiProjects()}
           onOpenAiProject={(project) => void openAiProject(project)}
           onReloadAiProject={(project) => void reloadAiProject(project)}
+          onAiProjectExpandedPathsChange={(project, paths) =>
+            setAiProjectExpandedPaths((current) => ({ ...current, [project.id]: paths }))
+          }
           onSelectAiProjectFile={selectAiProjectFile}
           onClose={() => setDrawerOpen(false)}
           onSelect={(path) => {
-            if (directoryHandle) {
-              void openFile(directoryHandle, path);
+            if (folderDirectoryHandle) {
+              void openFile(folderDirectoryHandle, path, true, {
+                source: { type: 'folder', handle: folderDirectoryHandle },
+              });
             }
           }}
           onResizeStart={startFileDrawerResize}

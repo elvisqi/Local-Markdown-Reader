@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { FileTreeNode } from '../shared/types';
@@ -599,6 +599,706 @@ describe('App file navigation and drawer behavior', () => {
     expect(within(drawer).getByRole('button', { name: 'alpha.md' })).toBeInTheDocument();
   });
 
+  it('keeps folder and AI project reading sessions independent when switching tabs', async () => {
+    const user = userEvent.setup();
+    const folderHandle = { kind: 'directory', name: 'Folder Docs' } as FileSystemDirectoryHandle;
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const folderTree: FileTreeNode[] = [
+      { type: 'file', name: 'folder-a.md', path: 'folder-a.md' },
+      { type: 'file', name: 'folder-b.md', path: 'folder-b.md' },
+    ];
+    const projectTree: FileTreeNode[] = [
+      { type: 'file', name: 'project-a.md', path: 'project-a.md' },
+      { type: 'file', name: 'project-b.md', path: 'project-b.md' },
+    ];
+    const project = {
+      id: 'codex:/Users/qiyu/Github/ai-docs',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/Users/qiyu/Github/ai-docs',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+    };
+
+    vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(folderHandle);
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory)
+      .mockResolvedValueOnce(folderTree)
+      .mockResolvedValueOnce(projectTree);
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
+
+    const folderDrawer = screen.getByLabelText('文件列表');
+    expect(within(folderDrawer).getByRole('button', { name: 'folder-a.md' })).toBeInTheDocument();
+    expect(within(folderDrawer).getByRole('button', { name: 'folder-b.md' })).toHaveAttribute('aria-current', 'page');
+    expect(within(folderDrawer).queryByRole('button', { name: 'project-a.md' })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
+
+    await user.click(within(folderDrawer).getByRole('tab', { name: 'AI 项目' }));
+
+    const aiDrawer = screen.getByLabelText('文件列表');
+    expect(within(aiDrawer).getByRole('button', { name: 'project-a.md' })).toBeInTheDocument();
+    expect(within(aiDrawer).getByRole('button', { name: 'project-b.md' })).toHaveAttribute('aria-current', 'page');
+    expect(within(aiDrawer).queryByRole('button', { name: 'folder-a.md' })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+    expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(projectHandle, 'project-b.md');
+  });
+
+  it('keeps the AI project session after opening another folder and restores the project active file', async () => {
+    const user = userEvent.setup();
+    const firstFolderHandle = { kind: 'directory', name: 'First Folder' } as FileSystemDirectoryHandle;
+    const secondFolderHandle = { kind: 'directory', name: 'Second Folder' } as FileSystemDirectoryHandle;
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'codex:/Users/qiyu/Github/ai-docs',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/Users/qiyu/Github/ai-docs',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+    };
+
+    vi.mocked(fileSystemAccess.openDirectory)
+      .mockResolvedValueOnce(firstFolderHandle)
+      .mockResolvedValueOnce(secondFolderHandle);
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory)
+      .mockResolvedValueOnce([{ type: 'file', name: 'folder-a.md', path: 'folder-a.md' }])
+      .mockResolvedValueOnce([
+        { type: 'file', name: 'project-a.md', path: 'project-a.md' },
+        { type: 'file', name: 'project-b.md', path: 'project-b.md' },
+      ])
+      .mockResolvedValueOnce([{ type: 'file', name: 'folder-c.md', path: 'folder-c.md' }]);
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-c.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(projectHandle, 'project-b.md');
+  });
+
+  it('reopens an AI project at its previous active file instead of the default document', async () => {
+    const user = userEvent.setup();
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'codex:/Users/qiyu/Github/ai-docs',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/Users/qiyu/Github/ai-docs',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+    };
+
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'README.md', path: 'README.md' },
+      { type: 'file', name: 'project-b.md', path: 'project-b.md' },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'README.md' })).not.toHaveLength(0));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByTitle('/Users/qiyu/Github/ai-docs'));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+    expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(projectHandle, 'project-b.md');
+  });
+
+  it('ignores stale async tab restore results when switching sources quickly', async () => {
+    const user = userEvent.setup();
+    const folderHandle = { kind: 'directory', name: 'Folder Docs' } as FileSystemDirectoryHandle;
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'codex:/Users/qiyu/Github/ai-docs',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/Users/qiyu/Github/ai-docs',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+    };
+    let resolveProjectRestore: (() => void) | null = null;
+
+    vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(folderHandle);
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory)
+      .mockResolvedValueOnce([{ type: 'file', name: 'folder-b.md', path: 'folder-b.md' }])
+      .mockResolvedValueOnce([{ type: 'file', name: 'project-b.md', path: 'project-b.md' }]);
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (handle, path) => {
+      if (handle === projectHandle && path === 'project-b.md') {
+        await new Promise<void>((resolve) => {
+          resolveProjectRestore = resolve;
+        });
+      }
+
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
+    await waitFor(() => expect(resolveProjectRestore).toBeTypeOf('function'));
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
+
+    const finishProjectRestore = resolveProjectRestore as (() => void) | null;
+    if (!finishProjectRestore) {
+      throw new Error('Project restore was not started.');
+    }
+    finishProjectRestore();
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
+    expect(screen.queryByRole('heading', { name: 'project-b.md' })).not.toBeInTheDocument();
+  });
+
+  it('does not let a stale normal document open close the current large document session', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['# Big\ncontent'.padEnd(2 * 1024 * 1024, 'x')], 'z-big.md', {
+      type: 'text/markdown',
+    });
+    let resolveNormalSample: ((source: string) => void) | null = null;
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'a-normal.md', path: 'a-normal.md' },
+      { type: 'file', name: 'z-big.md', path: 'z-big.md' },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const source = path === 'z-big.md' ? '# Big\ncontent' : '# Normal';
+      const file = path === 'z-big.md'
+        ? largeFile
+        : new File([source], path, { type: 'text/markdown' });
+
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: 'text/markdown',
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockImplementation(async (file) => {
+      if (file instanceof File && file.name === 'a-normal.md') {
+        return new Promise<string>((resolve) => {
+          resolveNormalSample = resolve;
+        });
+      }
+
+      return '# Big\n';
+    });
+    largeDocumentClient.buildIndex.mockResolvedValue({
+      name: 'z-big.md',
+      size: largeFile.size,
+      lineCount: 500,
+      lineStarts: [0, 6],
+      title: 'Big',
+      outline: [],
+      warnings: [],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(resolveNormalSample).toBeTypeOf('function'));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'z-big.md' }));
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+
+    const finishNormalSample = resolveNormalSample as ((source: string) => void) | null;
+    if (!finishNormalSample) {
+      throw new Error('Normal document sample was not requested.');
+    }
+    await act(async () => {
+      finishNormalSample('# Normal');
+    });
+
+    expect(screen.getByText('大文件安全模式')).toBeInTheDocument();
+    expect(largeDocumentClient.terminate).not.toHaveBeenCalled();
+    expect(screen.queryByRole('heading', { name: 'Normal' })).not.toBeInTheDocument();
+  });
+
+  it('keeps a standalone file open when an older folder request finishes later', async () => {
+    const user = userEvent.setup();
+    let resolveFolderSample: ((source: string) => void) | null = null;
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'folder.md', path: 'folder.md' },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File(['# Folder'], path, { type: 'text/markdown' });
+
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: 'text/markdown',
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockImplementation(async (file) => {
+      if (file instanceof File && file.name === 'folder.md') {
+        return new Promise<string>((resolve) => {
+          resolveFolderSample = resolve;
+        });
+      }
+
+      return '# Standalone';
+    });
+    const standalone = new File(['# Standalone'], 'standalone.md', { type: 'text/markdown' });
+    vi.mocked(fileSystemAccess.openDocumentFile).mockResolvedValue({
+      path: 'standalone.md',
+      name: 'standalone.md',
+      size: standalone.size,
+      type: standalone.type,
+      lastModified: standalone.lastModified,
+      file: standalone,
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(resolveFolderSample).toBeTypeOf('function'));
+
+    await user.click(screen.getByRole('button', { name: '打开文件' }));
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Standalone' })).toBeInTheDocument());
+
+    const finishFolderSample = resolveFolderSample as ((source: string) => void) | null;
+    if (!finishFolderSample) {
+      throw new Error('Folder document sample was not requested.');
+    }
+    await act(async () => {
+      finishFolderSample('# Folder');
+    });
+
+    expect(screen.getByRole('heading', { name: 'Standalone' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Folder' })).not.toBeInTheDocument();
+  });
+
+  it('does not let a stale AI project scan reopen over a newer standalone document', async () => {
+    const user = userEvent.setup();
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'codex:/Users/qiyu/Github/ai-docs',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/Users/qiyu/Github/ai-docs',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+    };
+    let resolveProjectScan: ((tree: FileTreeNode[]) => void) | null = null;
+
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockImplementation(async (handle) => {
+      if (handle === projectHandle) {
+        return new Promise<FileTreeNode[]>((resolve) => {
+          resolveProjectScan = resolve;
+        });
+      }
+
+      return tree;
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+    const standalone = new File(['# Standalone'], 'standalone.md', { type: 'text/markdown' });
+    vi.mocked(fileSystemAccess.openDocumentFile).mockResolvedValue({
+      path: 'standalone.md',
+      name: 'standalone.md',
+      size: standalone.size,
+      type: standalone.type,
+      lastModified: standalone.lastModified,
+      file: standalone,
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
+    await waitFor(() => expect(resolveProjectScan).toBeTypeOf('function'));
+
+    await user.click(screen.getByRole('button', { name: '打开文件' }));
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Standalone' })).toBeInTheDocument());
+
+    const finishProjectScan = resolveProjectScan as ((tree: FileTreeNode[]) => void) | null;
+    if (!finishProjectScan) {
+      throw new Error('Project scan was not started.');
+    }
+    await act(async () => {
+      finishProjectScan([{ type: 'file', name: 'project.md', path: 'project.md' }]);
+    });
+
+    expect(screen.getByRole('heading', { name: 'Standalone' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'project.md' })).not.toBeInTheDocument();
+  });
+
+  it('does not let a stale empty folder scan close the current large document session', async () => {
+    const user = userEvent.setup();
+    const staleFolderHandle = { kind: 'directory', name: 'Empty Folder' } as FileSystemDirectoryHandle;
+    const currentFolderHandle = { kind: 'directory', name: 'Current Folder' } as FileSystemDirectoryHandle;
+    const largeFile = new File(['# Big\ncontent'.padEnd(2 * 1024 * 1024, 'x')], 'big.md', {
+      type: 'text/markdown',
+    });
+    let resolveEmptyScan: ((tree: FileTreeNode[]) => void) | null = null;
+
+    vi.mocked(fileSystemAccess.openDirectory)
+      .mockResolvedValueOnce(staleFolderHandle)
+      .mockResolvedValueOnce(currentFolderHandle);
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockImplementation(async (handle) => {
+      if (handle === staleFolderHandle) {
+        return new Promise<FileTreeNode[]>((resolve) => {
+          resolveEmptyScan = resolve;
+        });
+      }
+
+      return [{ type: 'file', name: 'big.md', path: 'big.md' }];
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'big.md',
+      name: 'big.md',
+      size: largeFile.size,
+      type: 'text/markdown',
+      lastModified: largeFile.lastModified,
+      file: largeFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('# Big\n');
+    largeDocumentClient.buildIndex.mockResolvedValue({
+      name: 'big.md',
+      size: largeFile.size,
+      lineCount: 500,
+      lineStarts: [0, 6],
+      title: 'Big',
+      outline: [],
+      warnings: [],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(resolveEmptyScan).toBeTypeOf('function'));
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+
+    const finishEmptyScan = resolveEmptyScan as ((tree: FileTreeNode[]) => void) | null;
+    if (!finishEmptyScan) {
+      throw new Error('Empty folder scan was not started.');
+    }
+    await act(async () => {
+      finishEmptyScan([]);
+    });
+
+    expect(screen.getByText('大文件安全模式')).toBeInTheDocument();
+    expect(largeDocumentClient.terminate).not.toHaveBeenCalled();
+  });
+
+  it('does not let a stale markdown reload overwrite a newer active document', async () => {
+    const user = userEvent.setup();
+    let holdReload = false;
+    let resolveReload: (() => void) | null = null;
+
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      if (holdReload && path === 'docs/01-intro.md') {
+        await new Promise<void>((resolve) => {
+          resolveReload = resolve;
+        });
+        const file = new File(['# Reloaded first document'], path, { type: 'text/markdown' });
+
+        return {
+          path,
+          name: path,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified,
+          file,
+        };
+      }
+
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
+
+    holdReload = true;
+    await user.click(screen.getByRole('button', { name: '重载' }));
+    await waitFor(() => expect(resolveReload).toBeTypeOf('function'));
+
+    await user.click(screen.getByRole('button', { name: '下一个' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/02-design.md' })).not.toHaveLength(0));
+
+    const finishReload = resolveReload as (() => void) | null;
+    if (!finishReload) {
+      throw new Error('Reload was not started.');
+    }
+    await act(async () => {
+      finishReload();
+    });
+
+    expect(screen.getAllByRole('heading', { name: 'docs/02-design.md' })).not.toHaveLength(0);
+    expect(screen.queryByRole('heading', { name: 'Reloaded first document' })).not.toBeInTheDocument();
+  });
+
+  it('clears the reader when opening an AI project with no readable documents', async () => {
+    const user = userEvent.setup();
+    const projectHandle = { kind: 'directory', name: 'Empty AI Docs' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'codex:/Users/qiyu/Github/empty-ai-docs',
+      provider: 'codex' as const,
+      name: 'Empty AI Docs',
+      expectedPath: '/Users/qiyu/Github/empty-ai-docs',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'Empty AI Docs',
+    };
+
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory)
+      .mockResolvedValueOnce(tree)
+      .mockResolvedValueOnce([]);
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/empty-ai-docs'));
+
+    await waitFor(() => expect(screen.getByText('这个项目目录里没有找到 Markdown 或 HTML 文件。')).toBeInTheDocument());
+    expect(screen.queryAllByRole('heading', { name: 'docs/01-intro.md' })).toHaveLength(0);
+    expect(screen.getByRole('heading', { name: '打开本地文件夹' })).toBeInTheDocument();
+  });
+
+  it('keeps manually expanded folder and AI project branches independent across drawer tabs', async () => {
+    const user = userEvent.setup();
+    const folderHandle = { kind: 'directory', name: 'Folder Docs' } as FileSystemDirectoryHandle;
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const folderTree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'folder-docs',
+        path: 'folder-docs',
+        children: [{ type: 'file', name: 'folder-a.md', path: 'folder-docs/folder-a.md' }],
+      },
+      {
+        type: 'directory',
+        name: 'folder-notes',
+        path: 'folder-notes',
+        children: [{ type: 'file', name: 'note.md', path: 'folder-notes/note.md' }],
+      },
+    ];
+    const projectTree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'project-docs',
+        path: 'project-docs',
+        children: [{ type: 'file', name: 'project-a.md', path: 'project-docs/project-a.md' }],
+      },
+      {
+        type: 'directory',
+        name: 'project-notes',
+        path: 'project-notes',
+        children: [{ type: 'file', name: 'project-note.md', path: 'project-notes/project-note.md' }],
+      },
+    ];
+    const project = {
+      id: 'codex:/Users/qiyu/Github/ai-docs',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/Users/qiyu/Github/ai-docs',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+    };
+
+    vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(folderHandle);
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory)
+      .mockResolvedValueOnce(folderTree)
+      .mockResolvedValueOnce(projectTree);
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-docs/folder-a.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByText('folder-notes'));
+    expect(within(screen.getByLabelText('文件列表')).getByText('folder-notes').closest('details')).toHaveAttribute('open');
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-docs/project-a.md' })).not.toHaveLength(0));
+    await user.click(within(screen.getByLabelText('文件列表')).getByText('project-notes'));
+    expect(within(screen.getByLabelText('文件列表')).getByText('project-notes').closest('details')).toHaveAttribute('open');
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-docs/folder-a.md' })).not.toHaveLength(0));
+    expect(within(screen.getByLabelText('文件列表')).getByText('folder-notes').closest('details')).toHaveAttribute('open');
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-docs/project-a.md' })).not.toHaveLength(0));
+    expect(within(screen.getByLabelText('文件列表')).getByText('project-notes').closest('details')).toHaveAttribute('open');
+  });
+
   it('opens HTML files from the authorized folder in a raw iframe preview with scripts enabled', async () => {
     const user = userEvent.setup();
     const htmlTree: FileTreeNode[] = [
@@ -713,6 +1413,227 @@ describe('App file navigation and drawer behavior', () => {
     expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
 
     vi.unstubAllGlobals();
+  });
+
+  it('preserves folder and AI project sessions after a delayed temporary document opens', async () => {
+    const user = userEvent.setup();
+    const folderHandle = { kind: 'directory', name: 'Folder Docs' } as FileSystemDirectoryHandle;
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'codex:/Users/qiyu/Github/ai-docs',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/Users/qiyu/Github/ai-docs',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+    };
+    let resolveTemporaryDocument:
+      | ((document: Awaited<ReturnType<typeof temporaryDocument.consumeTemporaryMarkdownDocument>>) => void)
+      | null = null;
+
+    vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveTemporaryDocument = resolve;
+        }),
+    );
+    window.history.replaceState(null, '', '/reader.html?temporaryDocument=temp-1');
+    vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(folderHandle);
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockImplementation(async (handle) => {
+      if (handle === folderHandle) {
+        return [
+          { type: 'file', name: 'folder-a.md', path: 'folder-a.md' },
+          { type: 'file', name: 'folder-b.md', path: 'folder-b.md' },
+        ];
+      }
+
+      if (handle === projectHandle) {
+        return [
+          { type: 'file', name: 'project-a.md', path: 'project-a.md' },
+          { type: 'file', name: 'project-b.md', path: 'project-b.md' },
+        ];
+      }
+
+      return tree;
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+    await waitFor(() => expect(resolveTemporaryDocument).toBeTypeOf('function'));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+
+    const finishTemporaryDocument = resolveTemporaryDocument as
+      | ((document: Awaited<ReturnType<typeof temporaryDocument.consumeTemporaryMarkdownDocument>>) => void)
+      | null;
+    if (!finishTemporaryDocument) {
+      throw new Error('Temporary document was not requested.');
+    }
+    await act(async () => {
+      finishTemporaryDocument({
+        url: 'file:///Users/qiyu/Desktop/Temporary.md',
+        name: 'Temporary.md',
+        source: '# Temporary document',
+        createdAt: 123,
+      });
+    });
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Temporary document' })).toBeInTheDocument());
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
+    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('preserves folder and AI project sessions when a delayed temporary document needs authorization', async () => {
+    const user = userEvent.setup();
+    const folderHandle = { kind: 'directory', name: 'Folder Docs' } as FileSystemDirectoryHandle;
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'codex:/Users/qiyu/Github/ai-docs',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/Users/qiyu/Github/ai-docs',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+    };
+    let resolveTemporaryDocument:
+      | ((document: Awaited<ReturnType<typeof temporaryDocument.consumeTemporaryMarkdownDocument>>) => void)
+      | null = null;
+
+    vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveTemporaryDocument = resolve;
+        }),
+    );
+    window.history.replaceState(null, '', '/reader.html?temporaryDocument=temp-1');
+    vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(folderHandle);
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockImplementation(async (handle) => {
+      if (handle === folderHandle) {
+        return [
+          { type: 'file', name: 'folder-a.md', path: 'folder-a.md' },
+          { type: 'file', name: 'folder-b.md', path: 'folder-b.md' },
+        ];
+      }
+
+      if (handle === projectHandle) {
+        return [
+          { type: 'file', name: 'project-a.md', path: 'project-a.md' },
+          { type: 'file', name: 'project-b.md', path: 'project-b.md' },
+        ];
+      }
+
+      return tree;
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path, { type: 'text/markdown' });
+
+      return {
+        path,
+        name: path,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+    await waitFor(() => expect(resolveTemporaryDocument).toBeTypeOf('function'));
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+
+    const finishTemporaryDocument = resolveTemporaryDocument as
+      | ((document: Awaited<ReturnType<typeof temporaryDocument.consumeTemporaryMarkdownDocument>>) => void)
+      | null;
+    if (!finishTemporaryDocument) {
+      throw new Error('Temporary document was not requested.');
+    }
+    await act(async () => {
+      finishTemporaryDocument({
+        url: 'file:///Users/qiyu/Desktop/huge.md',
+        name: 'huge.md',
+        sourceAvailable: false,
+        sourceSize: 108 * 1024 * 1024,
+        createdAt: 123,
+      });
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          '这个临时 Markdown 文件太大，浏览器无法从当前页面安全传递完整内容。请通过“打开文件”或“打开文件夹”授权读取后继续阅读。',
+        ),
+      ).toBeInTheDocument(),
+    );
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
+    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
+    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('opens standalone HTML files from the file picker', async () => {

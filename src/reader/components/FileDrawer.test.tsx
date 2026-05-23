@@ -7,19 +7,24 @@ const defaultProps = {
   open: true,
   tree: [],
   activePath: null,
+  expandedPaths: [],
   activeTab: 'folder' as const,
   aiProjects: [],
   aiProjectSources: {},
   aiProjectStatus: null,
   activeAiProjectId: null,
   aiProjectTrees: {},
+  aiProjectActivePaths: {},
+  aiProjectExpandedPaths: {},
   onOpenFolder: vi.fn(),
   onReloadFolder: vi.fn(),
+  onFolderExpandedPathsChange: vi.fn(),
   onTabChange: vi.fn(),
   onOpenAiProjectSettings: vi.fn(),
   onClearAiProjects: vi.fn(),
   onOpenAiProject: vi.fn(),
   onReloadAiProject: vi.fn(),
+  onAiProjectExpandedPathsChange: vi.fn(),
   onSelectAiProjectFile: vi.fn(),
   onClose: vi.fn(),
   onSelect: vi.fn(),
@@ -218,7 +223,7 @@ describe('FileDrawer', () => {
         {...defaultProps}
         activeTab="ai-projects"
         activeAiProjectId={project.id}
-        activePath="README.md"
+        aiProjectActivePaths={{ [project.id]: 'README.md' }}
         aiProjects={[project]}
         aiProjectTrees={{
           [project.id]: [
@@ -304,7 +309,7 @@ describe('FileDrawer', () => {
         {...defaultProps}
         activeTab="ai-projects"
         activeAiProjectId={projectB.id}
-        activePath="guide.md"
+        aiProjectActivePaths={{ [projectB.id]: 'guide.md' }}
         aiProjects={[projectA, projectB]}
         aiProjectTrees={{
           [projectA.id]: [{ type: 'file', name: 'README.md', path: 'README.md' }],
