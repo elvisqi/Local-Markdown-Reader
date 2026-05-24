@@ -22,6 +22,7 @@ function createMermaidApi(): MockMermaidApi {
 describe('renderMermaidBlocks', () => {
   beforeEach(() => {
     resetMermaidRendererForTests();
+    window.sessionStorage.clear();
     document.body.innerHTML = '';
   });
 
@@ -91,6 +92,23 @@ describe('renderMermaidBlocks', () => {
     expect(root.querySelector('.mermaid-diagram')).toHaveClass('has-error');
     expect(root.querySelector('.mermaid-diagram__error')).toHaveTextContent('Mermaid 图表渲染失败');
     expect(root.querySelector('pre')).toHaveTextContent('bad diagram');
+  });
+
+  it('reloads the reader once when Mermaid dynamic diagram chunks are stale', async () => {
+    const api = createMermaidApi();
+    const reloadPage = vi.fn();
+    const storage = window.sessionStorage;
+    const staleChunkUrl = 'chrome-extension://reader/assets/flowDiagram-old.js';
+    api.render.mockRejectedValueOnce(new TypeError(`Failed to fetch dynamically imported module: ${staleChunkUrl}`));
+    const root = document.createElement('div');
+    root.innerHTML = '<pre><code class="language-mermaid">flowchart TD\nA-->B</code></pre>';
+
+    await renderMermaidBlocks(root, api, { reloadPage, storage });
+
+    expect(reloadPage).toHaveBeenCalledTimes(1);
+    expect(storage.getItem(`localMarkdownReader.mermaidDynamicImportReload.${staleChunkUrl}`)).toBe('true');
+    expect(root.querySelector('.mermaid-diagram__error')).toBeNull();
+    expect(root.querySelector('pre')).toHaveTextContent('flowchart TD');
   });
 
   it('does not initialize Mermaid when no Mermaid code blocks exist', async () => {

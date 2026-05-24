@@ -33,6 +33,13 @@ describe('resolveMarkdownHref', () => {
     });
   });
 
+  it('classifies parent directory links that escape the authorized root as external', () => {
+    expect(resolveMarkdownHref('../../../README.md', 'docs/pages/report.md')).toEqual({
+      kind: 'external',
+      href: '../../../README.md',
+    });
+  });
+
   it('decodes hash fragments on relative document links', () => {
     expect(resolveMarkdownHref('../docs/api.md#%E5%AE%89%E8%A3%85', 'guides/intro.md')).toEqual({
       kind: 'document',

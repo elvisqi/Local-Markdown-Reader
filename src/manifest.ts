@@ -4,7 +4,7 @@ const manifest: ManifestV3Export = {
   manifest_version: 3,
   name: '__MSG_extensionName__',
   description: '__MSG_extensionDescription__',
-  version: '1.7.4',
+  version: '1.7.6',
   default_locale: 'en',
   icons: {
     16: 'icons/icon-16.png',
@@ -27,11 +27,17 @@ const manifest: ManifestV3Export = {
     type: 'module',
   },
   options_page: 'options.html',
+  content_security_policy: {
+    sandbox: "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' blob: data:; style-src 'self' 'unsafe-inline' blob: data:; img-src 'self' blob: data:;",
+  },
+  sandbox: {
+    pages: ['html-preview-sandbox.html'],
+  },
   permissions: ['storage', 'scripting'],
   host_permissions: ['file:///*'],
   web_accessible_resources: [
     {
-      resources: ['reader.html'],
+      resources: ['reader.html', 'html-preview-sandbox.html'],
       matches: ['<all_urls>'],
     },
   ],

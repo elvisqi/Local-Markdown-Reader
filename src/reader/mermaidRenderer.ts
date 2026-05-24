@@ -5,6 +5,11 @@ export type MermaidRendererApi = {
   render: typeof mermaid.render;
 };
 
+type MermaidRendererOptions = {
+  reloadPage?: () => void;
+  storage?: Storage | null;
+};
+
 let initialized = false;
 let nextDiagramId = 1;
 
@@ -13,8 +18,13 @@ const DIAGRAM_CLASS = 'mermaid-diagram';
 const TRIGGER_CLASS = 'mermaid-fullscreen__trigger';
 const OVERLAY_CLASS = 'mermaid-fullscreen__overlay';
 const ACTIONS_CLASS = 'mermaid-fullscreen__actions';
+const DYNAMIC_IMPORT_RELOAD_KEY_PREFIX = 'localMarkdownReader.mermaidDynamicImportReload.';
 
-export async function renderMermaidBlocks(root: ParentNode, api: MermaidRendererApi = mermaid) {
+export async function renderMermaidBlocks(
+  root: ParentNode,
+  api: MermaidRendererApi = mermaid,
+  options: MermaidRendererOptions = {},
+) {
   const codeBlocks = Array.from(root.querySelectorAll<HTMLElement>('pre > code.language-mermaid'));
 
   if (!codeBlocks.length) {
@@ -38,7 +48,11 @@ export async function renderMermaidBlocks(root: ParentNode, api: MermaidRenderer
     }
 
     pre.dataset.mermaidRendered = 'true';
-    await renderMermaidBlock(pre, codeBlock.textContent ?? '', api);
+    const result = await renderMermaidBlock(pre, codeBlock.textContent ?? '', api, options);
+
+    if (result === 'reload') {
+      return;
+    }
   }
 }
 
@@ -47,7 +61,12 @@ export function resetMermaidRendererForTests() {
   nextDiagramId = 1;
 }
 
-async function renderMermaidBlock(pre: HTMLElement, source: string, api: MermaidRendererApi) {
+async function renderMermaidBlock(
+  pre: HTMLElement,
+  source: string,
+  api: MermaidRendererApi,
+  options: MermaidRendererOptions,
+) {
   const diagram = document.createElement('div');
   diagram.className = DIAGRAM_CLASS;
   diagram.setAttribute('role', 'img');
@@ -61,11 +80,63 @@ async function renderMermaidBlock(pre: HTMLElement, source: string, api: Mermaid
     wrapMermaidDiagram(diagram);
     pre.remove();
   } catch (err) {
+    if (reloadOnceForDynamicImportError(err, options)) {
+      delete pre.dataset.mermaidRendered;
+      diagram.remove();
+      return 'reload';
+    }
+
     diagram.classList.add('has-error');
     const message = document.createElement('p');
     message.className = 'mermaid-diagram__error';
     message.textContent = `Mermaid 图表渲染失败：${err instanceof Error ? err.message : '无法解析图表'}`;
     diagram.append(message);
+  }
+
+  return 'done';
+}
+
+function reloadOnceForDynamicImportError(err: unknown, options: MermaidRendererOptions): boolean {
+  const importTarget = extractDynamicImportTarget(err);
+
+  if (!importTarget) {
+    return false;
+  }
+
+  const storage = options.storage ?? getSessionStorage();
+  const reloadKey = `${DYNAMIC_IMPORT_RELOAD_KEY_PREFIX}${importTarget}`;
+
+  if (storage?.getItem(reloadKey) === 'true') {
+    return false;
+  }
+
+  try {
+    storage?.setItem(reloadKey, 'true');
+  } catch {
+    // Session storage can be unavailable in restricted extension contexts.
+  }
+
+  const reloadPage = options.reloadPage ?? (() => window.location.reload());
+  reloadPage();
+  return true;
+}
+
+function extractDynamicImportTarget(err: unknown): string | null {
+  const message = err instanceof Error ? err.message : String(err);
+  const match = message.match(/(?:Failed to fetch|error loading) dynamically imported module:\s*(\S+)/i);
+
+  if (match?.[1]) {
+    return match[1];
+  }
+
+  return message.includes('dynamically imported module') ? message : null;
+}
+
+function getSessionStorage(): Storage | null {
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
   }
 }
 

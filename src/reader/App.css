@@ -98,10 +98,14 @@ select {
 
 .reader-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   padding: 20px 24px 24px;
   min-width: 0;
+}
+
+.reader-layout.has-outline-panel {
+  grid-template-columns: minmax(0, 1fr) var(--outline-panel-width, 260px);
 }
 
 .document-reader {
@@ -144,7 +148,8 @@ select {
   background: #ffffff;
 }
 
-.reader-shell.is-resizing-file-drawer .html-preview {
+.reader-shell.is-resizing-file-drawer .html-preview,
+.reader-shell.is-resizing-outline-panel .html-preview {
   pointer-events: none;
 }
 
@@ -297,7 +302,7 @@ select {
 }
 
 .file-tree > ul,
-.outline-panel > ul {
+.outline-panel__scroll > ul {
   padding-left: 0;
 }
 
@@ -480,14 +485,48 @@ select {
   font-weight: 600;
 }
 
+.outline-panel__resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  width: 12px;
+  cursor: col-resize;
+  outline: 0;
+  touch-action: none;
+}
+
+.outline-panel__resize-handle::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: transparent;
+  content: "";
+}
+
+.outline-panel__resize-handle:hover::after,
+.outline-panel__resize-handle:focus-visible::after {
+  background: color-mix(in srgb, var(--reader-link) 70%, var(--reader-border));
+}
+
 .outline-panel {
   position: sticky;
   top: 68px;
   align-self: start;
+  box-sizing: border-box;
+  min-width: 0;
   max-height: calc(100vh - 88px);
+}
+
+.outline-panel__scroll {
+  box-sizing: border-box;
+  max-height: calc(100vh - 88px);
+  padding-left: 18px;
   overflow: auto;
   overscroll-behavior: contain;
-  padding-left: 18px;
   border-left: 1px solid var(--reader-border);
   scrollbar-gutter: stable;
 }
@@ -1258,6 +1297,10 @@ select {
     display: none;
   }
 
+  .outline-panel__resize-handle {
+    display: none;
+  }
+
   .reader-layout {
     display: block;
     padding: 14px;
@@ -1270,10 +1313,14 @@ select {
 
   .outline-panel {
     position: static;
-    max-height: min(50vh, 420px);
-    overflow: auto;
     margin-top: 16px;
+    max-height: none;
+  }
+
+  .outline-panel__scroll {
+    max-height: min(50vh, 420px);
     padding: 16px;
+    overflow: auto;
     border: 1px solid var(--reader-border);
     border-radius: 8px;
     background: var(--reader-surface);

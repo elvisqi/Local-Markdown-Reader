@@ -37,7 +37,18 @@ import {
   scanMarkdownDirectory,
   type DocumentFileSnapshot,
 } from './fileSystemAccess';
-import { createHtmlPreviewDocument, type HtmlPreviewDocument } from './htmlPreview';
+import {
+  createHtmlPreviewDocument,
+  HTML_PREVIEW_ACTIVE_HEADING_MESSAGE_TYPE,
+  HTML_PREVIEW_NAVIGATION_MESSAGE_TYPE,
+  HTML_PREVIEW_READY_MESSAGE_TYPE,
+  HTML_PREVIEW_RENDER_MESSAGE_TYPE,
+  HTML_PREVIEW_SCROLL_MESSAGE_TYPE,
+  type HtmlPreviewDocument,
+  type HtmlPreviewActiveHeadingMessage,
+  type HtmlPreviewNavigationMessage,
+  type HtmlPreviewReadyMessage,
+} from './htmlPreview';
 import {
   classifyMarkdownDocument,
   LARGE_MARKDOWN_BYTES,
@@ -68,14 +79,23 @@ const EMPTY_RENDER: RenderResult = {
 };
 const KEYBOARD_SCROLL_STEP = 160;
 const DEFAULT_FILE_DRAWER_WIDTH = 360;
-const MIN_FILE_DRAWER_WIDTH = 260;
+const MIN_FILE_DRAWER_WIDTH = 100;
 const MAX_FILE_DRAWER_WIDTH = 640;
+const DEFAULT_OUTLINE_PANEL_WIDTH = 260;
+const MIN_OUTLINE_PANEL_WIDTH = 100;
+const MAX_OUTLINE_PANEL_WIDTH = 420;
+const MIN_READER_LAYOUT_WIDTH = 332;
+const FILE_DRAWER_KEYBOARD_RESIZE_STEP = 24;
+const OUTLINE_PANEL_KEYBOARD_RESIZE_STEP = 24;
 const LAYOUT_PREFERENCES_KEY = 'localMarkdownReader.layoutPreferences';
 
 type ReaderLayoutPreferences = {
   fileDrawerOpen: boolean;
   fileDrawerWidth: number;
+  outlineWidth: number;
 };
+
+type SidePanelWidthPriority = 'file-drawer' | 'outline';
 
 type LargeDocumentSession = {
   kind: Exclude<LargeDocumentKind, 'normal'>;
@@ -93,13 +113,25 @@ type DocumentSource =
   | { type: 'ai-project'; projectId: string; handle: FileSystemDirectoryHandle }
   | { type: 'standalone' }
   | null;
+type ReaderHistoryState = {
+  marker: 'local-markdown-reader';
+  path: string;
+  hash?: string;
+  sourceType: 'folder' | 'ai-project';
+  aiProjectId?: string;
+  scrollY: number;
+};
 
 export function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const initialLayoutPreferences = useMemo(loadReaderLayoutPreferences, []);
+  const initialPersistedOutlineWidth = useMemo(loadPersistedOutlinePanelWidth, []);
   const [drawerOpen, setDrawerOpen] = useState(initialLayoutPreferences.fileDrawerOpen);
   const [drawerWidth, setDrawerWidth] = useState(initialLayoutPreferences.fileDrawerWidth);
   const [isResizingFileDrawer, setIsResizingFileDrawer] = useState(false);
+  const [outlineWidth, setOutlineWidth] = useState(initialLayoutPreferences.outlineWidth);
+  const [isResizingOutlinePanel, setIsResizingOutlinePanel] = useState(false);
   const [drawerTab, setDrawerTab] = useState<FileDrawerTab>('folder');
   const [folderDirectoryHandle, setFolderDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null);
   const [folderTree, setFolderTree] = useState<FileTreeNode[]>([]);
@@ -118,6 +150,7 @@ export function App() {
   const [rendered, setRendered] = useState<RenderResult>(EMPTY_RENDER);
   const [htmlPreviewDocument, setHtmlPreviewDocument] = useState<HtmlPreviewDocument | null>(null);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
+  const [pendingHtmlPreviewHash, setPendingHtmlPreviewHash] = useState<string | null>(null);
   const [lastDocument, setLastDocument] = useState<LastDocumentRecord | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -127,6 +160,9 @@ export function App() {
   const openRequestIdRef = useRef(0);
   const renderedContentRef = useRef<HTMLDivElement | null>(null);
   const htmlPreviewRef = useRef<HTMLIFrameElement | null>(null);
+  const htmlPreviewLastRenderRef = useRef<{ key: string; target: Window | null } | null>(null);
+  const htmlPreviewReadyWindowRef = useRef<Window | null>(null);
+  const persistedOutlineWidthRef = useRef(initialPersistedOutlineWidth);
   const [htmlPreviewLoadCount, setHtmlPreviewLoadCount] = useState(0);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
   const htmlPreviewActive = activeDocumentKind === 'html' && !largeDocument && !settings.reading.rawMode;
@@ -143,15 +179,27 @@ export function App() {
   );
 
   useEffect(() => {
-    void loadSettings().then(setSettings);
+    void loadSettings().then((loadedSettings) => {
+      setSettings(loadedSettings);
+      setSettingsLoaded(true);
+    });
   }, []);
 
   useEffect(() => {
+    if (!settingsLoaded) {
+      return;
+    }
+
+    if (settings.reading.showOutline) {
+      persistedOutlineWidthRef.current = outlineWidth;
+    }
+
     saveReaderLayoutPreferences({
       fileDrawerOpen: drawerOpen,
       fileDrawerWidth: drawerWidth,
-    });
-  }, [drawerOpen, drawerWidth]);
+      outlineWidth: settings.reading.showOutline ? outlineWidth : persistedOutlineWidthRef.current,
+    }, settings.reading.showOutline);
+  }, [drawerOpen, drawerWidth, outlineWidth, settings.reading.showOutline, settingsLoaded]);
 
   useEffect(() => {
     void loadAiProjectState().then(setAiProjectState);
@@ -212,32 +260,19 @@ export function App() {
   }, [activeDocumentKind, rendered.html]);
 
   useEffect(() => {
-    if (activeDocumentKind !== 'html') {
-      return undefined;
+    if (activeDocumentKind !== 'html' || !pendingHtmlPreviewHash) {
+      return;
     }
 
-    const frameWindow = htmlPreviewRef.current?.contentWindow;
-    const frameDocument = htmlPreviewRef.current?.contentDocument;
-
-    if (!frameWindow || !frameDocument) {
-      return undefined;
+    const targetWindow = htmlPreviewRef.current?.contentWindow ?? null;
+    if (!targetWindow || (htmlPreviewLoadCount === 0 && htmlPreviewReadyWindowRef.current !== targetWindow)) {
+      return;
     }
 
-    const updateActiveHeading = () => {
-      const headings = getHtmlPreviewHeadingPositions(frameDocument, rendered.outline);
-      const nextActiveId = selectActiveHeadingId(headings, 24);
-      setActiveHeadingId((current) => (current === nextActiveId ? current : nextActiveId));
-    };
-
-    updateActiveHeading();
-    frameWindow.addEventListener('scroll', updateActiveHeading, { passive: true });
-    frameWindow.addEventListener('resize', updateActiveHeading);
-
-    return () => {
-      frameWindow.removeEventListener('scroll', updateActiveHeading);
-      frameWindow.removeEventListener('resize', updateActiveHeading);
-    };
-  }, [activeDocumentKind, htmlPreviewLoadCount, rendered.outline]);
+    navigateHtmlPreview(pendingHtmlPreviewHash);
+    setActiveHeadingId(pendingHtmlPreviewHash);
+    setPendingHtmlPreviewHash(null);
+  }, [activeDocumentKind, htmlPreviewDocument, htmlPreviewLoadCount, pendingHtmlPreviewHash]);
 
   useEffect(() => {
     if (!renderedContentRef.current || settings.reading.rawMode || activeDocumentKind === 'html') {
@@ -246,6 +281,133 @@ export function App() {
 
     return installTableFullscreen(renderedContentRef.current);
   }, [activeDocumentKind, rendered.html, settings.reading.rawMode]);
+
+  useEffect(() => {
+    if (activeDocumentKind !== 'html') {
+      return undefined;
+    }
+
+    const sendHtmlPreview = () => {
+      const targetWindow = htmlPreviewRef.current?.contentWindow ?? null;
+      if (!targetWindow || !htmlPreviewDocument || htmlPreviewReadyWindowRef.current !== targetWindow) {
+        return;
+      }
+
+      const renderKey = createHtmlPreviewRenderKey(htmlPreviewDocument, activePath, rendered.outline);
+      if (
+        htmlPreviewLastRenderRef.current?.key === renderKey &&
+        htmlPreviewLastRenderRef.current.target === targetWindow
+      ) {
+        return;
+      }
+
+      htmlPreviewLastRenderRef.current = { key: renderKey, target: targetWindow };
+      // The sandboxed preview has an opaque origin, so source checks and the bridge token are the trust boundary.
+      targetWindow.postMessage(
+        {
+          type: HTML_PREVIEW_RENDER_MESSAGE_TYPE,
+          html: htmlPreviewDocument.html,
+          headingIds: flattenOutlineIds(rendered.outline),
+          title: activePath,
+        },
+        '*',
+      );
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      if (!htmlPreviewRef.current?.contentWindow || event.source !== htmlPreviewRef.current.contentWindow) {
+        return;
+      }
+
+      const readyMessage = parseHtmlPreviewReadyMessage(event.data);
+      if (readyMessage) {
+        htmlPreviewReadyWindowRef.current = htmlPreviewRef.current.contentWindow;
+        sendHtmlPreview();
+        return;
+      }
+
+      const activeHeadingMessage = parseHtmlPreviewActiveHeadingMessage(event.data);
+      if (activeHeadingMessage) {
+        setActiveHeadingId((current) => (current === activeHeadingMessage.id ? current : activeHeadingMessage.id));
+        return;
+      }
+
+      const message = parseHtmlPreviewNavigationMessage(event.data);
+      if (!message || !activeDocumentSource || activeDocumentSource.type === 'standalone' || !htmlPreviewDocument) {
+        return;
+      }
+
+      const link = htmlPreviewDocument.navigationLinks[message.linkId];
+      if (!link) {
+        return;
+      }
+
+      if (link.path === activePath && link.hash) {
+        navigateActiveHtmlHash(link.hash);
+        return;
+      }
+
+      void openLinkedDocument(link.path, link.hash);
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    return () => window.removeEventListener('message', handleMessage);
+  }, [activeDocumentKind, activeDocumentSource, activeNavigationTree, activePath, htmlPreviewDocument, rendered.outline]);
+
+  useEffect(() => {
+    if (activeDocumentKind !== 'html' || !htmlPreviewDocument || !htmlPreviewRef.current?.contentWindow) {
+      return;
+    }
+
+    const targetWindow = htmlPreviewRef.current.contentWindow;
+    if (htmlPreviewLoadCount === 0 && htmlPreviewReadyWindowRef.current !== targetWindow) {
+      return;
+    }
+
+    htmlPreviewReadyWindowRef.current = targetWindow;
+    const renderKey = createHtmlPreviewRenderKey(htmlPreviewDocument, activePath, rendered.outline);
+    if (
+      htmlPreviewLastRenderRef.current?.key === renderKey &&
+      htmlPreviewLastRenderRef.current.target === targetWindow
+    ) {
+      return;
+    }
+
+    htmlPreviewLastRenderRef.current = { key: renderKey, target: targetWindow };
+    targetWindow.postMessage(
+      {
+        type: HTML_PREVIEW_RENDER_MESSAGE_TYPE,
+        html: htmlPreviewDocument.html,
+        headingIds: flattenOutlineIds(rendered.outline),
+        title: activePath,
+      },
+      '*',
+    );
+  }, [activeDocumentKind, activePath, htmlPreviewDocument, htmlPreviewLoadCount, rendered.outline]);
+
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = parseReaderHistoryState(event.state);
+      if (!state || !activeDocumentSource || activeDocumentSource.type === 'standalone') {
+        return;
+      }
+
+      if (state.sourceType !== activeDocumentSource.type) {
+        return;
+      }
+
+      if (activeDocumentSource.type === 'ai-project' && state.aiProjectId !== activeDocumentSource.projectId) {
+        return;
+      }
+
+      void openHistoryDocument(state);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeDocumentSource, activeNavigationTree]);
 
   useEffect(() => {
     setRawActionStatus(null);
@@ -480,6 +642,7 @@ export function App() {
       diagnostics: index.warnings.map((message) => ({ level: 'warning', message })),
     });
     setHtmlPreviewDocument(null);
+    setPendingHtmlPreviewHash(null);
     setLargeAnchorLine(options.anchorLine ?? 1);
     setLargeDocument({
       kind,
@@ -540,6 +703,7 @@ export function App() {
           sourceText,
           snapshot.path,
           sourceDirectoryHandle ? (path) => readAssetFile(sourceDirectoryHandle, path) : undefined,
+          { sandboxPageUrl: getHtmlPreviewSandboxPageUrl() },
         )
       : null;
 
@@ -556,6 +720,13 @@ export function App() {
     setMarkdown(sourceText);
     setRendered(result);
     setHtmlPreviewDocument(nextHtmlPreviewDocument);
+    const currentHtmlPreviewWindow = htmlPreviewRef.current?.contentWindow ?? null;
+    if (kind !== 'html' || htmlPreviewReadyWindowRef.current !== currentHtmlPreviewWindow) {
+      htmlPreviewReadyWindowRef.current = null;
+    }
+    htmlPreviewLastRenderRef.current = null;
+    setHtmlPreviewLoadCount(0);
+    setPendingHtmlPreviewHash(null);
     setLargeAnchorLine(1);
     setStatus(null);
 
@@ -565,6 +736,45 @@ export function App() {
     }
 
     return true;
+  }
+
+  async function openHistoryDocument(state: ReaderHistoryState) {
+    if (!activeDocumentSource || activeDocumentSource.type === 'standalone') {
+      return;
+    }
+
+    if (!isDocumentPathInTree(activeNavigationTree, state.path)) {
+      return;
+    }
+
+    const requestId = beginOpenRequest();
+    const opened = await openFile(activeDocumentSource.handle, state.path, true, {
+      source: activeDocumentSource,
+      requestId,
+    });
+
+    if (!opened) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
+      if (state.hash) {
+        if (getDocumentFileKind(state.path) === 'html') {
+          setPendingHtmlPreviewHash(state.hash);
+          return;
+        }
+
+        document.getElementById(state.hash)?.scrollIntoView({ block: 'start' });
+        setActiveHeadingId(state.hash);
+        return;
+      }
+
+      window.scrollTo({ top: state.scrollY, left: 0, behavior: 'instant' });
+    });
   }
 
   function closeLargeDocument() {
@@ -606,6 +816,7 @@ export function App() {
     setMarkdown('');
     setRendered(EMPTY_RENDER);
     setHtmlPreviewDocument(null);
+    setPendingHtmlPreviewHash(null);
     setLargeAnchorLine(1);
   }
 
@@ -1013,7 +1224,7 @@ export function App() {
     setActiveAiProjectId(project.id);
     setAiProjectTrees((current) => ({ ...current, [project.id]: nextTree }));
     setDrawerTab('ai-projects');
-    setDrawerOpen(true);
+    openFileDrawer();
     setAiProjectStatus(nextTree.length ? null : '这个项目目录里没有找到 Markdown 或 HTML 文件。');
 
     const projectActivePath = aiProjectActivePaths[project.id] ?? null;
@@ -1117,10 +1328,18 @@ export function App() {
       return;
     }
 
+    if (htmlPreviewDocument) {
+      frame.contentWindow?.postMessage(
+        {
+          type: HTML_PREVIEW_SCROLL_MESSAGE_TYPE,
+          id,
+        },
+        '*',
+      );
+      return;
+    }
+
     if (!frameDocument) {
-      if (htmlPreviewDocument?.url) {
-        frame.src = `${htmlPreviewDocument.url}#${encodeURIComponent(id)}`;
-      }
       return;
     }
 
@@ -1129,6 +1348,54 @@ export function App() {
     const headings = Array.from(frameDocument.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'));
     const target = frameDocument.getElementById(id) ?? (outlineIndex >= 0 ? headings[outlineIndex] : null);
     target?.scrollIntoView({ block: 'start' });
+  }
+
+  function resolveActiveDocumentHistoryHash(): string | null {
+    const currentState = parseReaderHistoryState(window.history.state);
+    if (currentState?.path === activePath) {
+      return currentState.hash ?? null;
+    }
+
+    return null;
+  }
+
+  function replaceActiveDocumentHistoryHash(hash: string) {
+    const currentState = parseReaderHistoryState(window.history.state);
+    const nextState = currentState?.path === activePath
+      ? {
+          ...currentState,
+          hash,
+        }
+      : createReaderHistoryState(activeDocumentSource, activePath, hash, window.scrollY);
+
+    if (!nextState) {
+      return;
+    }
+
+    window.history.replaceState(nextState, '', window.location.href);
+  }
+
+  function pushActiveDocumentHistoryHash(hash: string) {
+    const previousState = createReaderHistoryState(
+      activeDocumentSource,
+      activePath,
+      resolveActiveDocumentHistoryHash(),
+      window.scrollY,
+    );
+    if (previousState) {
+      window.history.replaceState(previousState, '', window.location.href);
+    }
+
+    const nextState = createReaderHistoryState(activeDocumentSource, activePath, hash, window.scrollY);
+    if (nextState) {
+      window.history.pushState(nextState, '', window.location.href);
+    }
+  }
+
+  function navigateActiveHtmlHash(hash: string) {
+    navigateHtmlPreview(hash);
+    setActiveHeadingId(hash);
+    pushActiveDocumentHistoryHash(hash);
   }
 
   function handleReaderClickCapture(event: React.MouseEvent<HTMLElement>) {
@@ -1161,6 +1428,7 @@ export function App() {
       event.preventDefault();
       document.getElementById(resolved.hash)?.scrollIntoView({ block: 'start' });
       setActiveHeadingId(resolved.hash);
+      pushActiveDocumentHistoryHash(resolved.hash);
       return;
     }
 
@@ -1177,15 +1445,42 @@ export function App() {
       return;
     }
 
+    if (!isDocumentPathInTree(activeNavigationTree, path)) {
+      return;
+    }
+
     const requestId = beginOpenRequest();
+    const linkedDocumentKind = getDocumentFileKind(path);
+    const previousHistoryState = createReaderHistoryState(
+      activeDocumentSource,
+      activePath,
+      resolveActiveDocumentHistoryHash(),
+      window.scrollY,
+    );
     const opened = await openFile(activeDocumentSource.handle, path, true, {
       source: activeDocumentSource,
       requestId,
     });
 
+    if (opened) {
+      if (previousHistoryState) {
+        window.history.replaceState(previousHistoryState, '', window.location.href);
+      }
+
+      const nextHistoryState = createReaderHistoryState(activeDocumentSource, path, hash, 0);
+      if (nextHistoryState) {
+        window.history.pushState(nextHistoryState, '', window.location.href);
+      }
+    }
+
     if (hash && opened) {
       window.requestAnimationFrame(() => {
         if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
+
+        if (linkedDocumentKind === 'html') {
+          setPendingHtmlPreviewHash(hash);
           return;
         }
 
@@ -1217,7 +1512,8 @@ export function App() {
     event.preventDefault();
 
     const startX = event.clientX;
-    const startWidth = drawerWidth;
+    const startDrawerWidth = drawerWidth;
+    const startOutlineWidth = outlineWidth;
     const previousCursor = document.body.style.cursor;
     const previousUserSelect = document.body.style.userSelect;
 
@@ -1227,7 +1523,9 @@ export function App() {
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       const delta = moveEvent.clientX - startX;
-      setDrawerWidth(clampFileDrawerWidth(startWidth + delta));
+      const nextWidths = normalizeSidePanelWidths(startDrawerWidth + delta, startOutlineWidth, drawerOpen, settings.reading.showOutline, 'file-drawer');
+      setDrawerWidth(nextWidths.fileDrawerWidth);
+      setOutlineWidth(nextWidths.outlineWidth);
     };
 
     const finishResize = () => {
@@ -1250,13 +1548,81 @@ export function App() {
     }
 
     event.preventDefault();
-    const delta = event.key === 'ArrowRight' ? 24 : -24;
-    setDrawerWidth((current) => clampFileDrawerWidth(current + delta));
+    const delta = event.key === 'ArrowRight' ? FILE_DRAWER_KEYBOARD_RESIZE_STEP : -FILE_DRAWER_KEYBOARD_RESIZE_STEP;
+    const nextWidths = normalizeSidePanelWidths(drawerWidth + delta, outlineWidth, drawerOpen, settings.reading.showOutline, 'file-drawer');
+    setDrawerWidth(nextWidths.fileDrawerWidth);
+    setOutlineWidth(nextWidths.outlineWidth);
   }
 
-  const readerShellStyle = drawerOpen
-    ? ({ '--file-drawer-width': `${drawerWidth}px` } as CSSProperties)
-    : undefined;
+  function toggleFileDrawer() {
+    if (!drawerOpen) {
+      openFileDrawer();
+      return;
+    }
+
+    setDrawerOpen(false);
+  }
+
+  function openFileDrawer() {
+    const nextWidths = normalizeSidePanelWidths(drawerWidth, outlineWidth, true, settings.reading.showOutline, 'file-drawer');
+    setDrawerWidth(nextWidths.fileDrawerWidth);
+    setOutlineWidth(nextWidths.outlineWidth);
+
+    if (!drawerOpen) {
+      setDrawerOpen(true);
+    }
+  }
+
+  function startOutlinePanelResize(event: ReactPointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+
+    const startX = event.clientX;
+    const startDrawerWidth = drawerWidth;
+    const startOutlineWidth = outlineWidth;
+    const previousCursor = document.body.style.cursor;
+    const previousUserSelect = document.body.style.userSelect;
+
+    setIsResizingOutlinePanel(true);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const delta = startX - moveEvent.clientX;
+      const nextWidths = normalizeSidePanelWidths(startDrawerWidth, startOutlineWidth + delta, drawerOpen, settings.reading.showOutline, 'outline');
+      setDrawerWidth(nextWidths.fileDrawerWidth);
+      setOutlineWidth(nextWidths.outlineWidth);
+    };
+
+    const finishResize = () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', finishResize);
+      window.removeEventListener('pointercancel', finishResize);
+      setIsResizingOutlinePanel(false);
+      document.body.style.cursor = previousCursor;
+      document.body.style.userSelect = previousUserSelect;
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', finishResize);
+    window.addEventListener('pointercancel', finishResize);
+  }
+
+  function handleOutlinePanelResizeKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+      return;
+    }
+
+    event.preventDefault();
+    const delta = event.key === 'ArrowLeft' ? OUTLINE_PANEL_KEYBOARD_RESIZE_STEP : -OUTLINE_PANEL_KEYBOARD_RESIZE_STEP;
+    const nextWidths = normalizeSidePanelWidths(drawerWidth, outlineWidth + delta, drawerOpen, settings.reading.showOutline, 'outline');
+    setDrawerWidth(nextWidths.fileDrawerWidth);
+    setOutlineWidth(nextWidths.outlineWidth);
+  }
+
+  const readerShellStyle = {
+    '--file-drawer-width': `${drawerWidth}px`,
+    '--outline-panel-width': `${outlineWidth}px`,
+  } as CSSProperties;
 
   return (
     <div
@@ -1265,7 +1631,7 @@ export function App() {
       <ReaderToolbar
         title={title}
         rawMode={settings.reading.rawMode}
-        onToggleDrawer={() => setDrawerOpen((open) => !open)}
+        onToggleDrawer={toggleFileDrawer}
         onReload={() => void reloadActiveFile()}
         previousFile={fileNavigation.previous}
         nextFile={fileNavigation.next}
@@ -1280,7 +1646,7 @@ export function App() {
         }
       />
       <div
-        className={`reader-shell${drawerOpen ? ' has-file-drawer' : ''}${isResizingFileDrawer ? ' is-resizing-file-drawer' : ''}`}
+        className={`reader-shell${drawerOpen ? ' has-file-drawer' : ''}${isResizingFileDrawer ? ' is-resizing-file-drawer' : ''}${isResizingOutlinePanel ? ' is-resizing-outline-panel' : ''}`}
         style={readerShellStyle}
       >
         <FileDrawer
@@ -1319,7 +1685,10 @@ export function App() {
           onResizeStart={startFileDrawerResize}
           onResizeKeyDown={handleFileDrawerResizeKeyDown}
         />
-        <main className="reader-layout" onClickCapture={handleReaderClickCapture}>
+        <main
+          className={`reader-layout${settings.reading.showOutline ? ' has-outline-panel' : ''}`}
+          onClickCapture={handleReaderClickCapture}
+        >
           <article className={htmlPreviewActive ? 'document-reader document-reader--html' : 'document-reader'}>
           {status && <p className="status-note">{status}</p>}
           {error && <p className="error-note">{error}</p>}
@@ -1353,6 +1722,7 @@ export function App() {
               </section>
             ) : activeDocumentKind === 'html' ? (
               <HtmlDocumentPreview
+                key={activePath ?? 'html-preview'}
                 ref={htmlPreviewRef}
                 sourceUrl={htmlPreviewDocument?.url ?? null}
                 title={activePath}
@@ -1395,6 +1765,11 @@ export function App() {
             <OutlinePanel
               outline={rendered.outline}
               activeId={activeHeadingId}
+              resizeValue={outlineWidth}
+              resizeMin={MIN_OUTLINE_PANEL_WIDTH}
+              resizeMax={MAX_OUTLINE_PANEL_WIDTH}
+              onResizeStart={startOutlinePanelResize}
+              onResizeKeyDown={handleOutlinePanelResizeKeyDown}
               onNavigate={(id) => {
                 if (largeDocument) {
                   const line = findLargeOutlineLine(largeDocument.index.outline, id);
@@ -1408,12 +1783,15 @@ export function App() {
                 if (activeDocumentKind === 'html') {
                   navigateHtmlPreview(id);
                   setActiveHeadingId(id);
+                  replaceActiveDocumentHistoryHash(id);
                   return;
                 }
 
                 document.getElementById(id)?.scrollIntoView({ block: 'start' });
+                setActiveHeadingId(id);
+                replaceActiveDocumentHistoryHash(id);
               }}
-            />
+    />
           )}
         </main>
       </div>
@@ -1446,19 +1824,12 @@ function HtmlDocumentPreview({
   );
 }
 
-function getHtmlPreviewHeadingPositions(frameDocument: Document, outline: OutlineItem[]) {
-  const outlineIds = flattenOutlineIds(outline);
-
-  return Array.from(frameDocument.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'))
-    .map((heading, index) => ({
-      id: heading.id || outlineIds[index],
-      top: heading.getBoundingClientRect().top,
-    }))
-    .filter((heading): heading is { id: string; top: number } => Boolean(heading.id));
-}
-
 function flattenOutlineIds(outline: OutlineItem[]): string[] {
   return outline.flatMap((item) => [item.id, ...flattenOutlineIds(item.children)]);
+}
+
+function isDocumentPathInTree(tree: FileTreeNode[], path: string): boolean {
+  return flattenDocumentFiles(tree).some((file) => file.path === path);
 }
 
 function selectSourceSaveName(path: string | null, kind: ActiveDocumentKind): string {
@@ -1487,10 +1858,126 @@ function downloadSource(source: string, filename: string, kind: ActiveDocumentKi
   }
 }
 
+function parseHtmlPreviewNavigationMessage(data: unknown): HtmlPreviewNavigationMessage | null {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  const message = data as Partial<HtmlPreviewNavigationMessage>;
+  if (
+    message.type !== HTML_PREVIEW_NAVIGATION_MESSAGE_TYPE ||
+    typeof message.linkId !== 'string' ||
+    !message.linkId
+  ) {
+    return null;
+  }
+
+  return {
+    type: HTML_PREVIEW_NAVIGATION_MESSAGE_TYPE,
+    linkId: message.linkId,
+  };
+}
+
+function parseHtmlPreviewReadyMessage(data: unknown): HtmlPreviewReadyMessage | null {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  const message = data as Partial<HtmlPreviewReadyMessage>;
+  if (
+    message.type !== HTML_PREVIEW_READY_MESSAGE_TYPE
+  ) {
+    return null;
+  }
+
+  return {
+    type: HTML_PREVIEW_READY_MESSAGE_TYPE,
+  };
+}
+
+function parseHtmlPreviewActiveHeadingMessage(data: unknown): HtmlPreviewActiveHeadingMessage | null {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  const message = data as Partial<HtmlPreviewActiveHeadingMessage>;
+  if (
+    message.type !== HTML_PREVIEW_ACTIVE_HEADING_MESSAGE_TYPE ||
+    (message.id !== null && typeof message.id !== 'string')
+  ) {
+    return null;
+  }
+
+  return {
+    type: HTML_PREVIEW_ACTIVE_HEADING_MESSAGE_TYPE,
+    id: message.id ?? null,
+  };
+}
+
+function createHtmlPreviewRenderKey(
+  preview: HtmlPreviewDocument,
+  activePath: string | null,
+  outline: OutlineItem[],
+): string {
+  return JSON.stringify([activePath, preview.url, preview.html, flattenOutlineIds(outline)]);
+}
+
+function createReaderHistoryState(
+  source: DocumentSource,
+  path: string | null,
+  hash: string | null,
+  scrollY: number,
+): ReaderHistoryState | null {
+  if (!source || source.type === 'standalone' || !path) {
+    return null;
+  }
+
+  return {
+    marker: 'local-markdown-reader',
+    path,
+    hash: hash ?? undefined,
+    sourceType: source.type,
+    aiProjectId: source.type === 'ai-project' ? source.projectId : undefined,
+    scrollY,
+  };
+}
+
+function parseReaderHistoryState(value: unknown): ReaderHistoryState | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const state = value as Partial<ReaderHistoryState>;
+  if (
+    state.marker !== 'local-markdown-reader' ||
+    typeof state.path !== 'string' ||
+    !state.path ||
+    (state.sourceType !== 'folder' && state.sourceType !== 'ai-project')
+  ) {
+    return null;
+  }
+
+  return {
+    marker: 'local-markdown-reader',
+    path: state.path,
+    hash: typeof state.hash === 'string' && state.hash ? state.hash : undefined,
+    sourceType: state.sourceType,
+    aiProjectId: typeof state.aiProjectId === 'string' ? state.aiProjectId : undefined,
+    scrollY: typeof state.scrollY === 'number' ? state.scrollY : 0,
+  };
+}
+
+function getHtmlPreviewSandboxPageUrl(): string {
+  return typeof chrome !== 'undefined' && chrome.runtime?.getURL
+    ? chrome.runtime.getURL('html-preview-sandbox.html')
+    : '/html-preview-sandbox.html';
+}
+
 function loadReaderLayoutPreferences(): ReaderLayoutPreferences {
   const defaults = {
     fileDrawerOpen: false,
     fileDrawerWidth: DEFAULT_FILE_DRAWER_WIDTH,
+    outlineWidth: DEFAULT_OUTLINE_PANEL_WIDTH,
   };
 
   if (typeof window === 'undefined') {
@@ -1505,28 +1992,66 @@ function loadReaderLayoutPreferences(): ReaderLayoutPreferences {
 
     const parsed = JSON.parse(stored) as Partial<ReaderLayoutPreferences> | null;
 
+    const fileDrawerWidth = clampFileDrawerWidth(
+      typeof parsed?.fileDrawerWidth === 'number' ? parsed.fileDrawerWidth : defaults.fileDrawerWidth,
+    );
+    const outlineWidth = clampOutlinePanelWidth(
+      typeof parsed?.outlineWidth === 'number' ? parsed.outlineWidth : defaults.outlineWidth,
+    );
+    const fileDrawerOpen = typeof parsed?.fileDrawerOpen === 'boolean' ? parsed.fileDrawerOpen : defaults.fileDrawerOpen;
+    const normalizedWidths = normalizeSidePanelWidths(fileDrawerWidth, outlineWidth, fileDrawerOpen, true, 'file-drawer');
+
     return {
-      fileDrawerOpen: typeof parsed?.fileDrawerOpen === 'boolean' ? parsed.fileDrawerOpen : defaults.fileDrawerOpen,
-      fileDrawerWidth: clampFileDrawerWidth(
-        typeof parsed?.fileDrawerWidth === 'number' ? parsed.fileDrawerWidth : defaults.fileDrawerWidth,
-      ),
+      fileDrawerOpen,
+      fileDrawerWidth: normalizedWidths.fileDrawerWidth,
+      outlineWidth: normalizedWidths.outlineWidth,
     };
   } catch {
     return defaults;
   }
 }
 
-function saveReaderLayoutPreferences(preferences: ReaderLayoutPreferences): void {
+function loadPersistedOutlinePanelWidth(): number {
+  if (typeof window === 'undefined') {
+    return DEFAULT_OUTLINE_PANEL_WIDTH;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(LAYOUT_PREFERENCES_KEY);
+    if (!stored) {
+      return DEFAULT_OUTLINE_PANEL_WIDTH;
+    }
+
+    const parsed = JSON.parse(stored) as Partial<ReaderLayoutPreferences> | null;
+    return clampOutlinePanelWidth(
+      typeof parsed?.outlineWidth === 'number' ? parsed.outlineWidth : DEFAULT_OUTLINE_PANEL_WIDTH,
+    );
+  } catch {
+    return DEFAULT_OUTLINE_PANEL_WIDTH;
+  }
+}
+
+function saveReaderLayoutPreferences(preferences: ReaderLayoutPreferences, outlineVisible = true): void {
   if (typeof window === 'undefined') {
     return;
   }
 
   try {
+    const normalizedWidths = normalizeSidePanelWidths(
+      preferences.fileDrawerWidth,
+      preferences.outlineWidth,
+      preferences.fileDrawerOpen,
+      outlineVisible,
+      'file-drawer',
+    );
+    const normalizedOutlineWidth = outlineVisible ? normalizedWidths.outlineWidth : clampOutlinePanelWidth(preferences.outlineWidth);
+
     window.localStorage.setItem(
       LAYOUT_PREFERENCES_KEY,
       JSON.stringify({
         fileDrawerOpen: preferences.fileDrawerOpen,
-        fileDrawerWidth: clampFileDrawerWidth(preferences.fileDrawerWidth),
+        fileDrawerWidth: normalizedWidths.fileDrawerWidth,
+        outlineWidth: normalizedOutlineWidth,
       }),
     );
   } catch {
@@ -1544,6 +2069,71 @@ function selectMaxFileDrawerWidth(): number {
   }
 
   return Math.max(MIN_FILE_DRAWER_WIDTH, Math.min(MAX_FILE_DRAWER_WIDTH, window.innerWidth - 420));
+}
+
+function clampOutlinePanelWidth(width: number): number {
+  return Math.min(selectMaxOutlinePanelWidth(), Math.max(MIN_OUTLINE_PANEL_WIDTH, width));
+}
+
+function selectMaxOutlinePanelWidth(): number {
+  if (typeof window === 'undefined') {
+    return MAX_OUTLINE_PANEL_WIDTH;
+  }
+
+  return Math.max(MIN_OUTLINE_PANEL_WIDTH, Math.min(MAX_OUTLINE_PANEL_WIDTH, window.innerWidth - 520));
+}
+
+function normalizeSidePanelWidths(
+  fileDrawerWidth: number,
+  outlineWidth: number,
+  fileDrawerOpen: boolean,
+  outlineVisible: boolean,
+  priority: SidePanelWidthPriority,
+): Pick<ReaderLayoutPreferences, 'fileDrawerWidth' | 'outlineWidth'> {
+  let nextFileDrawerWidth = clampFileDrawerWidth(fileDrawerWidth);
+  let nextOutlineWidth = clampOutlinePanelWidth(outlineWidth);
+
+  if (!fileDrawerOpen || typeof window === 'undefined') {
+    return {
+      fileDrawerWidth: nextFileDrawerWidth,
+      outlineWidth: nextOutlineWidth,
+    };
+  }
+
+  const maxCombinedWidth = Math.max(
+    MIN_FILE_DRAWER_WIDTH + (outlineVisible ? MIN_OUTLINE_PANEL_WIDTH : 0),
+    window.innerWidth - MIN_READER_LAYOUT_WIDTH,
+  );
+  let overflow = nextFileDrawerWidth + (outlineVisible ? nextOutlineWidth : 0) - maxCombinedWidth;
+
+  const reduceOutlineWidth = () => {
+    const outlineReduction = Math.min(overflow, nextOutlineWidth - MIN_OUTLINE_PANEL_WIDTH);
+    nextOutlineWidth -= outlineReduction;
+    overflow -= outlineReduction;
+  };
+
+  const reduceFileDrawerWidth = () => {
+    const fileDrawerReduction = Math.min(overflow, nextFileDrawerWidth - MIN_FILE_DRAWER_WIDTH);
+    nextFileDrawerWidth -= fileDrawerReduction;
+    overflow -= fileDrawerReduction;
+  };
+
+  if (overflow > 0 && priority === 'file-drawer') {
+    reduceOutlineWidth();
+  }
+
+  if (overflow > 0) {
+    reduceFileDrawerWidth();
+  }
+
+  if (overflow > 0) {
+    reduceOutlineWidth();
+  }
+
+  return {
+    fileDrawerWidth: nextFileDrawerWidth,
+    outlineWidth: nextOutlineWidth,
+  };
 }
 
 function getSnapshotDocumentKind(snapshot: DocumentFileSnapshot): ActiveDocumentKind {

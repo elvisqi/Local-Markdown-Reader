@@ -33,7 +33,7 @@ export function resolveMarkdownHref(href: string, currentPath: string): Resolved
   const currentDir = currentPath.split('/').slice(0, -1);
   const normalized = resolvePath([...currentDir, decodePath(rawPath)]);
 
-  if (!isReadableDocumentFile(normalized)) {
+  if (!normalized || !isReadableDocumentFile(normalized)) {
     return { kind: 'external', href };
   }
 
@@ -48,11 +48,15 @@ function isAbsoluteHref(href: string): boolean {
   return /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href) || /^(?:mailto|tel):/i.test(href);
 }
 
-function resolvePath(parts: string[]): string {
+function resolvePath(parts: string[]): string | null {
   const stack: string[] = [];
 
   for (const part of normalizePath(parts).split('/')) {
     if (part === '..') {
+      if (!stack.length) {
+        return null;
+      }
+
       stack.pop();
     } else if (part !== '.') {
       stack.push(part);

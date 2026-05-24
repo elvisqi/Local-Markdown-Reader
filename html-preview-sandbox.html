@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTML Preview</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        min-height: 100%;
+      }
+
+      body {
+        background: #ffffff;
+      }
+
+      #preview {
+        display: block;
+        width: 100%;
+        min-height: 100vh;
+        border: 0;
+        background: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe id="preview" title="HTML content"></iframe>
+    <script>
+      (() => {
+        const HTML_PREVIEW_NAVIGATION_MESSAGE_TYPE = 'local-markdown-reader:navigate-html-link';
+        const HTML_PREVIEW_READY_MESSAGE_TYPE = 'local-markdown-reader:html-preview-ready';
+        const HTML_PREVIEW_RENDER_MESSAGE_TYPE = 'local-markdown-reader:render-html-preview';
+        const HTML_PREVIEW_SCROLL_MESSAGE_TYPE = 'local-markdown-reader:scroll-html-preview';
+        const HTML_PREVIEW_ACTIVE_HEADING_MESSAGE_TYPE = 'local-markdown-reader:active-html-heading';
+        const HTML_PREVIEW_RESIZE_MESSAGE_TYPE = 'local-markdown-reader:resize-html-preview';
+        const HTML_PREVIEW_SCROLL_TARGET_MESSAGE_TYPE = 'local-markdown-reader:scroll-html-preview-target';
+        const HTML_PREVIEW_VIEWPORT_MESSAGE_TYPE = 'local-markdown-reader:update-html-preview-viewport';
+
+        const previewFrame = document.getElementById('preview');
+        const trustedParent = window.parent;
+        let rendered = false;
+        let pendingScrollId = null;
+        let currentHeadingIds = [];
+        let previewToken = '';
+
+        if (!(previewFrame instanceof HTMLIFrameElement)) {
+          return;
+        }
+
+        const isParentMessage = (event) =>
+          event.source === trustedParent &&
+          event.data &&
+          typeof event.data === 'object';
+
+        const renderHtml = (html, headingIds) => {
+          currentHeadingIds = Array.isArray(headingIds) ? headingIds.filter((id) => typeof id === 'string' && id) : [];
+          previewToken = createBridgeToken();
+          rendered = true;
+          previewFrame.setAttribute('sandbox', 'allow-scripts allow-forms allow-popups allow-modals');
+          previewFrame.srcdoc = createPreviewSrcdoc(html, currentHeadingIds, previewToken);
+
+          if (pendingScrollId) {
+            window.setTimeout(() => scrollToHeading(pendingScrollId), 0);
+          }
+
+          scheduleViewportUpdate();
+        };
+
+        const scrollToHeading = (id) => {
+          const targetWindow = previewFrame.contentWindow;
+          if (!targetWindow) {
+            return;
+          }
+
+          targetWindow.postMessage(
+            {
+              type: HTML_PREVIEW_SCROLL_MESSAGE_TYPE,
+              id,
+            },
+            '*',
+          );
+        };
+
+        const postViewportUpdate = () => {
+          const targetWindow = previewFrame.contentWindow;
+          if (!targetWindow || !rendered) {
+            return;
+          }
+
+          targetWindow.postMessage(
+            {
+              type: HTML_PREVIEW_VIEWPORT_MESSAGE_TYPE,
+              previewTop: previewFrame.getBoundingClientRect().top,
+            },
+            '*',
+          );
+        };
+
+        const scheduleViewportUpdate = () => {
+          window.setTimeout(postViewportUpdate, 0);
+          window.setTimeout(postViewportUpdate, 200);
+        };
+
+        const handlePreviewMessage = (data) => {
+          if (!previewToken || data.token !== previewToken) {
+            return;
+          }
+
+          if (data.type === HTML_PREVIEW_NAVIGATION_MESSAGE_TYPE && typeof data.linkId === 'string') {
+            trustedParent.postMessage(
+              {
+                type: HTML_PREVIEW_NAVIGATION_MESSAGE_TYPE,
+                linkId: data.linkId,
+              },
+              '*',
+            );
+            return;
+          }
+
+          if (data.type === HTML_PREVIEW_ACTIVE_HEADING_MESSAGE_TYPE && (data.id === null || typeof data.id === 'string')) {
+            trustedParent.postMessage(
+              {
+                type: HTML_PREVIEW_ACTIVE_HEADING_MESSAGE_TYPE,
+                id: data.id,
+              },
+              '*',
+            );
+            return;
+          }
+
+          if (data.type === HTML_PREVIEW_RESIZE_MESSAGE_TYPE && Number.isFinite(data.height)) {
+            previewFrame.style.height = `${Math.max(data.height, window.innerHeight)}px`;
+            postViewportUpdate();
+            return;
+          }
+
+          if (data.type === HTML_PREVIEW_SCROLL_TARGET_MESSAGE_TYPE && Number.isFinite(data.top)) {
+            window.scrollTo({
+              top: Math.max(0, window.scrollY + previewFrame.getBoundingClientRect().top + data.top),
+            });
+          }
+        };
+
+        window.addEventListener('message', (event) => {
+          if (event.source === previewFrame.contentWindow && event.data && typeof event.data === 'object') {
+            handlePreviewMessage(event.data);
+            return;
+          }
+
+          if (!isParentMessage(event)) {
+            return;
+          }
+
+          const data = event.data;
+
+          if (data.type === HTML_PREVIEW_RENDER_MESSAGE_TYPE && typeof data.html === 'string') {
+            renderHtml(data.html, data.headingIds);
+            return;
+          }
+
+          if (data.type === HTML_PREVIEW_SCROLL_MESSAGE_TYPE && typeof data.id === 'string') {
+            pendingScrollId = data.id;
+            if (rendered) {
+              scrollToHeading(data.id);
+            }
+          }
+        });
+
+        trustedParent.postMessage(
+          {
+            type: HTML_PREVIEW_READY_MESSAGE_TYPE,
+          },
+          '*',
+        );
+
+        previewFrame.addEventListener('load', postViewportUpdate);
+        window.addEventListener('scroll', postViewportUpdate, { passive: true });
+        window.addEventListener('resize', () => {
+          postViewportUpdate();
+        });
+
+        function createBridgeToken() {
+          const bytes = new Uint8Array(16);
+          crypto.getRandomValues(bytes);
+          return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+        }
+
+        function createPreviewSrcdoc(html, headingIds, token) {
+          const previewDocument = new DOMParser().parseFromString(html, 'text/html');
+          removeDocumentCspMetaTags(previewDocument);
+          const script = previewDocument.createElement('script');
+          script.textContent = createPreviewBridgeScript(token, headingIds);
+          previewDocument.head.prepend(script);
+          const doctype = /^<!doctype html>/i.test(html.trimStart()) ? '<!doctype html>\n' : '';
+          return `${doctype}${previewDocument.documentElement.outerHTML}`;
+        }
+
+        function removeDocumentCspMetaTags(document) {
+          const cspMetaElements = Array.from(document.querySelectorAll('meta[http-equiv]')).filter(
+            (element) => element.getAttribute('http-equiv')?.trim().toLowerCase() === 'content-security-policy',
+          );
+          for (const element of cspMetaElements) {
+            element.remove();
+          }
+        }
+
+        function createPreviewBridgeScript(token, headingIds) {
+          const config = JSON.stringify({ token, headingIds }).replace(/</g, '\\u003c');
+          return `(() => {
+	            const config = ${config};
+	            const currentScript = document.currentScript;
+	            currentScript?.remove();
+	            const NAVIGATION_TYPE = '${HTML_PREVIEW_NAVIGATION_MESSAGE_TYPE}';
+	            const SCROLL_TYPE = '${HTML_PREVIEW_SCROLL_MESSAGE_TYPE}';
+	            const ACTIVE_TYPE = '${HTML_PREVIEW_ACTIVE_HEADING_MESSAGE_TYPE}';
+	            const RESIZE_TYPE = '${HTML_PREVIEW_RESIZE_MESSAGE_TYPE}';
+	            const SCROLL_TARGET_TYPE = '${HTML_PREVIEW_SCROLL_TARGET_MESSAGE_TYPE}';
+	            const VIEWPORT_TYPE = '${HTML_PREVIEW_VIEWPORT_MESSAGE_TYPE}';
+	            const trustedParent = window.parent;
+	            const postToParent = trustedParent.postMessage.bind(trustedParent);
+	            let previewTop = 0;
+
+	            const getHeadings = () => Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+	              .map((heading, index) => ({
+	                element: heading,
+	                id: heading.id || config.headingIds[index],
+	                top: previewTop + heading.getBoundingClientRect().top,
+	              }))
+	              .filter((heading) => heading.id);
+
+	            const findHeading = (id) => {
+	              const directTarget = document.getElementById(id);
+	              if (directTarget) {
+	                return directTarget;
+	              }
+
+	              const outlineIndex = config.headingIds.indexOf(id);
+	              const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+	              return outlineIndex >= 0 ? headings[outlineIndex] || null : null;
+	            };
+
+	            const postResize = () => {
+	              const documentElement = document.documentElement;
+	              const body = document.body;
+	              const height = Math.max(
+	                documentElement?.scrollHeight || 0,
+	                documentElement?.offsetHeight || 0,
+	                body?.scrollHeight || 0,
+	                body?.offsetHeight || 0,
+	                window.innerHeight,
+	              );
+	              postToParent({ type: RESIZE_TYPE, height, token: config.token }, '*');
+	            };
+
+	            const postActiveHeading = () => {
+	              const headings = getHeadings();
+	              let activeId = headings[0]?.id || null;
+	              for (const heading of headings) {
+	                if (heading.top <= 24) {
+	                  activeId = heading.id;
+	                }
+	              }
+	              postToParent({ type: ACTIVE_TYPE, id: activeId, token: config.token }, '*');
+	            };
+
+	            const postScrollTarget = (id) => {
+	              const target = findHeading(id);
+	              if (!target) {
+	                return;
+	              }
+	              postToParent({
+	                type: SCROLL_TARGET_TYPE,
+	                top: target.getBoundingClientRect().top,
+	                token: config.token,
+	              }, '*');
+	            };
+
+	            const handleClick = (event) => {
+	              if (
+	                !event.isTrusted ||
+	                event.defaultPrevented ||
+	                event.button !== 0 ||
+	                event.metaKey ||
+	                event.ctrlKey ||
+	                event.shiftKey ||
+	                event.altKey
+	              ) {
+	                return;
+	              }
+
+	              const target = event.target;
+	              const anchor = target && typeof target.closest === 'function'
+	                ? target.closest('a[data-reader-link-id]')
+	                : null;
+	              if (!anchor) {
+	                return;
+	              }
+
+              event.preventDefault();
+              // The srcdoc frame has an opaque origin; parent source validation plus this token guard the bridge.
+              postToParent({
+                type: NAVIGATION_TYPE,
+                linkId: anchor.dataset.readerLinkId || '',
+	                token: config.token,
+	              }, '*');
+	            };
+
+	            window.addEventListener('message', (event) => {
+	              if (event.source !== trustedParent || !event.data || typeof event.data !== 'object') {
+	                return;
+	              }
+
+	              const data = event.data;
+	              if (data.type === SCROLL_TYPE && typeof data.id === 'string') {
+	                postScrollTarget(data.id);
+	                return;
+	              }
+
+	              if (data.type === VIEWPORT_TYPE && Number.isFinite(data.previewTop)) {
+	                previewTop = data.previewTop;
+	                postActiveHeading();
+	              }
+	            });
+
+	            document.addEventListener('click', handleClick, true);
+	            window.addEventListener('resize', () => {
+	              postResize();
+	              postActiveHeading();
+	            });
+	            window.addEventListener('load', () => {
+	              postResize();
+	              postActiveHeading();
+	            });
+	            window.setTimeout(postResize, 0);
+	            window.setTimeout(postResize, 200);
+	            window.setTimeout(postActiveHeading, 0);
+	            window.setTimeout(postActiveHeading, 200);
+          })();`;
+        }
+      })();
+    </script>
+  </body>
+</html>
