@@ -1,7 +1,7 @@
 export type ThemePreference = 'light' | 'dark' | 'system';
 export type ReadingWidth = 'narrow' | 'comfortable' | 'wide' | 'full';
 export type ReadingStyle = 'clean' | 'github' | 'paper' | 'classic';
-export type DocumentFileKind = 'markdown' | 'html';
+export type DocumentFileKind = 'markdown' | 'html' | 'json';
 
 export type ReaderSettings = {
   reading: {

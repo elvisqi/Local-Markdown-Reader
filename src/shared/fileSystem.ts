@@ -2,6 +2,7 @@ import type { DocumentFileEntry, DocumentFileKind, FileTreeNode, MarkdownFileEnt
 
 const MARKDOWN_EXTENSIONS = new Set(['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext']);
 const HTML_EXTENSIONS = new Set(['.html', '.htm']);
+const JSON_EXTENSIONS = new Set(['.json']);
 const IGNORED_DIRECTORIES = new Set(['.git', 'node_modules', 'dist', 'build', 'coverage', '.cache']);
 
 export function isMarkdownFile(name: string): boolean {
@@ -12,8 +13,12 @@ export function isHtmlFile(name: string): boolean {
   return hasExtension(name, HTML_EXTENSIONS);
 }
 
+export function isJsonFile(name: string): boolean {
+  return hasExtension(name, JSON_EXTENSIONS);
+}
+
 export function isReadableDocumentFile(name: string): boolean {
-  return isMarkdownFile(name) || isHtmlFile(name);
+  return isMarkdownFile(name) || isHtmlFile(name) || isJsonFile(name);
 }
 
 export function getDocumentFileKind(name: string): DocumentFileKind | null {
@@ -23,6 +28,10 @@ export function getDocumentFileKind(name: string): DocumentFileKind | null {
 
   if (isHtmlFile(name)) {
     return 'html';
+  }
+
+  if (isJsonFile(name)) {
+    return 'json';
   }
 
   return null;
@@ -85,6 +94,7 @@ export function selectDefaultDocument(tree: FileTreeNode[]): string | null {
     files.find((file) => file.name.toLowerCase() === 'index.md')?.path ??
     files.find((file) => file.name.toLowerCase() === 'index.html')?.path ??
     files.find((file) => file.name.toLowerCase() === 'index.htm')?.path ??
+    files.find((file) => file.name.toLowerCase() === 'index.json')?.path ??
     files[0]?.path ??
     null
   );

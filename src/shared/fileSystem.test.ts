@@ -35,6 +35,12 @@ describe('file system helpers', () => {
     expect(getDocumentFileKind('image.svg')).toBeNull();
   });
 
+  it('accepts JSON as a readable document type', () => {
+    expect(isReadableDocumentFile('data.json')).toBe(true);
+    expect(getDocumentFileKind('data.json')).toBe('json');
+    expect(getDocumentFileKind('DATA.JSON')).toBe('json');
+  });
+
   it('ignores hidden and generated directories', () => {
     expect(shouldIgnoreDirectory('.git')).toBe(true);
     expect(shouldIgnoreDirectory('.notes')).toBe(true);
@@ -87,11 +93,16 @@ describe('file system helpers', () => {
       { type: 'file', name: 'guide.html', path: 'guide.html' },
       { type: 'file', name: 'index.html', path: 'index.html' },
     ];
+    const treeWithIndexJson: FileTreeNode[] = [
+      { type: 'file', name: 'config.json', path: 'config.json' },
+      { type: 'file', name: 'index.json', path: 'index.json' },
+    ];
 
     expect(selectDefaultDocument(treeWithReadme)).toBe('README.md');
     expect(selectDefaultDocument(treeWithReadmeHtml)).toBe('README.html');
     expect(selectDefaultDocument(treeWithIndex)).toBe('index.md');
     expect(selectDefaultDocument(treeWithIndexHtml)).toBe('index.html');
+    expect(selectDefaultDocument(treeWithIndexJson)).toBe('index.json');
     expect(selectDefaultDocument(treeNested)).toBe('docs/api.html');
   });
 
@@ -124,6 +135,7 @@ describe('file system helpers', () => {
         path: 'docs',
         children: [
           { type: 'file', name: 'api.html', path: 'docs/api.html' },
+          { type: 'file', name: 'data.json', path: 'docs/data.json' },
           { type: 'file', name: 'image.svg', path: 'docs/image.svg' },
         ],
       },
@@ -132,6 +144,7 @@ describe('file system helpers', () => {
     expect(flattenDocumentFiles(tree)).toEqual([
       { name: 'README.md', path: 'README.md' },
       { name: 'api.html', path: 'docs/api.html' },
+      { name: 'data.json', path: 'docs/data.json' },
     ]);
   });
 });

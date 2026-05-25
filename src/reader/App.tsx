@@ -66,6 +66,7 @@ import {
   selectRememberedDocumentPath,
   type LastDocumentRecord,
 } from './recentDocument';
+import { JsonDocumentReader } from './JsonDocumentReader';
 import { RenderedMarkdownContent } from './RenderedMarkdownContent';
 import { installTableFullscreen } from './tableFullscreen';
 import './App.css';
@@ -106,7 +107,7 @@ type LargeDocumentSession = {
   rememberRecord?: LastDocumentRecord;
 };
 
-type ActiveDocumentKind = 'markdown' | 'html';
+type ActiveDocumentKind = 'markdown' | 'html' | 'json';
 type FileDrawerTab = 'folder' | 'ai-projects';
 type DocumentSource =
   | { type: 'folder'; handle: FileSystemDirectoryHandle }
@@ -146,7 +147,7 @@ export function App() {
   const [aiProjectStatus, setAiProjectStatus] = useState<string | null>(null);
   const [activeDocumentSource, setActiveDocumentSource] = useState<DocumentSource>(null);
   const [activeDocumentKind, setActiveDocumentKind] = useState<ActiveDocumentKind>('markdown');
-  const [markdown, setMarkdown] = useState('');
+  const [documentSourceText, setDocumentSourceText] = useState('');
   const [rendered, setRendered] = useState<RenderResult>(EMPTY_RENDER);
   const [htmlPreviewDocument, setHtmlPreviewDocument] = useState<HtmlPreviewDocument | null>(null);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
@@ -166,6 +167,7 @@ export function App() {
   const [htmlPreviewLoadCount, setHtmlPreviewLoadCount] = useState(0);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
   const htmlPreviewActive = activeDocumentKind === 'html' && !largeDocument && !settings.reading.rawMode;
+  const outlineVisible = settings.reading.showOutline && activeDocumentKind === 'markdown';
   const activeNavigationTree = useMemo(() => {
     if (activeDocumentSource?.type === 'ai-project') {
       return aiProjectTrees[activeDocumentSource.projectId] ?? [];
@@ -177,7 +179,6 @@ export function App() {
     () => selectSiblingMarkdownNavigation(activeNavigationTree, activePath),
     [activeNavigationTree, activePath],
   );
-
   useEffect(() => {
     void loadSettings().then((loadedSettings) => {
       setSettings(loadedSettings);
@@ -190,16 +191,16 @@ export function App() {
       return;
     }
 
-    if (settings.reading.showOutline) {
+    if (outlineVisible) {
       persistedOutlineWidthRef.current = outlineWidth;
     }
 
     saveReaderLayoutPreferences({
       fileDrawerOpen: drawerOpen,
       fileDrawerWidth: drawerWidth,
-      outlineWidth: settings.reading.showOutline ? outlineWidth : persistedOutlineWidthRef.current,
-    }, settings.reading.showOutline);
-  }, [drawerOpen, drawerWidth, outlineWidth, settings.reading.showOutline, settingsLoaded]);
+      outlineWidth: outlineVisible ? outlineWidth : persistedOutlineWidthRef.current,
+    }, outlineVisible);
+  }, [drawerOpen, drawerWidth, outlineVisible, outlineWidth, settingsLoaded]);
 
   useEffect(() => {
     void loadAiProjectState().then(setAiProjectState);
@@ -411,7 +412,7 @@ export function App() {
 
   useEffect(() => {
     setRawActionStatus(null);
-  }, [markdown, settings.reading.rawMode]);
+  }, [documentSourceText, settings.reading.rawMode]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -448,7 +449,7 @@ export function App() {
   async function openFolder() {
     const requestId = beginOpenRequest();
     setError(null);
-    setStatus('请选择一个文件夹，读取其中的 Markdown 或 HTML 文件。');
+    setStatus('请选择一个文件夹，读取其中的 Markdown、HTML 或 JSON 文件。');
 
     try {
       const handle = await openDirectory();
@@ -468,7 +469,7 @@ export function App() {
       setFolderActivePath(defaultPath);
       setFolderExpandedPaths([]);
       setDrawerOpen(false);
-      setStatus(nextTree.length ? null : '这个文件夹里没有找到 Markdown 或 HTML 文件。');
+      setStatus(nextTree.length ? null : '这个文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
 
       if (defaultPath) {
         await openFile(handle, defaultPath, true, { source: { type: 'folder', handle }, requestId });
@@ -488,7 +489,7 @@ export function App() {
   async function openStandaloneFile() {
     const requestId = beginOpenRequest();
     setError(null);
-    setStatus('请选择一个 Markdown 或 HTML 文件。');
+    setStatus('请选择一个 Markdown、HTML 或 JSON 文件。');
 
     try {
       const snapshot = await openDocumentFile();
@@ -500,8 +501,8 @@ export function App() {
       const source: DocumentSource = { type: 'standalone' };
       setDrawerOpen(false);
 
-      if (documentKind === 'html') {
-        await openNormalDocumentSnapshot(snapshot, 'html', undefined, undefined, source, requestId);
+      if (documentKind === 'html' || documentKind === 'json') {
+        await openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
         return;
       }
 
@@ -557,12 +558,12 @@ export function App() {
       const source = options.source ?? activeDocumentSource ?? { type: 'folder', handle };
       const rememberRecord = remember ? createLastDocumentRecord(source, path) : undefined;
 
-      if (documentKind === 'html') {
+      if (documentKind === 'html' || documentKind === 'json') {
         return openNormalDocumentSnapshot(
           snapshot,
-          'html',
+          documentKind,
           rememberRecord,
-          handle,
+          documentKind === 'html' ? handle : undefined,
           source,
           requestId,
         );
@@ -634,7 +635,7 @@ export function App() {
     updateSourceActivePath(options.source, snapshot.path);
     setActiveDocumentSource(options.source ?? null);
     setActiveDocumentKind('markdown');
-    setMarkdown('');
+    setDocumentSourceText('');
     setRendered({
       ...EMPTY_RENDER,
       title: index.title ?? snapshot.path,
@@ -697,7 +698,11 @@ export function App() {
       return false;
     }
 
-    const result = kind === 'html' ? await renderHtmlDocument(sourceText) : await renderMarkdown(sourceText);
+    const result = kind === 'html'
+      ? await renderHtmlDocument(sourceText)
+      : kind === 'markdown'
+        ? await renderMarkdown(sourceText)
+        : EMPTY_RENDER;
     const nextHtmlPreviewDocument = kind === 'html'
       ? await createHtmlPreviewDocument(
           sourceText,
@@ -717,7 +722,7 @@ export function App() {
     updateSourceActivePath(documentSource, snapshot.path);
     setActiveDocumentSource(documentSource ?? null);
     setActiveDocumentKind(kind);
-    setMarkdown(sourceText);
+    setDocumentSourceText(sourceText);
     setRendered(result);
     setHtmlPreviewDocument(nextHtmlPreviewDocument);
     const currentHtmlPreviewWindow = htmlPreviewRef.current?.contentWindow ?? null;
@@ -813,7 +818,7 @@ export function App() {
     updateSourceActivePath(source ?? undefined, null);
     setActiveDocumentSource(source ?? null);
     setActiveDocumentKind('markdown');
-    setMarkdown('');
+    setDocumentSourceText('');
     setRendered(EMPTY_RENDER);
     setHtmlPreviewDocument(null);
     setPendingHtmlPreviewHash(null);
@@ -861,7 +866,7 @@ export function App() {
       setActivePath(name);
       setActiveDocumentSource({ type: 'standalone' });
       setActiveDocumentKind('markdown');
-      setMarkdown(source);
+      setDocumentSourceText(source);
       setRendered(result);
       setHtmlPreviewDocument(null);
       setStatus(null);
@@ -886,7 +891,7 @@ export function App() {
     setActivePath(null);
     setActiveDocumentSource({ type: 'standalone' });
     setActiveDocumentKind('markdown');
-    setMarkdown('');
+    setDocumentSourceText('');
     setRendered(EMPTY_RENDER);
     setHtmlPreviewDocument(null);
     setStatus('这个临时 Markdown 文件太大，浏览器无法从当前页面安全传递完整内容。请通过“打开文件”或“打开文件夹”授权读取后继续阅读。');
@@ -964,7 +969,7 @@ export function App() {
         await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path, { source, requestId });
       } else {
         clearReaderForSource(source);
-        setStatus('上次打开的文件夹里没有找到 Markdown 或 HTML 文件。');
+        setStatus('上次打开的文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
       }
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
@@ -1053,7 +1058,7 @@ export function App() {
       if (activeDocumentSource?.type === 'folder') {
         clearReaderForSource({ type: 'folder', handle: folderDirectoryHandle });
       }
-      setStatus('这个文件夹里没有找到 Markdown 或 HTML 文件。');
+      setStatus('这个文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
         return;
@@ -1225,7 +1230,7 @@ export function App() {
     setAiProjectTrees((current) => ({ ...current, [project.id]: nextTree }));
     setDrawerTab('ai-projects');
     openFileDrawer();
-    setAiProjectStatus(nextTree.length ? null : '这个项目目录里没有找到 Markdown 或 HTML 文件。');
+    setAiProjectStatus(nextTree.length ? null : '这个项目目录里没有找到 Markdown、HTML 或 JSON 文件。');
 
     const projectActivePath = aiProjectActivePaths[project.id] ?? null;
     const activeFileExists = projectActivePath
@@ -1267,7 +1272,7 @@ export function App() {
     setRawActionStatus(null);
 
     try {
-      await navigator.clipboard.writeText(markdown);
+      await navigator.clipboard.writeText(documentSourceText);
       setRawActionStatus('已复制');
     } catch (err) {
       setRawActionStatus(err instanceof Error ? err.message : '复制失败');
@@ -1281,27 +1286,19 @@ export function App() {
       const suggestedName = selectSourceSaveName(activePath, activeDocumentKind);
 
       if (window.showSaveFilePicker) {
-        const pickerType: { description: string; accept: Record<string, string[]> } = activeDocumentKind === 'html'
-          ? {
-              description: 'HTML 文件',
-              accept: { 'text/html': ['.html', '.htm'] },
-            }
-          : {
-              description: 'Markdown 文件',
-              accept: { 'text/markdown': ['.md', '.markdown'] },
-            };
+        const pickerType = getSourceSavePickerType(activeDocumentKind);
         const fileHandle = await window.showSaveFilePicker({
           suggestedName,
           types: [pickerType],
         });
         const writable = await fileHandle.createWritable();
-        await writable.write(markdown);
+        await writable.write(documentSourceText);
         await writable.close();
         setRawActionStatus('已保存');
         return;
       }
 
-      downloadSource(markdown, suggestedName, activeDocumentKind);
+      downloadSource(documentSourceText, suggestedName, activeDocumentKind);
       setRawActionStatus('已下载');
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -1523,7 +1520,7 @@ export function App() {
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       const delta = moveEvent.clientX - startX;
-      const nextWidths = normalizeSidePanelWidths(startDrawerWidth + delta, startOutlineWidth, drawerOpen, settings.reading.showOutline, 'file-drawer');
+      const nextWidths = normalizeSidePanelWidths(startDrawerWidth + delta, startOutlineWidth, drawerOpen, outlineVisible, 'file-drawer');
       setDrawerWidth(nextWidths.fileDrawerWidth);
       setOutlineWidth(nextWidths.outlineWidth);
     };
@@ -1549,7 +1546,7 @@ export function App() {
 
     event.preventDefault();
     const delta = event.key === 'ArrowRight' ? FILE_DRAWER_KEYBOARD_RESIZE_STEP : -FILE_DRAWER_KEYBOARD_RESIZE_STEP;
-    const nextWidths = normalizeSidePanelWidths(drawerWidth + delta, outlineWidth, drawerOpen, settings.reading.showOutline, 'file-drawer');
+    const nextWidths = normalizeSidePanelWidths(drawerWidth + delta, outlineWidth, drawerOpen, outlineVisible, 'file-drawer');
     setDrawerWidth(nextWidths.fileDrawerWidth);
     setOutlineWidth(nextWidths.outlineWidth);
   }
@@ -1564,7 +1561,7 @@ export function App() {
   }
 
   function openFileDrawer() {
-    const nextWidths = normalizeSidePanelWidths(drawerWidth, outlineWidth, true, settings.reading.showOutline, 'file-drawer');
+    const nextWidths = normalizeSidePanelWidths(drawerWidth, outlineWidth, true, outlineVisible, 'file-drawer');
     setDrawerWidth(nextWidths.fileDrawerWidth);
     setOutlineWidth(nextWidths.outlineWidth);
 
@@ -1588,7 +1585,7 @@ export function App() {
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       const delta = startX - moveEvent.clientX;
-      const nextWidths = normalizeSidePanelWidths(startDrawerWidth, startOutlineWidth + delta, drawerOpen, settings.reading.showOutline, 'outline');
+      const nextWidths = normalizeSidePanelWidths(startDrawerWidth, startOutlineWidth + delta, drawerOpen, outlineVisible, 'outline');
       setDrawerWidth(nextWidths.fileDrawerWidth);
       setOutlineWidth(nextWidths.outlineWidth);
     };
@@ -1614,7 +1611,7 @@ export function App() {
 
     event.preventDefault();
     const delta = event.key === 'ArrowLeft' ? OUTLINE_PANEL_KEYBOARD_RESIZE_STEP : -OUTLINE_PANEL_KEYBOARD_RESIZE_STEP;
-    const nextWidths = normalizeSidePanelWidths(drawerWidth, outlineWidth + delta, drawerOpen, settings.reading.showOutline, 'outline');
+    const nextWidths = normalizeSidePanelWidths(drawerWidth, outlineWidth + delta, drawerOpen, outlineVisible, 'outline');
     setDrawerWidth(nextWidths.fileDrawerWidth);
     setOutlineWidth(nextWidths.outlineWidth);
   }
@@ -1686,7 +1683,7 @@ export function App() {
           onResizeKeyDown={handleFileDrawerResizeKeyDown}
         />
         <main
-          className={`reader-layout${settings.reading.showOutline ? ' has-outline-panel' : ''}`}
+          className={`reader-layout${outlineVisible ? ' has-outline-panel' : ''}`}
           onClickCapture={handleReaderClickCapture}
         >
           <article className={htmlPreviewActive ? 'document-reader document-reader--html' : 'document-reader'}>
@@ -1718,7 +1715,7 @@ export function App() {
                   </button>
                   {rawActionStatus && <span role="status">{rawActionStatus}</span>}
                 </div>
-                <pre>{markdown}</pre>
+                <pre>{documentSourceText}</pre>
               </section>
             ) : activeDocumentKind === 'html' ? (
               <HtmlDocumentPreview
@@ -1727,6 +1724,12 @@ export function App() {
                 sourceUrl={htmlPreviewDocument?.url ?? null}
                 title={activePath}
                 onLoad={() => setHtmlPreviewLoadCount((count) => count + 1)}
+              />
+            ) : activeDocumentKind === 'json' ? (
+              <JsonDocumentReader
+                source={documentSourceText}
+                fileName={activePath}
+                theme={settings.reading.theme}
               />
             ) : (
               <div ref={renderedContentRef}>
@@ -1739,7 +1742,7 @@ export function App() {
           ) : (
             <section className="empty-state">
               <h2>打开本地文件夹</h2>
-              <p>选择包含 Markdown 或 HTML 文件的文件夹，把它作为本地文档集阅读。</p>
+              <p>选择包含 Markdown、HTML 或 JSON 文件的文件夹，把它作为本地文档集阅读。</p>
               {lastDocument && (
                 <p>
                   上次打开：{lastDocument.directoryName}/{lastDocument.path}
@@ -1761,7 +1764,7 @@ export function App() {
             </section>
           )}
           </article>
-          {settings.reading.showOutline && (
+          {outlineVisible && (
             <OutlinePanel
               outline={rendered.outline}
               activeId={activeHeadingId}
@@ -1777,13 +1780,6 @@ export function App() {
                     setLargeAnchorLine(line);
                     setActiveHeadingId(id);
                   }
-                  return;
-                }
-
-                if (activeDocumentKind === 'html') {
-                  navigateHtmlPreview(id);
-                  setActiveHeadingId(id);
-                  replaceActiveDocumentHistoryHash(id);
                   return;
                 }
 
@@ -1833,16 +1829,45 @@ function isDocumentPathInTree(tree: FileTreeNode[], path: string): boolean {
 }
 
 function selectSourceSaveName(path: string | null, kind: ActiveDocumentKind): string {
-  const fallbackName = kind === 'html' ? 'document.html' : 'document.md';
+  const fallbackName = kind === 'html' ? 'document.html' : kind === 'json' ? 'document.json' : 'document.md';
   const name = path?.split('/').filter(Boolean).at(-1) ?? fallbackName;
-  const extensionPattern = kind === 'html' ? /\.(html|htm)$/i : /\.(md|markdown)$/i;
-  const extension = kind === 'html' ? '.html' : '.md';
+  const extensionPattern = kind === 'html'
+    ? /\.(html|htm)$/i
+    : kind === 'json'
+      ? /\.json$/i
+      : /\.(md|markdown)$/i;
+  const extension = kind === 'html' ? '.html' : kind === 'json' ? '.json' : '.md';
 
   return extensionPattern.test(name) ? name : `${name}${extension}`;
 }
 
+function getSourceSavePickerType(kind: ActiveDocumentKind): { description: string; accept: Record<string, string[]> } {
+  if (kind === 'html') {
+    return {
+      description: 'HTML 文件',
+      accept: { 'text/html': ['.html', '.htm'] },
+    };
+  }
+
+  if (kind === 'json') {
+    return {
+      description: 'JSON 文件',
+      accept: { 'application/json': ['.json'] },
+    };
+  }
+
+  return {
+    description: 'Markdown 文件',
+    accept: { 'text/markdown': ['.md', '.markdown'] },
+  };
+}
+
 function downloadSource(source: string, filename: string, kind: ActiveDocumentKind) {
-  const type = kind === 'html' ? 'text/html;charset=utf-8' : 'text/markdown;charset=utf-8';
+  const type = kind === 'html'
+    ? 'text/html;charset=utf-8'
+    : kind === 'json'
+      ? 'application/json;charset=utf-8'
+      : 'text/markdown;charset=utf-8';
   const objectUrl = URL.createObjectURL(new Blob([source], { type }));
   const anchor = document.createElement('a');
 

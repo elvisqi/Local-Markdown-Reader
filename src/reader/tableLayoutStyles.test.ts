@@ -45,4 +45,10 @@ describe('table layout styles', () => {
     expect(getRule('.large-markdown-table-preview th')).toMatch(/overflow-wrap:\s*anywhere/);
     expect(getRule('.large-markdown-table-preview td')).toMatch(/overflow-wrap:\s*anywhere/);
   });
+
+  it('keeps JSON reader panels inside the reading column', () => {
+    expect(getRule('.json-reader')).toMatch(/min-width:\s*0/);
+    expect(css).toMatch(/\.json-editor-viewer,\n\.json-reader__editor-loading\s*\{[^}]*min-width:\s*0/s);
+    expect(css).toMatch(/\.json-editor-viewer,\n\.json-reader__editor-loading\s*\{[^}]*overflow:\s*hidden/s);
+  });
 });

@@ -40,7 +40,7 @@ export function FileTree({
   }, [expandedPathSet, expandedPaths, onExpandedPathsChange, uncontrolledExpandedPaths]);
 
   if (!tree.length) {
-    return <p className="empty-note">没有找到 Markdown 或 HTML 文件。</p>;
+    return <p className="empty-note">没有找到 Markdown、HTML 或 JSON 文件。</p>;
   }
 
   function handleToggleDirectory(path: string, open: boolean) {

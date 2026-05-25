@@ -859,6 +859,68 @@ select {
   margin-top: 0;
 }
 
+.json-reader {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+}
+
+.json-reader__header {
+  display: grid;
+  gap: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--reader-rule);
+}
+
+.json-reader__header h1 {
+  margin-bottom: 0;
+}
+
+.json-reader__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+
+.json-reader__summary div {
+  display: grid;
+  gap: 2px;
+  min-width: 92px;
+  padding: 8px 10px;
+  border: 1px solid var(--reader-border);
+  border-radius: 6px;
+  background: var(--reader-page-bg);
+}
+
+.json-reader__summary dt {
+  color: var(--reader-muted);
+  font-size: 11px;
+}
+
+.json-reader__summary dd {
+  margin: 0;
+  color: var(--reader-text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.json-editor-viewer,
+.json-reader__editor-loading {
+  min-width: 0;
+  min-height: 620px;
+  border: 1px solid var(--reader-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--reader-surface);
+}
+
+.json-reader__editor-loading {
+  display: grid;
+  place-items: center;
+  color: var(--reader-muted);
+}
+
 .mermaid-fullscreen {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 34px;

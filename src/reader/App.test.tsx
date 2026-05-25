@@ -1676,7 +1676,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/empty-ai-docs'));
 
-    await waitFor(() => expect(screen.getByText('这个项目目录里没有找到 Markdown 或 HTML 文件。')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('这个项目目录里没有找到 Markdown、HTML 或 JSON 文件。')).toBeInTheDocument());
     expect(screen.queryAllByRole('heading', { name: 'docs/01-intro.md' })).toHaveLength(0);
     expect(screen.getByRole('heading', { name: '打开本地文件夹' })).toBeInTheDocument();
   });
@@ -1814,7 +1814,8 @@ describe('App file navigation and drawer behavior', () => {
     expect(URL.createObjectURL).toHaveBeenCalled();
     expect(within(screen.getByRole('article')).queryByRole('heading', { name: 'Report' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '上一个' })).toHaveAttribute('title', '上一个文件：README.md');
-    expect(screen.getByLabelText('文档大纲')).toHaveTextContent('Section');
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).not.toHaveClass('has-outline-panel');
     expect(fileSystemAccess.readMarkdownFileSlice).toHaveBeenCalledTimes(1);
   });
 
@@ -2273,7 +2274,7 @@ describe('App file navigation and drawer behavior', () => {
     );
   });
 
-  it('updates the active outline item from sandboxed HTML heading messages', async () => {
+  it('does not show the right outline panel for HTML previews', async () => {
     const user = userEvent.setup();
     const htmlTree: FileTreeNode[] = [
       { type: 'file', name: 'report.html', path: 'report.html' },
@@ -2310,16 +2311,9 @@ describe('App file navigation and drawer behavior', () => {
       value: frameWindow,
     });
 
-    const message = new MessageEvent('message', {
-      data: {
-        type: 'local-markdown-reader:active-html-heading',
-        id: 'details',
-      },
-    });
-    Object.defineProperty(message, 'source', { value: frameWindow });
-    fireEvent(window, message);
-
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Details' })).toHaveAttribute('aria-current', 'location'));
+    expect(preview).toBeInstanceOf(HTMLIFrameElement);
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).not.toHaveClass('has-outline-panel');
   });
 
   it('opens local links clicked inside an HTML iframe preview through the authorized folder', async () => {
@@ -2929,6 +2923,39 @@ describe('App file navigation and drawer behavior', () => {
     expect(screen.getByTitle('HTML 预览：standalone.html').getAttribute('src')).toBe('/html-preview-sandbox.html');
     expect(fileSystemAccess.readMarkdownFileSlice).not.toHaveBeenCalled();
     expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
+  });
+
+  it('opens JSON files with a structured JSON reader without a right outline panel', async () => {
+    const user = userEvent.setup();
+    const jsonTree: FileTreeNode[] = [
+      { type: 'file', name: 'data.json', path: 'data.json' },
+    ];
+    const jsonFile = new File(
+      [JSON.stringify({ users: [{ id: 1, name: 'Ada' }], meta: { total: 1 } })],
+      'data.json',
+      { type: 'application/json' },
+    );
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(jsonTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'data.json',
+      name: 'data.json',
+      size: jsonFile.size,
+      type: jsonFile.type,
+      lastModified: jsonFile.lastModified,
+      file: jsonFile,
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'data.json' })).not.toHaveLength(0));
+    expect(await screen.findByLabelText('JSON 编辑器')).toBeInTheDocument();
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).not.toHaveClass('has-outline-panel');
+    expect(fileSystemAccess.readMarkdownFileSlice).not.toHaveBeenCalled();
   });
 
   it('opens large directory documents without full markdown rendering', async () => {
