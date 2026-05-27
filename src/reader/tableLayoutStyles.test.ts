@@ -16,6 +16,14 @@ describe('table layout styles', () => {
     expect(getRule('.document-reader table')).not.toMatch(/overflow-x:\s*auto/);
   });
 
+  it('shows edge shadows for horizontally scrollable markdown tables', () => {
+    expect(getRule('.table-fullscreen')).toMatch(/--table-scroll-shadow-size:\s*24px/);
+    expect(getRule('.table-fullscreen::before')).toMatch(/linear-gradient\(to right/);
+    expect(getRule('.table-fullscreen::after')).toMatch(/linear-gradient\(to left/);
+    expect(getRule('.table-fullscreen.can-scroll-left::before')).toMatch(/opacity:\s*1/);
+    expect(getRule('.table-fullscreen.can-scroll-right::after')).toMatch(/opacity:\s*1/);
+  });
+
   it('makes disabled reader toolbar buttons visually unavailable', () => {
     const rule = getRule('.reader-toolbar button:disabled');
 

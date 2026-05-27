@@ -55,4 +55,75 @@ describe('installTableFullscreen', () => {
 
     expect(document.querySelector('.table-fullscreen__overlay')).toBeNull();
   });
+
+  it('marks horizontally overflowing tables with edge scroll hints', () => {
+    document.body.innerHTML = '<div id="root"><table><tbody><tr><td>Wide value</td></tr></tbody></table></div>';
+    const root = document.getElementById('root')!;
+
+    const cleanup = installTableFullscreen(root);
+    const wrapper = root.querySelector<HTMLElement>('.table-fullscreen')!;
+    const tableRegion = root.querySelector<HTMLElement>('.table-fullscreen__table')!;
+    let scrollLeft = 0;
+
+    Object.defineProperty(tableRegion, 'clientWidth', { value: 100, configurable: true });
+    Object.defineProperty(tableRegion, 'scrollWidth', { value: 300, configurable: true });
+    Object.defineProperty(tableRegion, 'scrollLeft', {
+      get: () => scrollLeft,
+      set: (value) => {
+        scrollLeft = value;
+      },
+      configurable: true,
+    });
+
+    tableRegion.dispatchEvent(new Event('scroll'));
+
+    expect(wrapper).toHaveClass('is-overflowing');
+    expect(wrapper).toHaveClass('can-scroll-right');
+    expect(wrapper).not.toHaveClass('can-scroll-left');
+
+    scrollLeft = 120;
+    tableRegion.dispatchEvent(new Event('scroll'));
+
+    expect(wrapper).toHaveClass('can-scroll-left');
+    expect(wrapper).toHaveClass('can-scroll-right');
+
+    scrollLeft = 200;
+    tableRegion.dispatchEvent(new Event('scroll'));
+
+    expect(wrapper).toHaveClass('can-scroll-left');
+    expect(wrapper).not.toHaveClass('can-scroll-right');
+
+    cleanup();
+  });
+
+  it('adds edge scroll hints to pre-wrapped markdown tables', () => {
+    document.body.innerHTML = `
+      <div id="root">
+        <div class="table-fullscreen">
+          <div class="table-fullscreen__table">
+            <table><tbody><tr><td>Wide value</td></tr></tbody></table>
+          </div>
+          <div class="table-fullscreen__actions">
+            <button type="button" class="table-fullscreen__trigger" aria-label="最大化表格"></button>
+          </div>
+        </div>
+      </div>
+    `;
+    const root = document.getElementById('root')!;
+
+    const cleanup = installTableFullscreen(root);
+    const wrapper = root.querySelector<HTMLElement>('.table-fullscreen')!;
+    const tableRegion = root.querySelector<HTMLElement>('.table-fullscreen__table')!;
+
+    Object.defineProperty(tableRegion, 'clientWidth', { value: 100, configurable: true });
+    Object.defineProperty(tableRegion, 'scrollWidth', { value: 300, configurable: true });
+    Object.defineProperty(tableRegion, 'scrollLeft', { value: 0, configurable: true });
+
+    tableRegion.dispatchEvent(new Event('scroll'));
+
+    expect(wrapper).toHaveClass('is-overflowing');
+    expect(wrapper).toHaveClass('can-scroll-right');
+
+    cleanup();
+  });
 });

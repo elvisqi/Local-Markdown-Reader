@@ -641,11 +641,50 @@ select {
 }
 
 .document-reader .table-fullscreen {
+  --table-scroll-shadow-size: 24px;
+  --table-scroll-shadow-color: rgba(18, 26, 36, 0.2);
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 34px;
   align-items: end;
   column-gap: 8px;
   margin: 16px 0 22px;
+}
+
+.table-fullscreen::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--table-scroll-shadow-size);
+  background: linear-gradient(to right, var(--table-scroll-shadow-color), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.table-fullscreen::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  right: 42px;
+  width: var(--table-scroll-shadow-size);
+  background: linear-gradient(to left, var(--table-scroll-shadow-color), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.table-fullscreen.can-scroll-left::before {
+  opacity: 1;
+}
+
+.table-fullscreen.can-scroll-right::after {
+  opacity: 1;
 }
 
 .table-fullscreen__table {

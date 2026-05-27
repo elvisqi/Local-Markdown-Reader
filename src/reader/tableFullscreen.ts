@@ -3,9 +3,15 @@ const TRIGGER_CLASS = 'table-fullscreen__trigger';
 const OVERLAY_CLASS = 'table-fullscreen__overlay';
 const ACTIONS_CLASS = 'table-fullscreen__actions';
 const TABLE_REGION_CLASS = 'table-fullscreen__table';
+const OVERFLOWING_CLASS = 'is-overflowing';
+const CAN_SCROLL_LEFT_CLASS = 'can-scroll-left';
+const CAN_SCROLL_RIGHT_CLASS = 'can-scroll-right';
 
 export function installTableFullscreen(root: ParentNode): () => void {
-  const cleanups: Array<() => void> = wrapBareTables(root);
+  const cleanups: Array<() => void> = [
+    ...wrapBareTables(root),
+    ...installTableScrollHints(root),
+  ];
 
   const handleClick = (event: Event) => {
     const target = event.target;
@@ -73,6 +79,43 @@ function wrapBareTables(root: ParentNode): Array<() => void> {
   }
 
   return cleanups;
+}
+
+function installTableScrollHints(root: ParentNode): Array<() => void> {
+  const cleanups: Array<() => void> = [];
+
+  for (const wrapper of Array.from(root.querySelectorAll<HTMLElement>(`.${WRAPPER_CLASS}`))) {
+    const tableRegion = wrapper.querySelector<HTMLElement>(`.${TABLE_REGION_CLASS}`);
+    if (!tableRegion) {
+      continue;
+    }
+
+    const updateScrollHints = () => updateTableScrollHints(wrapper, tableRegion);
+    tableRegion.addEventListener('scroll', updateScrollHints, { passive: true });
+    window.addEventListener('resize', updateScrollHints);
+    const frameId = requestAnimationFrame(updateScrollHints);
+    updateScrollHints();
+
+    cleanups.push(() => {
+      cancelAnimationFrame(frameId);
+      tableRegion.removeEventListener('scroll', updateScrollHints);
+      window.removeEventListener('resize', updateScrollHints);
+      wrapper.classList.remove(OVERFLOWING_CLASS, CAN_SCROLL_LEFT_CLASS, CAN_SCROLL_RIGHT_CLASS);
+    });
+  }
+
+  return cleanups;
+}
+
+function updateTableScrollHints(wrapper: HTMLElement, tableRegion: HTMLElement) {
+  const maxScrollLeft = tableRegion.scrollWidth - tableRegion.clientWidth;
+  const isOverflowing = maxScrollLeft > 1;
+  const canScrollLeft = tableRegion.scrollLeft > 1;
+  const canScrollRight = tableRegion.scrollLeft < maxScrollLeft - 1;
+
+  wrapper.classList.toggle(OVERFLOWING_CLASS, isOverflowing);
+  wrapper.classList.toggle(CAN_SCROLL_LEFT_CLASS, isOverflowing && canScrollLeft);
+  wrapper.classList.toggle(CAN_SCROLL_RIGHT_CLASS, isOverflowing && canScrollRight);
 }
 
 function openTableOverlay(table: HTMLTableElement) {
