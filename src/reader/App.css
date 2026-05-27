@@ -817,7 +817,7 @@ select {
   margin: 0;
   border-spacing: 0;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .document-reader th,
@@ -830,9 +830,14 @@ select {
   vertical-align: top;
 }
 
-.table-fullscreen__body th,
+.table-fullscreen__body th {
+  max-width: 42ch;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
 .table-fullscreen__body td {
-  min-width: 0;
+  max-width: 42ch;
   overflow-wrap: anywhere;
   word-break: normal;
 }

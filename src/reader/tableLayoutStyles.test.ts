@@ -9,6 +9,12 @@ function getRule(selector: string): string {
   return match?.groups?.body ?? '';
 }
 
+function getRules(selector: string): string[] {
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return Array.from(css.matchAll(new RegExp(`${escapedSelector}\\s*\\{(?<body>[^}]+)\\}`, 'g')))
+    .map((match) => match.groups?.body ?? '');
+}
+
 describe('table layout styles', () => {
   it('keeps one horizontal scroll container around rendered markdown tables', () => {
     expect(getRule('.table-fullscreen__table')).toMatch(/overflow-x:\s*auto/);
@@ -52,6 +58,16 @@ describe('table layout styles', () => {
     expect(getRule('.large-markdown-table-preview table')).toMatch(/table-layout:\s*fixed/);
     expect(getRule('.large-markdown-table-preview th')).toMatch(/overflow-wrap:\s*anywhere/);
     expect(getRule('.large-markdown-table-preview td')).toMatch(/overflow-wrap:\s*anywhere/);
+  });
+
+  it('uses balanced fullscreen table columns without assuming the first column is an id column', () => {
+    expect(getRule('.table-fullscreen__body table')).toMatch(/width:\s*100%/);
+    expect(getRule('.table-fullscreen__body table')).toMatch(/table-layout:\s*auto/);
+    expect(getRule('.table-fullscreen__body :is(th, td):first-child')).toBe('');
+    expect(getRules('.table-fullscreen__body th').some((rule) => /max-width:\s*42ch/.test(rule))).toBe(true);
+    expect(getRules('.table-fullscreen__body td').some((rule) => /max-width:\s*42ch/.test(rule))).toBe(true);
+    expect(getRules('.table-fullscreen__body th').some((rule) => /overflow-wrap:\s*anywhere/.test(rule))).toBe(true);
+    expect(getRules('.table-fullscreen__body td').some((rule) => /overflow-wrap:\s*anywhere/.test(rule))).toBe(true);
   });
 
   it('keeps JSON reader panels inside the reading column', () => {
