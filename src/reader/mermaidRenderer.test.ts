@@ -81,6 +81,128 @@ describe('renderMermaidBlocks', () => {
     expect(document.querySelector('.mermaid-fullscreen__overlay')).toBeNull();
   });
 
+  it('keeps zoom controls out of the inline Mermaid diagram view', async () => {
+    const api = createMermaidApi();
+    const root = document.createElement('div');
+    root.innerHTML = '<pre><code class="language-mermaid">graph LR\nA-->B</code></pre>';
+
+    await renderMermaidBlocks(root, api);
+
+    const wrapper = root.querySelector<HTMLElement>('.mermaid-fullscreen');
+
+    expect(wrapper).not.toHaveAttribute('data-mermaid-zoom');
+    expect(root.querySelector('.mermaid-zoom__controls')).toBeNull();
+  });
+
+  it('adds zoom controls to fullscreen Mermaid diagrams', async () => {
+    const api = createMermaidApi();
+    const root = document.createElement('div');
+    root.innerHTML = '<pre><code class="language-mermaid">graph LR\nA-->B</code></pre>';
+    document.body.append(root);
+
+    await renderMermaidBlocks(root, api);
+
+    root.querySelector<HTMLButtonElement>('.mermaid-fullscreen__trigger')?.click();
+
+    const dialog = document.querySelector<HTMLElement>('.mermaid-fullscreen__overlay')!;
+    const wrapper = dialog.querySelector<HTMLElement>('.mermaid-fullscreen__body .mermaid-fullscreen');
+    const svg = dialog.querySelector<SVGElement>('.mermaid-diagram svg');
+    const zoomOut = dialog.querySelector<HTMLButtonElement>('.mermaid-zoom__button[data-mermaid-zoom-action="out"]');
+    const zoomIn = dialog.querySelector<HTMLButtonElement>('.mermaid-zoom__button[data-mermaid-zoom-action="in"]');
+    const reset = dialog.querySelector<HTMLButtonElement>('.mermaid-zoom__button[data-mermaid-zoom-action="reset"]');
+    const value = dialog.querySelector<HTMLElement>('.mermaid-zoom__value');
+
+    expect(wrapper).toHaveAttribute('data-mermaid-zoom', '1');
+    expect(svg?.style.width).toBe('100%');
+    expect(zoomOut).toHaveAccessibleName('缩小图表');
+    expect(zoomIn).toHaveAccessibleName('放大图表');
+    expect(reset).toHaveAccessibleName('重置图表缩放');
+    expect(value).toHaveTextContent('100%');
+
+    document.querySelector<HTMLButtonElement>('.table-fullscreen__close')?.click();
+  });
+
+  it('updates fullscreen Mermaid diagram size with clamped zoom controls', async () => {
+    const api = createMermaidApi();
+    const root = document.createElement('div');
+    root.innerHTML = '<pre><code class="language-mermaid">graph LR\nA-->B</code></pre>';
+    document.body.append(root);
+
+    await renderMermaidBlocks(root, api);
+
+    root.querySelector<HTMLButtonElement>('.mermaid-fullscreen__trigger')?.click();
+
+    const dialog = document.querySelector<HTMLElement>('.mermaid-fullscreen__overlay')!;
+    const wrapper = dialog.querySelector<HTMLElement>('.mermaid-fullscreen__body .mermaid-fullscreen')!;
+    const svg = dialog.querySelector<SVGElement>('.mermaid-diagram svg')!;
+    const zoomOut = dialog.querySelector<HTMLButtonElement>('.mermaid-zoom__button[data-mermaid-zoom-action="out"]')!;
+    const zoomIn = dialog.querySelector<HTMLButtonElement>('.mermaid-zoom__button[data-mermaid-zoom-action="in"]')!;
+    const reset = dialog.querySelector<HTMLButtonElement>('.mermaid-zoom__button[data-mermaid-zoom-action="reset"]')!;
+    const value = dialog.querySelector<HTMLElement>('.mermaid-zoom__value')!;
+
+    zoomOut.click();
+    zoomOut.click();
+    zoomOut.click();
+
+    expect(wrapper).toHaveAttribute('data-mermaid-zoom', '0.5');
+    expect(svg.style.width).toBe('50%');
+    expect(value).toHaveTextContent('50%');
+    expect(zoomOut).toBeDisabled();
+    expect(zoomIn).not.toBeDisabled();
+
+    for (let index = 0; index < 20; index += 1) {
+      zoomIn.click();
+    }
+
+    expect(wrapper).toHaveAttribute('data-mermaid-zoom', '5');
+    expect(svg.style.width).toBe('500%');
+    expect(value).toHaveTextContent('500%');
+    expect(zoomIn).toBeDisabled();
+    expect(zoomOut).not.toBeDisabled();
+
+    reset.click();
+
+    expect(wrapper).toHaveAttribute('data-mermaid-zoom', '1');
+    expect(svg.style.width).toBe('100%');
+    expect(value).toHaveTextContent('100%');
+    expect(zoomOut).not.toBeDisabled();
+    expect(zoomIn).not.toBeDisabled();
+
+    document.querySelector<HTMLButtonElement>('.table-fullscreen__close')?.click();
+  });
+
+  it('drags fullscreen Mermaid diagrams and resets their position', async () => {
+    const api = createMermaidApi();
+    const root = document.createElement('div');
+    root.innerHTML = '<pre><code class="language-mermaid">graph LR\nA-->B</code></pre>';
+    document.body.append(root);
+
+    await renderMermaidBlocks(root, api);
+
+    root.querySelector<HTMLButtonElement>('.mermaid-fullscreen__trigger')?.click();
+
+    const dialog = document.querySelector<HTMLElement>('.mermaid-fullscreen__overlay')!;
+    const wrapper = dialog.querySelector<HTMLElement>('.mermaid-fullscreen__body .mermaid-fullscreen')!;
+    const svg = dialog.querySelector<SVGElement>('.mermaid-diagram svg')!;
+    const reset = dialog.querySelector<HTMLButtonElement>('.mermaid-zoom__button[data-mermaid-zoom-action="reset"]')!;
+
+    svg.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 20, clientY: 30, pointerId: 1 }));
+    svg.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 65, clientY: 70, pointerId: 1 }));
+    svg.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: 65, clientY: 70, pointerId: 1 }));
+
+    expect(wrapper).toHaveAttribute('data-mermaid-pan-x', '45');
+    expect(wrapper).toHaveAttribute('data-mermaid-pan-y', '40');
+    expect(svg.style.transform).toBe('translate(45px, 40px)');
+
+    reset.click();
+
+    expect(wrapper).toHaveAttribute('data-mermaid-pan-x', '0');
+    expect(wrapper).toHaveAttribute('data-mermaid-pan-y', '0');
+    expect(svg.style.transform).toBe('translate(0px, 0px)');
+
+    document.querySelector<HTMLButtonElement>('.table-fullscreen__close')?.click();
+  });
+
   it('keeps the code block visible when Mermaid rendering fails', async () => {
     const api = createMermaidApi();
     api.render.mockRejectedValueOnce(new Error('Invalid Mermaid'));

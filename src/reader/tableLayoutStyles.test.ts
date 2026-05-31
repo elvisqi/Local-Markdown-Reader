@@ -44,6 +44,31 @@ describe('table layout styles', () => {
     expect(getRule('.document-reader pre')).toMatch(/overflow-x:\s*auto/);
   });
 
+  it('keeps Mermaid diagrams scrollable for fullscreen zooming', () => {
+    expect(getRule('.mermaid-diagram')).toMatch(/overflow-x:\s*auto/);
+    expect(getRule('.mermaid-diagram svg')).toMatch(/max-width:\s*100%/);
+    expect(getRule('.mermaid-fullscreen__actions')).toMatch(/gap:\s*6px/);
+  });
+
+  it('lets fullscreen Mermaid diagrams fill the available overlay height', () => {
+    expect(getRule('.mermaid-fullscreen__panel')).toMatch(/height:\s*100%/);
+    expect(getRule('.mermaid-fullscreen__body')).toMatch(/height:\s*100%/);
+    expect(getRule('.mermaid-fullscreen__body')).toMatch(/box-sizing:\s*border-box/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-fullscreen')).toMatch(/min-height:\s*0/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-diagram')).toMatch(/height:\s*100%/);
+  });
+
+  it('centers fullscreen Mermaid diagrams in the available space', () => {
+    expect(getRule('.mermaid-fullscreen__body .mermaid-diagram')).toMatch(/display:\s*grid/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-diagram')).toMatch(/place-items:\s*center/);
+  });
+
+  it('marks fullscreen Mermaid SVGs as draggable', () => {
+    expect(getRule('.mermaid-fullscreen__body .mermaid-diagram svg')).toMatch(/cursor:\s*grab/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-diagram svg')).toMatch(/touch-action:\s*none/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-diagram svg.is-dragging')).toMatch(/cursor:\s*grabbing/);
+  });
+
   it('keeps long code lines from widening large-file preview and raw views', () => {
     expect(getRule('.large-document-reader')).toMatch(/min-width:\s*0/);
     expect(getRule('.chunked-markdown-document')).toMatch(/min-width:\s*0/);
