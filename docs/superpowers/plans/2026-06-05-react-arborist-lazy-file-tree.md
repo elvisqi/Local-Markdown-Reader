@@ -110,6 +110,7 @@ import {
   selectPathAncestors,
   sortLazyFileTreeNodes,
   selectDefaultLoadedDocument,
+  selectRememberedLoadedDocument,
 } from './fileSystem';
 
 describe('lazy file tree helpers', () => {
@@ -135,6 +136,29 @@ describe('lazy file tree helpers', () => {
     ];
 
     expect(selectDefaultLoadedDocument(nodes)).toBe('README.md');
+  });
+
+  it('keeps a remembered file when that file exists in loaded lazy nodes', () => {
+    const nodes: LazyFileTreeNode[] = [
+      {
+        id: 'docs',
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [{ id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+        loadState: 'loaded',
+      },
+    ];
+
+    expect(selectRememberedLoadedDocument(nodes, 'docs/guide.md')).toBe('docs/guide.md');
+  });
+
+  it('falls back to the default loaded document when the remembered file is missing', () => {
+    const nodes: LazyFileTreeNode[] = [
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ];
+
+    expect(selectRememberedLoadedDocument(nodes, 'missing.md')).toBe('README.md');
   });
 });
 ```
@@ -204,6 +228,13 @@ export function sortLazyFileTreeNodes(entries: LazyFileTreeNode[]): LazyFileTree
 
 export function selectDefaultLoadedDocument(tree: LazyFileTreeNode[]): string | null {
   return selectDefaultDocumentFromFiles(flattenLoadedDocumentFiles(tree));
+}
+
+export function selectRememberedLoadedDocument(tree: LazyFileTreeNode[], rememberedPath: string): string | null {
+  const files = flattenLoadedDocumentFiles(tree);
+  return files.some((file) => file.path === rememberedPath)
+    ? rememberedPath
+    : selectDefaultDocumentFromFiles(files);
 }
 
 export function flattenLoadedDocumentFiles(tree: LazyFileTreeNode[]): DocumentFileEntry[] {
@@ -1135,12 +1166,12 @@ Add to `src/reader/App.css` near existing `.file-tree` rules:
 }
 
 .file-tree__row:hover {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  background: color-mix(in srgb, var(--reader-link) 10%, transparent);
 }
 
 .file-tree__row.is-active {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--accent);
+  background: color-mix(in srgb, var(--reader-link) 16%, transparent);
+  color: var(--reader-link);
   font-weight: 600;
 }
 
@@ -1157,14 +1188,14 @@ Add to `src/reader/App.css` near existing `.file-tree` rules:
 }
 
 .file-tree__state {
-  color: var(--muted);
+  color: var(--reader-muted);
   flex: 0 0 auto;
   font-size: 0.75rem;
   margin-left: auto;
 }
 
 .file-tree__state.is-error {
-  color: var(--danger);
+  color: color-mix(in srgb, #d92d20 80%, var(--reader-text));
 }
 ```
 
@@ -1204,6 +1235,13 @@ Expected: commit succeeds.
 - [ ] **Step 1: Write folder lazy open/reload tests**
 
 In `src/reader/App.test.tsx`, update the file-system mock to include `createDirectoryScanSession`.
+
+Add these entries to the existing `vi.mock('./fileSystemAccess', ...)` return object before adding the tests:
+
+```ts
+    createDirectoryScanSession: vi.fn(),
+    hydrateDirectoryPath: vi.fn(),
+```
 
 Add tests:
 
@@ -1295,6 +1333,10 @@ In `src/reader/App.tsx`:
 
 ```ts
 import {
+  selectDefaultLoadedDocument,
+  selectRememberedLoadedDocument,
+} from '../shared/fileSystem';
+import {
   createEmptyLazyFileTree,
   markDirectoryError,
   markDirectoryLoading,
@@ -1305,10 +1347,19 @@ import { createDirectoryScanSession, type DirectoryScanSession } from './fileSys
 import type { LazyFileTreeNode } from '../shared/types';
 ```
 
+Remove `selectRememberedDocumentPath` from the existing `./recentDocument` import because restored lazy trees use `selectRememberedLoadedDocument` instead.
+
 Change state:
 
 ```ts
 const [folderTree, setFolderTree] = useState(createEmptyLazyFileTree);
+```
+
+Remove the separate folder expanded-path state because expansion now lives in `folderTree.expandedPaths`:
+
+```ts
+// Delete this state:
+const [folderExpandedPaths, setFolderExpandedPaths] = useState<string[]>([]);
 ```
 
 Add a scan session ref next to the existing reader refs:
@@ -1351,8 +1402,14 @@ folderScanSessionRef.current = scanSession;
 setFolderDirectoryHandle(handle);
 setFolderTree(nextTree);
 setFolderActivePath(defaultPath);
-setDrawerOpen(false);
+setDrawerOpen(true);
 setStatus(nextTree.nodes.length ? null : '这个文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
+
+if (defaultPath) {
+  await openFile(handle, defaultPath, true, { source: { type: 'folder', handle }, requestId });
+} else {
+  clearReaderForSource({ type: 'folder', handle });
+}
 ```
 
 Update `FileDrawer` props:
@@ -1380,13 +1437,23 @@ async function reloadFolderTree() {
   setStatus('正在重载目录');
 
   try {
-    const directoriesToReload = [...folderTree.loadedDirectoryPaths]
+    const directoriesToReload = [...new Set(['', ...folderTree.loadedDirectoryPaths])]
       .sort((a, b) => a.split('/').filter(Boolean).length - b.split('/').filter(Boolean).length);
     const scanSession = createDirectoryScanSession(folderDirectoryHandle);
     let nextTree = createEmptyLazyFileTree();
 
-    for (const directoryPath of directoriesToReload.length ? directoriesToReload : ['']) {
-      const children = await scanSession.scanChildren(directoryPath);
+    for (const directoryPath of directoriesToReload) {
+      let children: LazyFileTreeNode[];
+      try {
+        children = await scanSession.scanChildren(directoryPath);
+      } catch (err) {
+        if (directoryPath) {
+          continue;
+        }
+
+        throw err;
+      }
+
       if (!isCurrentOpenRequest(requestId)) {
         return;
       }
@@ -1409,6 +1476,24 @@ async function reloadFolderTree() {
 ```
 
 - [ ] **Step 5: Verify folder tests pass**
+
+Before running tests, update `src/reader/components/FileDrawer.test.tsx` defaults and helper types from legacy trees to lazy trees:
+
+```ts
+import type { LazyFileTreeNode } from '../../shared/types';
+import { createEmptyLazyFileTree, type LazyFileTreeState } from '../lazyFileTree';
+
+// Change these existing defaultProps fields:
+tree: [] as LazyFileTreeNode[],
+expandedPaths: new Set<string>(),
+aiProjectTrees: {} as Record<string, LazyFileTreeState>,
+
+// Add these defaultProps fields:
+onLoadFolderDirectory: vi.fn(),
+onLoadProjectDirectory: vi.fn(),
+```
+
+Replace local `useState<Record<string, string[]>>({})` helpers with `useState<Record<string, Set<string>>>({})`, and update project tree fixtures to pass `createEmptyLazyFileTree()` with `replaceDirectoryChildren(...)` instead of `FileTreeNode[]`.
 
 Run:
 
@@ -1452,8 +1537,9 @@ Add test:
 ```ts
 it('hydrates direct children along a remembered document path', async () => {
   const root = dir('root', [dir('docs', [dir('guides', [file('install.md')])])]);
+  const scanSession = createDirectoryScanSession(root as unknown as FileSystemDirectoryHandle);
 
-  await expect(hydrateDirectoryPath(root as unknown as FileSystemDirectoryHandle, 'docs/guides/install.md')).resolves.toEqual([
+  await expect(hydrateDirectoryPath(scanSession, 'docs/guides/install.md')).resolves.toEqual([
     {
       path: '',
       children: [{ id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' }],
@@ -1488,8 +1574,10 @@ export type HydratedDirectorySegment = {
   children: LazyFileTreeNode[];
 };
 
-export async function hydrateDirectoryPath(handle: DirectoryLike, documentPath: string): Promise<HydratedDirectorySegment[]> {
-  const scanSession = createDirectoryScanSession(handle);
+export async function hydrateDirectoryPath(
+  scanSession: DirectoryScanSession,
+  documentPath: string,
+): Promise<HydratedDirectorySegment[]> {
   const parts = documentPath.split('/').filter(Boolean);
   if (parts.length <= 1) {
     return [{ path: '', children: await scanSession.scanChildren('') }];
@@ -1513,11 +1601,36 @@ export async function hydrateDirectoryPath(handle: DirectoryLike, documentPath: 
 In `src/reader/App.tsx`, replace recursive restore scan usage around `restoreLastDocument`:
 
 ```ts
-const hydrated = await hydrateDirectoryPath(record.directoryHandle, record.path);
+const scanSession = createDirectoryScanSession(record.directoryHandle);
+const hydrated = await hydrateDirectoryPath(scanSession, record.path);
 const nextTree = upsertLoadedPath(createEmptyLazyFileTree(), record.path, hydrated);
 ```
 
-Then set folder or AI project tree state from `nextTree` before `openFile`.
+Then set folder or AI project tree state from `nextTree` before `openFile`, and keep the same scan session for later lazy expansion:
+
+```ts
+const rememberedPath = selectRememberedLoadedDocument(nextTree.nodes, record.path);
+const source: DocumentSource = record.source === 'ai-project' && record.aiProjectId
+  ? { type: 'ai-project', projectId: record.aiProjectId, handle: record.directoryHandle }
+  : { type: 'folder', handle: record.directoryHandle };
+
+if (source.type === 'ai-project') {
+  aiProjectScanSessionsRef.current = {
+    ...aiProjectScanSessionsRef.current,
+    [source.projectId]: scanSession,
+  };
+  setActiveAiProjectId(source.projectId);
+  setAiProjectTrees((current) => ({ ...current, [source.projectId]: nextTree }));
+  setAiProjectActivePaths((current) => ({ ...current, [source.projectId]: rememberedPath }));
+  setDrawerTab('ai-projects');
+} else {
+  folderScanSessionRef.current = scanSession;
+  setFolderDirectoryHandle(record.directoryHandle);
+  setFolderTree(nextTree);
+  setFolderActivePath(rememberedPath);
+  setActiveAiProjectId(null);
+}
+```
 
 - [ ] **Step 4: Add App restore regression**
 
@@ -1529,10 +1642,12 @@ it('restores the remembered folder document without recursively scanning the ful
     directoryHandle: { kind: 'directory', name: 'Docs' } as FileSystemDirectoryHandle,
     directoryName: 'Docs',
     path: 'docs/guides/install.md',
-    sourceType: 'folder',
-    scrollY: 0,
+    updatedAt: Date.now(),
+    source: 'folder',
   };
+  const scanSession = { scanChildren: vi.fn() };
   vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(record);
+  vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue(scanSession);
   vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockResolvedValue([
     { path: '', children: [{ id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'loaded' }] },
     { path: 'docs', children: [{ id: 'docs/guides', type: 'directory', name: 'guides', path: 'docs/guides', children: [], loadState: 'loaded' }] },
@@ -1553,7 +1668,8 @@ it('restores the remembered folder document without recursively scanning the ful
   expect(await screen.findByText(/可以恢复上次文档/)).toBeInTheDocument();
   await userEvent.click(screen.getByRole('button', { name: /恢复上次/ }));
 
-  expect(fileSystemAccess.hydrateDirectoryPath).toHaveBeenCalledWith(record.directoryHandle, 'docs/guides/install.md');
+  expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(record.directoryHandle);
+  expect(fileSystemAccess.hydrateDirectoryPath).toHaveBeenCalledWith(scanSession, 'docs/guides/install.md');
   expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
 });
 ```
@@ -1590,6 +1706,12 @@ Expected: commit succeeds.
 - Modify: `src/reader/App.test.tsx`
 
 - [ ] **Step 1: Write AI project lazy tests**
+
+In `src/reader/App.test.tsx`, update the `vi.mock('./aiProjects', ...)` return object so permission checks can be controlled by tests:
+
+```ts
+    requestAiProjectDirectoryPermission: vi.fn(async () => true),
+```
 
 Add to `src/reader/App.test.tsx`:
 
@@ -1649,6 +1771,12 @@ Add a project scan session ref near the folder scan session ref:
 const aiProjectScanSessionsRef = useRef<Record<string, DirectoryScanSession>>({});
 ```
 
+Update `clearAiProjects` to clear project scan sessions alongside tree state:
+
+```ts
+aiProjectScanSessionsRef.current = {};
+```
+
 Update `activateAiProject`:
 
 ```ts
@@ -1693,6 +1821,12 @@ async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
 ```
 
 - [ ] **Step 3: Update FileDrawer AI panel**
+
+In `src/reader/components/FileDrawer.tsx`, add the lazy tree state type import:
+
+```ts
+import type { LazyFileTreeState } from '../lazyFileTree';
+```
 
 Change `AiProjectsPanelProps` project trees type to `Record<string, LazyFileTreeState>`.
 
@@ -2119,7 +2253,7 @@ Expected: commit succeeds only if there are actual changes.
 ## Self-Review
 
 - Spec coverage: The plan covers Arborist dependency, lazy scanning, lazy state, component rendering, folder migration, remembered document hydration, AI project migration, navigation, legacy cleanup, performance guardrails, and final verification.
-- Placeholder scan: No `TBD`, `TODO`, or intentionally incomplete implementation steps remain.
+- Completeness scan: No incomplete markers or intentionally unfinished implementation steps remain.
 - Type consistency: The plan consistently uses `LazyFileTreeNode`, `LazyFileTreeState`, `DirectoryScanSession`, `hydrateDirectoryPath`, and `ArboristFileTree`.
 - Scope check: The implementation is focused on read-only file trees. Editing, drag/drop, global search, and deep recursive refresh are intentionally excluded from 2.0.
 - P0/P1 review risks addressed: Arborist expansion uses the verified `initialOpenState`/`TreeApi` contract instead of an invalid `openByDefault` map; row-level ARIA stays on Arborist rows instead of nested `treeitem` nodes; nested lazy loading uses per-root `DirectoryScanSession` handle caches instead of repeatedly walking from the root; reload orders loaded directories by path depth; and performance tests rely on the wrapper's deterministic fallback height.
