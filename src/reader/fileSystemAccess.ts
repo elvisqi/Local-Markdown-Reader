@@ -3,8 +3,9 @@ import {
   normalizePath,
   shouldIgnoreDirectory,
   sortFileEntries,
+  sortLazyFileTreeNodes,
 } from '../shared/fileSystem';
-import type { FileTreeNode } from '../shared/types';
+import type { FileTreeNode, LazyFileTreeNode } from '../shared/types';
 
 type DirectoryLike = Pick<FileSystemDirectoryHandle, 'kind' | 'name' | 'entries'>;
 type FileLike = Pick<FileSystemFileHandle, 'kind' | 'name' | 'getFile'>;
@@ -85,6 +86,38 @@ export async function scanDocumentDirectory(handle: DirectoryLike): Promise<File
   }
 
   return sortFileEntries(nodes);
+}
+
+export type DirectoryScanSession = {
+  scanChildren: (directoryPath: string) => Promise<LazyFileTreeNode[]>;
+};
+
+export function isStaleLoadedDirectoryError(err: unknown): boolean {
+  return err instanceof Error && err.message.startsWith('Directory handle not loaded: ');
+}
+
+export function createDirectoryScanSession(rootHandle: DirectoryLike): DirectoryScanSession {
+  const handlesByPath = new Map<string, DirectoryLike>([['', rootHandle]]);
+
+  return {
+    async scanChildren(directoryPath: string) {
+      const normalizedPath = normalizePath([directoryPath]);
+      const directoryHandle = handlesByPath.get(normalizedPath);
+      if (!directoryHandle) {
+        throw new Error(`Directory handle not loaded: ${normalizedPath}`);
+      }
+
+      const { children, childHandles } = await scanDirectoryHandleChildren(directoryHandle, normalizedPath);
+
+      childHandles.forEach((childHandle, path) => handlesByPath.set(path, childHandle));
+
+      return children;
+    },
+  };
+}
+
+export async function scanDirectoryChildren(handle: DirectoryLike, directoryPath: string): Promise<LazyFileTreeNode[]> {
+  return createDirectoryScanSession(handle).scanChildren(directoryPath);
 }
 
 export async function readMarkdownFile(handle: DirectoryLike, path: string): Promise<string> {
@@ -176,6 +209,48 @@ async function scanDirectory(handle: DirectoryLike, pathParts: string[]): Promis
     path: normalizePath(pathParts),
     children: sortFileEntries(children),
   };
+}
+
+async function scanDirectoryHandleChildren(
+  directoryHandle: DirectoryLike,
+  directoryPath: string,
+): Promise<{ children: LazyFileTreeNode[]; childHandles: Map<string, DirectoryLike> }> {
+  if (!directoryHandle) {
+    throw new Error(`Directory not found: ${directoryPath}`);
+  }
+
+  const parentParts = directoryPath.split('/').filter(Boolean);
+  const nodes: LazyFileTreeNode[] = [];
+  const childHandles = new Map<string, DirectoryLike>();
+
+  for await (const [, entry] of directoryHandle.entries()) {
+    const path = normalizePath([...parentParts, entry.name]);
+
+    if (entry.kind === 'directory') {
+      if (shouldIgnoreDirectory(entry.name)) {
+        continue;
+      }
+
+      nodes.push({
+        id: path,
+        type: 'directory',
+        name: entry.name,
+        path,
+        children: [],
+        loadState: 'unloaded',
+      });
+      childHandles.set(path, entry as DirectoryLike);
+    } else if (entry.kind === 'file' && isReadableDocumentFile(entry.name)) {
+      nodes.push({
+        id: path,
+        type: 'file',
+        name: entry.name,
+        path,
+      });
+    }
+  }
+
+  return { children: sortLazyFileTreeNodes(nodes), childHandles };
 }
 
 async function getFileHandle(handle: DirectoryLike, path: string): Promise<FileLike | null> {

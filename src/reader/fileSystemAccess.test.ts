@@ -1,9 +1,11 @@
 import {
+  createDirectoryScanSession,
   openMarkdownFile,
   openDocumentFile,
   readMarkdownFile,
   readMarkdownFileSlice,
   readMarkdownFileSnapshot,
+  scanDirectoryChildren,
   scanMarkdownDirectory,
 } from './fileSystemAccess';
 
@@ -78,6 +80,65 @@ describe('fileSystemAccess', () => {
       { type: 'file', name: 'README.md', path: 'README.md' },
       { type: 'file', name: 'report.html', path: 'report.html' },
     ]);
+  });
+
+  it('scans only one directory level for lazy file trees', async () => {
+    const nestedEntries = vi.fn(async function* () {
+      yield ['deep.md', file('deep.md')] as [string, FakeFileHandle];
+    });
+    const nested = {
+      kind: 'directory',
+      name: 'nested',
+      entries: nestedEntries,
+    } satisfies FakeDirectoryHandle;
+    const root = dir('root', [
+      file('README.md'),
+      file('asset.png'),
+      dir('node_modules', [file('ignored.md')]),
+      nested,
+    ]);
+
+    await expect(scanDirectoryChildren(root as unknown as FileSystemDirectoryHandle, '')).resolves.toEqual([
+      { id: 'nested', type: 'directory', name: 'nested', path: 'nested', children: [], loadState: 'unloaded' },
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ]);
+    expect(nestedEntries).not.toHaveBeenCalled();
+  });
+
+  it('caches directory handles while lazily scanning nested directories', async () => {
+    const guidesEntries = vi.fn(async function* () {
+      yield ['install.md', file('install.md')] as [string, FakeFileHandle];
+    });
+    const guides = {
+      kind: 'directory',
+      name: 'guides',
+      entries: guidesEntries,
+    } satisfies FakeDirectoryHandle;
+    const docsEntries = vi.fn(async function* () {
+      yield ['guides', guides] as [string, FakeDirectoryHandle];
+    });
+    const docs = {
+      kind: 'directory',
+      name: 'docs',
+      entries: docsEntries,
+    } satisfies FakeDirectoryHandle;
+    const rootEntries = vi.fn(async function* () {
+      yield ['docs', docs] as [string, FakeDirectoryHandle];
+    });
+    const root = {
+      kind: 'directory',
+      name: 'root',
+      entries: rootEntries,
+    } satisfies FakeDirectoryHandle;
+    const session = createDirectoryScanSession(root as unknown as FileSystemDirectoryHandle);
+
+    await session.scanChildren('');
+    await session.scanChildren('docs');
+    await session.scanChildren('docs/guides');
+
+    expect(rootEntries).toHaveBeenCalledTimes(1);
+    expect(docsEntries).toHaveBeenCalledTimes(1);
+    expect(guidesEntries).toHaveBeenCalledTimes(1);
   });
 
   it('reads a nested Markdown file by path', async () => {
