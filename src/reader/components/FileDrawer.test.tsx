@@ -1,7 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 
 import { FileDrawer } from './FileDrawer';
+import type { AiProjectEntry } from '../aiProjects';
+import type { FileTreeNode } from '../../shared/types';
 
 const defaultProps = {
   open: true,
@@ -31,6 +34,41 @@ const defaultProps = {
   onResizeStart: vi.fn(),
   onResizeKeyDown: vi.fn(),
 };
+
+type StatefulAiProjectDrawerProps = {
+  activePath: string | null;
+  onReloadAiProject: (project: AiProjectEntry) => void;
+  onSelectAiProjectFile: (project: AiProjectEntry, path: string) => void;
+  project: AiProjectEntry;
+  tree: FileTreeNode[];
+};
+
+function StatefulAiProjectDrawer({
+  activePath,
+  onReloadAiProject,
+  onSelectAiProjectFile,
+  project,
+  tree,
+}: StatefulAiProjectDrawerProps) {
+  const [expandedPaths, setExpandedPaths] = useState<Record<string, string[]>>({});
+
+  return (
+    <FileDrawer
+      {...defaultProps}
+      activeTab="ai-projects"
+      activeAiProjectId={project.id}
+      aiProjectActivePaths={{ [project.id]: activePath }}
+      aiProjects={[project]}
+      aiProjectTrees={{ [project.id]: tree }}
+      aiProjectExpandedPaths={expandedPaths}
+      onAiProjectExpandedPathsChange={(nextProject, paths) => {
+        setExpandedPaths((current) => ({ ...current, [nextProject.id]: paths }));
+      }}
+      onReloadAiProject={onReloadAiProject}
+      onSelectAiProjectFile={onSelectAiProjectFile}
+    />
+  );
+}
 
 describe('FileDrawer', () => {
   beforeEach(() => {
@@ -219,23 +257,18 @@ describe('FileDrawer', () => {
     };
 
     render(
-      <FileDrawer
-        {...defaultProps}
-        activeTab="ai-projects"
-        activeAiProjectId={project.id}
-        aiProjectActivePaths={{ [project.id]: 'README.md' }}
-        aiProjects={[project]}
-        aiProjectTrees={{
-          [project.id]: [
-            { type: 'file', name: 'README.md', path: 'README.md' },
-            {
-              type: 'directory',
-              name: 'docs',
-              path: 'docs',
-              children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
-            },
-          ],
-        }}
+      <StatefulAiProjectDrawer
+        activePath="README.md"
+        project={project}
+        tree={[
+          { type: 'file', name: 'README.md', path: 'README.md' },
+          {
+            type: 'directory',
+            name: 'docs',
+            path: 'docs',
+            children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+          },
+        ]}
         onReloadAiProject={onReloadAiProject}
         onSelectAiProjectFile={onSelectAiProjectFile}
       />,
@@ -243,6 +276,7 @@ describe('FileDrawer', () => {
 
     expect(screen.getByRole('button', { name: 'README.md' })).toHaveAttribute('aria-current', 'page');
 
+    await user.click(screen.getByText('docs'));
     await user.click(screen.getByRole('button', { name: 'guide.md' }));
 
     expect(onSelectAiProjectFile).toHaveBeenCalledWith(project, 'docs/guide.md');

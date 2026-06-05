@@ -122,6 +122,61 @@ describe('renderMermaidBlocks', () => {
     document.querySelector<HTMLButtonElement>('.table-fullscreen__close')?.click();
   });
 
+  it('fits tall fullscreen Mermaid diagrams to the available height by default', async () => {
+    const api = createMermaidApi();
+    api.render.mockResolvedValueOnce({
+      svg: '<svg id="tall" role="img" viewBox="0 0 800 1600"><text>tall diagram</text></svg>',
+      diagramType: 'flowchart',
+    });
+    const getBoundingClientRect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect');
+    getBoundingClientRect.mockImplementation(function getMockRect(this: HTMLElement) {
+      if (this.classList.contains('mermaid-diagram')) {
+        return {
+          x: 0,
+          y: 0,
+          top: 0,
+          left: 0,
+          bottom: 400,
+          right: 800,
+          width: 800,
+          height: 400,
+          toJSON: () => ({}),
+        } as DOMRect;
+      }
+
+      return {
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+        width: 0,
+        height: 0,
+        toJSON: () => ({}),
+      } as DOMRect;
+    });
+    const root = document.createElement('div');
+    root.innerHTML = '<pre><code class="language-mermaid">graph TD\nA-->B</code></pre>';
+    document.body.append(root);
+
+    await renderMermaidBlocks(root, api);
+
+    root.querySelector<HTMLButtonElement>('.mermaid-fullscreen__trigger')?.click();
+
+    const dialog = document.querySelector<HTMLElement>('.mermaid-fullscreen__overlay')!;
+    const wrapper = dialog.querySelector<HTMLElement>('.mermaid-fullscreen__body .mermaid-fullscreen')!;
+    const svg = dialog.querySelector<SVGElement>('.mermaid-diagram svg')!;
+    const value = dialog.querySelector<HTMLElement>('.mermaid-zoom__value')!;
+
+    expect(wrapper).toHaveAttribute('data-mermaid-zoom', '0.25');
+    expect(svg.style.width).toBe('25%');
+    expect(value).toHaveTextContent('25%');
+
+    document.querySelector<HTMLButtonElement>('.table-fullscreen__close')?.click();
+    getBoundingClientRect.mockRestore();
+  });
+
   it('updates fullscreen Mermaid diagram size with clamped zoom controls', async () => {
     const api = createMermaidApi();
     const root = document.createElement('div');
@@ -140,13 +195,13 @@ describe('renderMermaidBlocks', () => {
     const reset = dialog.querySelector<HTMLButtonElement>('.mermaid-zoom__button[data-mermaid-zoom-action="reset"]')!;
     const value = dialog.querySelector<HTMLElement>('.mermaid-zoom__value')!;
 
-    zoomOut.click();
-    zoomOut.click();
-    zoomOut.click();
+    for (let index = 0; index < 4; index += 1) {
+      zoomOut.click();
+    }
 
-    expect(wrapper).toHaveAttribute('data-mermaid-zoom', '0.5');
-    expect(svg.style.width).toBe('50%');
-    expect(value).toHaveTextContent('50%');
+    expect(wrapper).toHaveAttribute('data-mermaid-zoom', '0.1');
+    expect(svg.style.width).toBe('10%');
+    expect(value).toHaveTextContent('10%');
     expect(zoomOut).toBeDisabled();
     expect(zoomIn).not.toBeDisabled();
 

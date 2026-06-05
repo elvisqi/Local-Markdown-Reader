@@ -1,5 +1,6 @@
 import type { FileTreeNode } from './types';
 import {
+  analyzeDocumentTree,
   flattenDocumentFiles,
   flattenMarkdownFiles,
   getDocumentFileKind,
@@ -104,6 +105,33 @@ describe('file system helpers', () => {
     expect(selectDefaultDocument(treeWithIndexHtml)).toBe('index.html');
     expect(selectDefaultDocument(treeWithIndexJson)).toBe('index.json');
     expect(selectDefaultDocument(treeNested)).toBe('docs/api.html');
+  });
+
+  it('analyzes document trees once for files, defaults, and path lookup', () => {
+    const tree: FileTreeNode[] = [
+      { type: 'file', name: 'z.md', path: 'z.md' },
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [
+          { type: 'file', name: 'guide.html', path: 'docs/guide.html' },
+          { type: 'file', name: 'README.md', path: 'docs/README.md' },
+          { type: 'file', name: 'image.svg', path: 'docs/image.svg' },
+        ],
+      },
+    ];
+
+    const analysis = analyzeDocumentTree(tree, 'docs/guide.html');
+
+    expect(analysis.files).toEqual([
+      { name: 'guide.html', path: 'docs/guide.html' },
+      { name: 'README.md', path: 'docs/README.md' },
+      { name: 'z.md', path: 'z.md' },
+    ]);
+    expect(analysis.defaultPath).toBe('docs/README.md');
+    expect(analysis.containsPath).toBe(true);
+    expect(analyzeDocumentTree(tree, 'missing.md').containsPath).toBe(false);
   });
 
   it('flattens Markdown files from a nested tree', () => {

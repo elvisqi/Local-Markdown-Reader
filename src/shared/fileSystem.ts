@@ -5,6 +5,12 @@ const HTML_EXTENSIONS = new Set(['.html', '.htm']);
 const JSON_EXTENSIONS = new Set(['.json']);
 const IGNORED_DIRECTORIES = new Set(['.git', 'node_modules', 'dist', 'build', 'coverage', '.cache']);
 
+export type DocumentTreeAnalysis = {
+  files: DocumentFileEntry[];
+  defaultPath: string | null;
+  containsPath: boolean;
+};
+
 export function isMarkdownFile(name: string): boolean {
   return hasExtension(name, MARKDOWN_EXTENSIONS);
 }
@@ -85,8 +91,30 @@ export function flattenDocumentFiles(tree: FileTreeNode[]): DocumentFileEntry[] 
 }
 
 export function selectDefaultDocument(tree: FileTreeNode[]): string | null {
-  const files = flattenDocumentFiles(sortTree(tree));
+  return analyzeDocumentTree(tree).defaultPath;
+}
 
+export function analyzeDocumentTree(tree: FileTreeNode[], lookupPath?: string | null): DocumentTreeAnalysis {
+  const files = flattenSortedDocumentFiles(tree);
+
+  return {
+    files,
+    defaultPath: selectDefaultDocumentFromFiles(files),
+    containsPath: lookupPath ? files.some((file) => file.path === lookupPath) : false,
+  };
+}
+
+function flattenSortedDocumentFiles(tree: FileTreeNode[]): DocumentFileEntry[] {
+  return sortFileEntries(tree).flatMap((node) => {
+    if (node.type === 'directory') {
+      return flattenSortedDocumentFiles(node.children);
+    }
+
+    return isReadableDocumentFile(node.name) ? [{ name: node.name, path: node.path }] : [];
+  });
+}
+
+function selectDefaultDocumentFromFiles(files: DocumentFileEntry[]): string | null {
   return (
     files.find((file) => file.name.toLowerCase() === 'readme.md')?.path ??
     files.find((file) => file.name.toLowerCase() === 'readme.html')?.path ??
@@ -97,16 +125,5 @@ export function selectDefaultDocument(tree: FileTreeNode[]): string | null {
     files.find((file) => file.name.toLowerCase() === 'index.json')?.path ??
     files[0]?.path ??
     null
-  );
-}
-
-function sortTree(tree: FileTreeNode[]): FileTreeNode[] {
-  return sortFileEntries(tree).map((node) =>
-    node.type === 'directory'
-      ? {
-          ...node,
-          children: sortTree(node.children),
-        }
-      : node,
   );
 }

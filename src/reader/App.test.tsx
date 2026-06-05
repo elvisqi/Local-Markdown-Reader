@@ -1008,6 +1008,7 @@ describe('App file navigation and drawer behavior', () => {
     );
     expect(drawer).toBeInTheDocument();
 
+    await user.click(within(drawer).getByText('docs'));
     await user.click(within(drawer).getByRole('button', { name: 'guide.md' }));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0));

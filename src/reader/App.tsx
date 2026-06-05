@@ -5,7 +5,7 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from 'react';
 
-import { flattenDocumentFiles, getDocumentFileKind, selectDefaultDocument } from '../shared/fileSystem';
+import { analyzeDocumentTree, getDocumentFileKind, selectDefaultDocument } from '../shared/fileSystem';
 import { renderHtmlDocument } from '../shared/render/html';
 import { resolveMarkdownHref } from '../shared/render/links';
 import { renderMarkdown } from '../shared/render/markdown';
@@ -1034,10 +1034,9 @@ export function App() {
         return;
       }
 
-      const activeFileExists = folderActivePath
-        ? flattenDocumentFiles(nextTree).some((file) => file.path === folderActivePath)
-        : false;
-      const fallbackPath = activeFileExists ? null : selectDefaultDocument(nextTree);
+      const treeAnalysis = analyzeDocumentTree(nextTree, folderActivePath);
+      const activeFileExists = treeAnalysis.containsPath;
+      const fallbackPath = activeFileExists ? null : treeAnalysis.defaultPath;
 
       setFolderTree(nextTree);
 
@@ -1233,10 +1232,9 @@ export function App() {
     setAiProjectStatus(nextTree.length ? null : '这个项目目录里没有找到 Markdown、HTML 或 JSON 文件。');
 
     const projectActivePath = aiProjectActivePaths[project.id] ?? null;
-    const activeFileExists = projectActivePath
-      ? flattenDocumentFiles(nextTree).some((file) => file.path === projectActivePath)
-      : false;
-    const defaultPath = selectDefaultDocument(nextTree);
+    const treeAnalysis = analyzeDocumentTree(nextTree, projectActivePath);
+    const activeFileExists = treeAnalysis.containsPath;
+    const defaultPath = treeAnalysis.defaultPath;
     const source: DocumentSource = { type: 'ai-project', projectId: project.id, handle };
     const pathToOpen = activeFileExists ? projectActivePath : defaultPath;
 
@@ -1825,7 +1823,7 @@ function flattenOutlineIds(outline: OutlineItem[]): string[] {
 }
 
 function isDocumentPathInTree(tree: FileTreeNode[], path: string): boolean {
-  return flattenDocumentFiles(tree).some((file) => file.path === path);
+  return analyzeDocumentTree(tree, path).containsPath;
 }
 
 function selectSourceSaveName(path: string | null, kind: ActiveDocumentKind): string {

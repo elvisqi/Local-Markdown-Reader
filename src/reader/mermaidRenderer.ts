@@ -23,9 +23,14 @@ const ZOOM_BUTTON_CLASS = 'mermaid-zoom__button';
 const ZOOM_VALUE_CLASS = 'mermaid-zoom__value';
 const DYNAMIC_IMPORT_RELOAD_KEY_PREFIX = 'localMarkdownReader.mermaidDynamicImportReload.';
 const DEFAULT_ZOOM = 1;
-const MIN_ZOOM = 0.5;
+const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 5;
 const ZOOM_STEP = 0.25;
+
+type SvgSize = {
+  width: number;
+  height: number;
+};
 
 export async function renderMermaidBlocks(
   root: ParentNode,
@@ -339,6 +344,47 @@ function setMermaidDiagramSize(diagram: HTMLElement, zoom: number) {
   svg.style.maxWidth = 'none';
 }
 
+function getInitialMermaidZoom(diagram: HTMLElement) {
+  const svg = diagram.querySelector<SVGElement>('svg');
+  const svgSize = svg ? getMermaidSvgSize(svg) : null;
+  const availableSize = diagram.getBoundingClientRect();
+
+  if (!svgSize || availableSize.width <= 0 || availableSize.height <= 0) {
+    return DEFAULT_ZOOM;
+  }
+
+  const heightFitZoom = (availableSize.height * svgSize.width) / (availableSize.width * svgSize.height);
+  return normalizeMermaidZoom(Math.min(DEFAULT_ZOOM, heightFitZoom));
+}
+
+function getMermaidSvgSize(svg: SVGElement): SvgSize | null {
+  return getMermaidSvgViewBoxSize(svg) ?? getMermaidSvgAttributeSize(svg);
+}
+
+function getMermaidSvgViewBoxSize(svg: SVGElement): SvgSize | null {
+  const viewBox = svg.getAttribute('viewBox')?.trim();
+  if (!viewBox) {
+    return null;
+  }
+
+  const [, , width, height] = viewBox.split(/[\s,]+/).map(Number);
+  return createMermaidSvgSize(width, height);
+}
+
+function getMermaidSvgAttributeSize(svg: SVGElement): SvgSize | null {
+  const width = Number.parseFloat(svg.getAttribute('width') ?? '');
+  const height = Number.parseFloat(svg.getAttribute('height') ?? '');
+  return createMermaidSvgSize(width, height);
+}
+
+function createMermaidSvgSize(width: number, height: number): SvgSize | null {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return { width, height };
+}
+
 function openMermaidOverlay(diagram: HTMLElement) {
   closeMermaidOverlay();
 
@@ -372,9 +418,6 @@ function openMermaidOverlay(diagram: HTMLElement) {
   overlayActions.className = ACTIONS_CLASS;
   overlayActions.append(createMermaidZoomControls(overlayWrapper, diagramClone));
   overlayWrapper.append(diagramClone, overlayActions);
-  setMermaidZoom(overlayWrapper, diagramClone, DEFAULT_ZOOM);
-  setMermaidPan(overlayWrapper, diagramClone, 0, 0);
-  installMermaidPan(overlayWrapper, diagramClone);
   body.append(overlayWrapper);
 
   const close = () => closeMermaidOverlay();
@@ -401,6 +444,9 @@ function openMermaidOverlay(diagram: HTMLElement) {
   panel.append(toolbar, body);
   overlay.append(panel);
   document.body.append(overlay);
+  setMermaidZoom(overlayWrapper, diagramClone, getInitialMermaidZoom(diagramClone));
+  setMermaidPan(overlayWrapper, diagramClone, 0, 0);
+  installMermaidPan(overlayWrapper, diagramClone);
   closeButton.focus();
 }
 

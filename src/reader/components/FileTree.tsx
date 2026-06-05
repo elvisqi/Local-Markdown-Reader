@@ -21,10 +21,11 @@ export function FileTree({
     ...selectActiveDirectoryPaths(tree, activePath),
   ]);
   const currentExpandedPaths = expandedPaths ?? uncontrolledExpandedPaths;
-  const expandedPathSet = useMemo(
-    () => normalizeExpandedPaths(tree, activePath, currentExpandedPaths),
+  const treeState = useMemo(
+    () => createFileTreeState(tree, activePath, currentExpandedPaths),
     [activePath, currentExpandedPaths, tree],
   );
+  const expandedPathSet = treeState.expandedPaths;
 
   useEffect(() => {
     const nextPaths = [...expandedPathSet];
@@ -64,7 +65,8 @@ export function FileTree({
       <TreeList
         nodes={tree}
         activePath={activePath}
-        expandedPaths={expandedPathSet}
+        expandedPaths={treeState.expandedPaths}
+        activeDirectoryPaths={treeState.activeDirectoryPaths}
         onToggleDirectory={handleToggleDirectory}
         onSelect={onSelect}
       />
@@ -76,15 +78,23 @@ type TreeListProps = {
   nodes: FileTreeNode[];
   activePath: string | null;
   expandedPaths: Set<string>;
+  activeDirectoryPaths: Set<string>;
   onToggleDirectory: (path: string, open: boolean) => void;
   onSelect: (path: string) => void;
 };
 
-function TreeList({ nodes, activePath, expandedPaths, onToggleDirectory, onSelect }: TreeListProps) {
+function TreeList({
+  nodes,
+  activePath,
+  expandedPaths,
+  activeDirectoryPaths,
+  onToggleDirectory,
+  onSelect,
+}: TreeListProps) {
   return (
     <ul>
       {nodes.map((node) => {
-        const activeBranch = node.type === 'directory' && containsActivePath(node, activePath);
+        const activeBranch = node.type === 'directory' && activeDirectoryPaths.has(node.path);
         const open = activeBranch || expandedPaths.has(node.path);
 
         return (
@@ -98,13 +108,16 @@ function TreeList({ nodes, activePath, expandedPaths, onToggleDirectory, onSelec
                 }}
               >
                 <summary>{node.name}</summary>
-                <TreeList
-                  nodes={node.children}
-                  activePath={activePath}
-                  expandedPaths={expandedPaths}
-                  onToggleDirectory={onToggleDirectory}
-                  onSelect={onSelect}
-                />
+                {open && (
+                  <TreeList
+                    nodes={node.children}
+                    activePath={activePath}
+                    expandedPaths={expandedPaths}
+                    activeDirectoryPaths={activeDirectoryPaths}
+                    onToggleDirectory={onToggleDirectory}
+                    onSelect={onSelect}
+                  />
+                )}
               </details>
             ) : (
               <FileTreeButton node={node} active={node.path === activePath} onSelect={onSelect} />
@@ -144,14 +157,6 @@ function FileTreeButton({ node, active, onSelect }: FileTreeButtonProps) {
   );
 }
 
-function containsActivePath(node: FileTreeNode, activePath: string | null): boolean {
-  if (!activePath || node.type === 'file') {
-    return false;
-  }
-
-  return node.children.some((child) => child.path === activePath || containsActivePath(child, activePath));
-}
-
 function selectActiveDirectoryPaths(nodes: FileTreeNode[], activePath: string | null): Set<string> {
   const paths = new Set<string>();
 
@@ -173,29 +178,41 @@ function selectActiveDirectoryPaths(nodes: FileTreeNode[], activePath: string | 
   return paths;
 }
 
-function collectDirectoryPaths(nodes: FileTreeNode[]): Set<string> {
-  const paths = new Set<string>();
+type FileTreeState = {
+  activeDirectoryPaths: Set<string>;
+  directoryPaths: Set<string>;
+  expandedPaths: Set<string>;
+};
 
-  function visit(node: FileTreeNode) {
+function createFileTreeState(nodes: FileTreeNode[], activePath: string | null, expandedPaths: string[]): FileTreeState {
+  const activeDirectoryPaths = new Set<string>();
+  const directoryPaths = new Set<string>();
+
+  function visit(node: FileTreeNode): boolean {
     if (node.type === 'file') {
-      return;
+      return node.path === activePath;
     }
 
-    paths.add(node.path);
-    node.children.forEach(visit);
+    directoryPaths.add(node.path);
+    const containsActiveFile = node.children.some(visit);
+
+    if (containsActiveFile) {
+      activeDirectoryPaths.add(node.path);
+    }
+
+    return containsActiveFile;
   }
 
   nodes.forEach(visit);
-  return paths;
-}
 
-function normalizeExpandedPaths(nodes: FileTreeNode[], activePath: string | null, expandedPaths: string[]): Set<string> {
-  const validPaths = collectDirectoryPaths(nodes);
-  const activePaths = selectActiveDirectoryPaths(nodes, activePath);
-  const next = new Set(expandedPaths.filter((path) => validPaths.has(path)));
+  const nextExpandedPaths = new Set(expandedPaths.filter((path) => directoryPaths.has(path)));
+  activeDirectoryPaths.forEach((path) => nextExpandedPaths.add(path));
 
-  activePaths.forEach((path) => next.add(path));
-  return next;
+  return {
+    activeDirectoryPaths,
+    directoryPaths,
+    expandedPaths: nextExpandedPaths,
+  };
 }
 
 function pathsEqual(left: string[], right: string[]): boolean {

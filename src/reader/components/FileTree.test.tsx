@@ -9,7 +9,7 @@ describe('FileTree', () => {
     Element.prototype.scrollIntoView = vi.fn();
   });
 
-  it('renders nested folders and selects document files', async () => {
+  it('renders expanded folders and selects document files', async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
     const tree: FileTreeNode[] = [
@@ -29,11 +29,49 @@ describe('FileTree', () => {
 
     expect(screen.getByText('docs')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'README.md' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByRole('button', { name: 'report.html' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByText('docs'));
+
     expect(screen.getByRole('button', { name: 'report.html' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'guide.md' }));
 
     expect(onSelect).toHaveBeenCalledWith('docs/guide.md');
+  });
+
+  it('does not render files inside collapsed folders until the folder is opened', async () => {
+    const user = userEvent.setup();
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [
+          {
+            type: 'directory',
+            name: 'archive',
+            path: 'docs/archive',
+            children: [{ type: 'file', name: 'old.md', path: 'docs/archive/old.md' }],
+          },
+        ],
+      },
+    ];
+
+    render(<FileTree tree={tree} activePath={null} onSelect={vi.fn()} />);
+
+    expect(screen.getByText('docs')).toBeInTheDocument();
+    expect(screen.queryByText('archive')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'old.md' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByText('docs'));
+
+    expect(screen.getByText('archive')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'old.md' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByText('archive'));
+
+    expect(screen.getByRole('button', { name: 'old.md' })).toBeInTheDocument();
   });
 
   it('marks and scrolls the active file into view', () => {
