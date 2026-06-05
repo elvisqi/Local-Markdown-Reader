@@ -20,6 +20,16 @@
 - Existing recursive APIs can stay temporarily for tests or non-migrated code, but the folder drawer and AI project drawer should use lazy APIs when the migration is complete.
 - Release packaging is out of scope for this plan; implementation completion should run tests, typecheck, and build.
 
+## Verified React Arborist Contracts
+
+- `react-arborist@3.8.0` exports `Tree`, `NodeApi`, `TreeApi`, `NodeRendererProps`, and `RowRendererProps`.
+- `TreeProps.openByDefault` is a boolean, not an open-state map. Use `initialOpenState: Record<string, boolean>` for first render and synchronize later external expansion changes with `treeRef.current.open(id, false)` and `treeRef.current.close(id, false)`.
+- `TreeApi.open`, `TreeApi.close`, and `NodeApi.toggle` call `onToggle(id)`. Synchronization effects must guard against feeding their own imperative open/close calls back into `onExpandedPathsChange`.
+- `childrenAccessor="children"` makes any node with `children: []` an internal directory. File nodes must omit `children`.
+- Arborist's default row renderer already owns `role="treeitem"`, `aria-level`, `aria-selected`, and `aria-expanded`. Custom node content must not add another `role="treeitem"`; use a custom `renderRow` when row-level ARIA such as `aria-current="page"` is needed.
+- Arborist uses `react-window` and requires a numeric `height`. The wrapper must measure the available drawer height with `ResizeObserver` and provide a deterministic fallback for tests and browsers without `ResizeObserver`.
+- Arborist flattens currently visible open nodes before virtual rendering. This is acceptable only because our data layer loads directories lazily; do not pass a fully recursive 100,000-node tree to Arborist.
+
 ## File Structure
 
 - `package.json`, `package-lock.json`: add `react-arborist`.
@@ -242,6 +252,7 @@ Update the import in `src/reader/fileSystemAccess.test.ts`:
 
 ```ts
 import {
+  createDirectoryScanSession,
   openMarkdownFile,
   openDocumentFile,
   readMarkdownFile,
@@ -277,6 +288,42 @@ it('scans only one directory level for lazy file trees', async () => {
   ]);
   expect(nestedEntries).not.toHaveBeenCalled();
 });
+
+it('caches directory handles while lazily scanning nested directories', async () => {
+  const guidesEntries = vi.fn(async function* () {
+    yield ['install.md', file('install.md')] as [string, FakeFileHandle];
+  });
+  const guides = {
+    kind: 'directory',
+    name: 'guides',
+    entries: guidesEntries,
+  } satisfies FakeDirectoryHandle;
+  const docsEntries = vi.fn(async function* () {
+    yield ['guides', guides] as [string, FakeDirectoryHandle];
+  });
+  const docs = {
+    kind: 'directory',
+    name: 'docs',
+    entries: docsEntries,
+  } satisfies FakeDirectoryHandle;
+  const rootEntries = vi.fn(async function* () {
+    yield ['docs', docs] as [string, FakeDirectoryHandle];
+  });
+  const root = {
+    kind: 'directory',
+    name: 'root',
+    entries: rootEntries,
+  } satisfies FakeDirectoryHandle;
+  const session = createDirectoryScanSession(root as unknown as FileSystemDirectoryHandle);
+
+  await session.scanChildren('');
+  await session.scanChildren('docs');
+  await session.scanChildren('docs/guides');
+
+  expect(rootEntries).toHaveBeenCalledTimes(1);
+  expect(docsEntries).toHaveBeenCalledTimes(1);
+  expect(guidesEntries).toHaveBeenCalledTimes(1);
+});
 ```
 
 Run:
@@ -285,7 +332,7 @@ Run:
 npm test -- src/reader/fileSystemAccess.test.ts --run
 ```
 
-Expected: FAIL because `scanDirectoryChildren` is not exported.
+Expected: FAIL because `createDirectoryScanSession` and `scanDirectoryChildren` are not exported.
 
 - [ ] **Step 2: Implement one-level scan**
 
@@ -304,14 +351,45 @@ Add `sortLazyFileTreeNodes` to the helper import:
 Add this function after `scanDocumentDirectory`:
 
 ```ts
+export type DirectoryScanSession = {
+  scanChildren: (directoryPath: string) => Promise<LazyFileTreeNode[]>;
+};
+
+export function createDirectoryScanSession(rootHandle: DirectoryLike): DirectoryScanSession {
+  const handlesByPath = new Map<string, DirectoryLike>([['', rootHandle]]);
+
+  return {
+    async scanChildren(directoryPath: string) {
+      const normalizedPath = normalizePath([directoryPath]);
+      const directoryHandle = handlesByPath.get(normalizedPath);
+      if (!directoryHandle) {
+        throw new Error(`Directory handle not loaded: ${normalizedPath}`);
+      }
+
+      const { children, childHandles } = await scanDirectoryHandleChildren(directoryHandle, normalizedPath);
+
+      childHandles.forEach((childHandle, path) => handlesByPath.set(path, childHandle));
+
+      return children;
+    },
+  };
+}
+
 export async function scanDirectoryChildren(handle: DirectoryLike, directoryPath: string): Promise<LazyFileTreeNode[]> {
-  const directoryHandle = directoryPath ? await getDirectoryHandle(handle, directoryPath) : handle;
+  return createDirectoryScanSession(handle).scanChildren(directoryPath);
+}
+
+async function scanDirectoryHandleChildren(
+  directoryHandle: DirectoryLike,
+  directoryPath: string,
+): Promise<{ children: LazyFileTreeNode[]; childHandles: Map<string, DirectoryLike> }> {
   if (!directoryHandle) {
     throw new Error(`Directory not found: ${directoryPath}`);
   }
 
   const parentParts = directoryPath.split('/').filter(Boolean);
   const nodes: LazyFileTreeNode[] = [];
+  const childHandles = new Map<string, DirectoryLike>();
 
   for await (const [, entry] of directoryHandle.entries()) {
     const path = normalizePath([...parentParts, entry.name]);
@@ -329,6 +407,7 @@ export async function scanDirectoryChildren(handle: DirectoryLike, directoryPath
         children: [],
         loadState: 'unloaded',
       });
+      childHandles.set(path, entry as DirectoryLike);
     } else if (entry.kind === 'file' && isReadableDocumentFile(entry.name)) {
       nodes.push({
         id: path,
@@ -339,37 +418,11 @@ export async function scanDirectoryChildren(handle: DirectoryLike, directoryPath
     }
   }
 
-  return sortLazyFileTreeNodes(nodes);
+  return { children: sortLazyFileTreeNodes(nodes), childHandles };
 }
 ```
 
-Add this helper near `getFileHandle`:
-
-```ts
-async function getDirectoryHandle(handle: DirectoryLike, path: string): Promise<DirectoryLike | null> {
-  const parts = path.split('/').filter(Boolean);
-  let current: DirectoryLike = handle;
-
-  for (const part of parts) {
-    let found: DirectoryLike | FileLike | null = null;
-
-    for await (const [name, entry] of current.entries()) {
-      if (name === part) {
-        found = entry as DirectoryLike | FileLike;
-        break;
-      }
-    }
-
-    if (!found || found.kind !== 'directory') {
-      return null;
-    }
-
-    current = found;
-  }
-
-  return current;
-}
-```
+Do not use `scanDirectoryChildren(root, 'docs/deep')` in production paths after this task. That compatibility export creates a fresh session and therefore only works for `''`; callers that need nested lazy expansion must hold one `DirectoryScanSession` per opened folder/project.
 
 - [ ] **Step 3: Verify file system tests pass**
 
@@ -431,7 +484,8 @@ describe('lazyFileTree', () => {
 
   it('marks a directory loading and then loaded with children', () => {
     const withRoot = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
-    const loading = markDirectoryLoading(withRoot, 'docs');
+    const withExpanded = { ...withRoot, expandedPaths: new Set(['docs']) };
+    const loading = markDirectoryLoading(withExpanded, 'docs');
 
     expect(selectDirectoryNode(loading.nodes, 'docs')).toMatchObject({ loadState: 'loading' });
 
@@ -443,6 +497,7 @@ describe('lazyFileTree', () => {
       loadState: 'loaded',
       children: [{ id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
     });
+    expect([...loaded.expandedPaths]).toEqual(['docs']);
   });
 
   it('can upsert loaded ancestors for a remembered document path', () => {
@@ -590,10 +645,12 @@ export function upsertLoadedPath(
   const expandedPaths = new Set(state.expandedPaths);
   selectPathAncestors(documentPath).forEach((path) => expandedPaths.add(path));
 
-  return segments.reduce(
-    (current, segment) => replaceDirectoryChildren({ ...current, expandedPaths }, segment.path, segment.children),
+  const nextState = segments.reduce(
+    (current, segment) => replaceDirectoryChildren(current, segment.path, segment.children),
     state,
   );
+
+  return { ...nextState, expandedPaths };
 }
 
 export function selectDirectoryNode(nodes: LazyFileTreeNode[], path: string): Extract<LazyFileTreeNode, { type: 'directory' }> | null {
@@ -732,6 +789,7 @@ describe('ArboristFileTree', () => {
   it('loads an unloaded directory when it is opened', async () => {
     const user = userEvent.setup();
     const onLoadDirectory = vi.fn();
+    const onExpandedPathsChange = vi.fn();
     const unloaded: LazyFileTreeNode[] = [
       { id: 'docs', type: 'directory', name: 'docs', path: 'docs', loadState: 'unloaded', children: [] },
     ];
@@ -741,7 +799,7 @@ describe('ArboristFileTree', () => {
         nodes={unloaded}
         activePath={null}
         expandedPaths={new Set()}
-        onExpandedPathsChange={vi.fn()}
+        onExpandedPathsChange={onExpandedPathsChange}
         onLoadDirectory={onLoadDirectory}
         onSelectFile={vi.fn()}
       />,
@@ -750,6 +808,34 @@ describe('ArboristFileTree', () => {
     await user.click(screen.getByRole('treeitem', { name: 'docs' }));
 
     expect(onLoadDirectory).toHaveBeenCalledWith('docs');
+    expect(onExpandedPathsChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('syncs externally controlled expanded paths without reporting a user toggle', () => {
+    const onExpandedPathsChange = vi.fn();
+    const { rerender } = render(
+      <ArboristFileTree
+        nodes={tree}
+        activePath={null}
+        expandedPaths={new Set()}
+        onExpandedPathsChange={onExpandedPathsChange}
+        onLoadDirectory={vi.fn()}
+        onSelectFile={vi.fn()}
+      />,
+    );
+
+    rerender(
+      <ArboristFileTree
+        nodes={tree}
+        activePath={null}
+        expandedPaths={new Set(['docs'])}
+        onExpandedPathsChange={onExpandedPathsChange}
+        onLoadDirectory={vi.fn()}
+        onSelectFile={vi.fn()}
+      />,
+    );
+
+    expect(onExpandedPathsChange).not.toHaveBeenCalled();
   });
 
   it('shows loading and error state on directory rows', () => {
@@ -796,8 +882,14 @@ Expected: FAIL because the component does not exist.
 Create `src/reader/components/ArboristFileTree.tsx`:
 
 ```tsx
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Tree, type NodeApi, type NodeRendererProps } from 'react-arborist';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  Tree,
+  type NodeApi,
+  type NodeRendererProps,
+  type RowRendererProps,
+  type TreeApi,
+} from 'react-arborist';
 
 import type { LazyFileTreeNode } from '../../shared/types';
 
@@ -812,6 +904,7 @@ type ArboristFileTreeProps = {
 
 const ROW_HEIGHT = 28;
 const INDENT = 18;
+const FALLBACK_TREE_HEIGHT = 500;
 
 export function ArboristFileTree({
   nodes,
@@ -821,23 +914,63 @@ export function ArboristFileTree({
   onLoadDirectory,
   onSelectFile,
 }: ArboristFileTreeProps) {
-  const treeRef = useRef<{ open: (id: string) => void; close: (id: string) => void } | null>(null);
-  const openByDefault = useMemo(() => Object.fromEntries([...expandedPaths].map((path) => [path, true])), [expandedPaths]);
+  const treeRef = useRef<TreeApi<LazyFileTreeNode> | undefined>(undefined);
+  const containerRef = useRef<HTMLElement | null>(null);
+  const syncingOpenStateRef = useRef(false);
+  const [treeHeight, setTreeHeight] = useState(FALLBACK_TREE_HEIGHT);
+  const initialOpenStateRef = useRef<Record<string, boolean> | null>(null);
+
+  if (!initialOpenStateRef.current) {
+    initialOpenStateRef.current = Object.fromEntries([...expandedPaths].map((path) => [path, true]));
+  }
+
+  useLayoutEffect(() => {
+    const element = containerRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new ResizeObserver(([entry]) => {
+      const nextHeight = Math.max(ROW_HEIGHT, Math.floor(entry.contentRect.height));
+      setTreeHeight(nextHeight || FALLBACK_TREE_HEIGHT);
+    });
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    for (const path of expandedPaths) {
-      treeRef.current?.open(path);
+    const tree = treeRef.current;
+    if (!tree) {
+      return;
     }
-  }, [expandedPaths]);
+
+    syncingOpenStateRef.current = true;
+    const next = new Set(expandedPaths);
+    const currentOpenIds = new Set(Object.entries(tree.openState).filter(([, open]) => open).map(([id]) => id));
+
+    for (const path of expandedPaths) {
+      tree.open(path, false);
+    }
+    for (const path of currentOpenIds) {
+      if (!next.has(path)) {
+        tree.close(path, false);
+      }
+    }
+    tree.redrawList();
+    syncingOpenStateRef.current = false;
+  }, [expandedPaths, nodes]);
 
   const handleToggle = useCallback((id: string) => {
+    if (syncingOpenStateRef.current) {
+      return;
+    }
+
     const next = new Set(expandedPaths);
     if (next.has(id)) {
       next.delete(id);
-      treeRef.current?.close(id);
     } else {
       next.add(id);
-      treeRef.current?.open(id);
       const directory = findDirectory(nodes, id);
       if (directory?.loadState === 'unloaded' || directory?.loadState === 'error') {
         onLoadDirectory(id);
@@ -849,39 +982,44 @@ export function ArboristFileTree({
   const handleActivate = useCallback((node: NodeApi<LazyFileTreeNode>) => {
     if (node.data.type === 'file') {
       onSelectFile(node.data.path);
-      return;
     }
-
-    handleToggle(node.data.path);
-  }, [handleToggle, onSelectFile]);
+  }, [onSelectFile]);
 
   if (!nodes.length) {
     return <p className="empty-note">没有找到 Markdown、HTML 或 JSON 文件。</p>;
   }
 
   return (
-    <nav aria-label="文档文件" className="file-tree file-tree--arborist">
+    <nav ref={containerRef} aria-label="文档文件" className="file-tree file-tree--arborist">
       <Tree<LazyFileTreeNode>
         ref={treeRef}
         data={nodes}
         idAccessor="id"
         childrenAccessor="children"
         rowHeight={ROW_HEIGHT}
+        height={treeHeight}
+        width="100%"
         indent={INDENT}
         overscanCount={12}
-        openByDefault={openByDefault}
+        initialOpenState={initialOpenStateRef.current ?? {}}
         disableDrag
         disableDrop
         disableEdit
+        disableMultiSelection
         selection={activePath ?? undefined}
         onActivate={handleActivate}
-      >
-        {(props) => (
-          <FileTreeRow
+        onToggle={handleToggle}
+        renderRow={(props) => (
+          <FileTreeRowContainer
             {...props}
             activePath={activePath}
+          />
+        )}
+      >
+        {(props) => (
+          <FileTreeNode
+            {...props}
             expandedPaths={expandedPaths}
-            onToggle={handleToggle}
           />
         )}
       </Tree>
@@ -889,32 +1027,45 @@ export function ArboristFileTree({
   );
 }
 
-type FileTreeRowProps = NodeRendererProps<LazyFileTreeNode> & {
+type FileTreeRowContainerProps = RowRendererProps<LazyFileTreeNode> & {
   activePath: string | null;
-  expandedPaths: Set<string>;
-  onToggle: (path: string) => void;
 };
 
-function FileTreeRow({ node, style, dragHandle, activePath, expandedPaths, onToggle }: FileTreeRowProps) {
+function FileTreeRowContainer({ node, attrs, innerRef, children, activePath }: FileTreeRowContainerProps) {
+  const active = node.data.type === 'file' && node.data.path === activePath;
+
+  return (
+    <div
+      {...attrs}
+      ref={innerRef}
+      aria-current={active ? 'page' : undefined}
+      className={`file-tree__row file-tree__row--${node.data.type}${active ? ' is-active' : ''}${node.isSelected ? ' is-selected' : ''}`}
+      onClick={() => {
+        if (node.data.type === 'directory') {
+          node.toggle();
+        } else {
+          node.tree.activate(node.id);
+        }
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+type FileTreeNodeProps = NodeRendererProps<LazyFileTreeNode> & {
+  expandedPaths: Set<string>;
+};
+
+function FileTreeNode({ node, style, dragHandle, expandedPaths }: FileTreeNodeProps) {
   const data = node.data;
-  const active = data.type === 'file' && data.path === activePath;
   const open = data.type === 'directory' && expandedPaths.has(data.path);
 
   return (
     <div
       ref={dragHandle}
       style={style}
-      role="treeitem"
-      aria-current={active ? 'page' : undefined}
-      aria-expanded={data.type === 'directory' ? open : undefined}
-      className={`file-tree__row file-tree__row--${data.type}${active ? ' is-active' : ''}${node.isSelected ? ' is-selected' : ''}`}
-      onClick={() => {
-        if (data.type === 'directory') {
-          onToggle(data.path);
-        } else {
-          node.activate();
-        }
-      }}
+      className="file-tree__node"
     >
       {data.type === 'directory' && (
         <span className="file-tree__disclosure" aria-hidden="true">
@@ -958,6 +1109,7 @@ Add to `src/reader/App.css` near existing `.file-tree` rules:
 
 ```css
 .file-tree--arborist {
+  height: 100%;
   min-height: 0;
   overflow: auto;
 }
@@ -972,6 +1124,14 @@ Add to `src/reader/App.css` near existing `.file-tree` rules:
   gap: 0.35rem;
   min-width: 0;
   padding: 0 0.4rem;
+}
+
+.file-tree__node {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+  height: 100%;
+  min-width: 0;
 }
 
 .file-tree__row:hover {
@@ -1043,7 +1203,7 @@ Expected: commit succeeds.
 
 - [ ] **Step 1: Write folder lazy open/reload tests**
 
-In `src/reader/App.test.tsx`, update the file-system mock to include `scanDirectoryChildren`.
+In `src/reader/App.test.tsx`, update the file-system mock to include `createDirectoryScanSession`.
 
 Add tests:
 
@@ -1051,38 +1211,41 @@ Add tests:
 it('opens a folder by scanning only root children', async () => {
   const user = userEvent.setup();
   const directoryHandle = { kind: 'directory', name: 'Docs' } as FileSystemDirectoryHandle;
-  vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
-  vi.mocked(fileSystemAccess.scanDirectoryChildren).mockResolvedValue([
+  const scanChildren = vi.fn().mockResolvedValue([
     { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
     { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
   ]);
+  vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
+  vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue({ scanChildren });
 
   render(<App />);
 
   await user.click(screen.getByRole('button', { name: /打开文件夹/ }));
 
-  expect(fileSystemAccess.scanDirectoryChildren).toHaveBeenCalledWith(directoryHandle, '');
+  expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(directoryHandle);
+  expect(scanChildren).toHaveBeenCalledWith('');
   expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
 });
 
 it('loads a folder branch when the user expands it', async () => {
   const user = userEvent.setup();
   const directoryHandle = { kind: 'directory', name: 'Docs' } as FileSystemDirectoryHandle;
-  vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
-  vi.mocked(fileSystemAccess.scanDirectoryChildren)
+  const scanChildren = vi.fn()
     .mockResolvedValueOnce([
       { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
     ])
     .mockResolvedValueOnce([
       { id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' },
     ]);
+  vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
+  vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue({ scanChildren });
 
   render(<App />);
 
   await user.click(screen.getByRole('button', { name: /打开文件夹/ }));
   await user.click(screen.getByRole('treeitem', { name: 'docs' }));
 
-  expect(fileSystemAccess.scanDirectoryChildren).toHaveBeenLastCalledWith(directoryHandle, 'docs');
+  expect(scanChildren).toHaveBeenLastCalledWith('docs');
   expect(await screen.findByRole('treeitem', { name: 'guide.md' })).toBeInTheDocument();
 });
 ```
@@ -1138,7 +1301,7 @@ import {
   replaceDirectoryChildren,
   setExpandedPaths as setLazyExpandedPaths,
 } from './lazyFileTree';
-import { scanDirectoryChildren } from './fileSystemAccess';
+import { createDirectoryScanSession, type DirectoryScanSession } from './fileSystemAccess';
 import type { LazyFileTreeNode } from '../shared/types';
 ```
 
@@ -1148,18 +1311,25 @@ Change state:
 const [folderTree, setFolderTree] = useState(createEmptyLazyFileTree);
 ```
 
+Add a scan session ref next to the existing reader refs:
+
+```ts
+const folderScanSessionRef = useRef<DirectoryScanSession | null>(null);
+```
+
 Add handlers:
 
 ```ts
 async function loadFolderDirectory(path: string) {
-  if (!folderDirectoryHandle) {
+  const scanSession = folderScanSessionRef.current;
+  if (!scanSession) {
     return;
   }
 
   setFolderTree((current) => markDirectoryLoading(current, path));
 
   try {
-    const children = await scanDirectoryChildren(folderDirectoryHandle, path);
+    const children = await scanSession.scanChildren(path);
     setFolderTree((current) => replaceDirectoryChildren(current, path, children));
   } catch (err) {
     setFolderTree((current) =>
@@ -1172,10 +1342,12 @@ async function loadFolderDirectory(path: string) {
 Update `openFolder` root loading:
 
 ```ts
-const rootChildren = await scanDirectoryChildren(handle, '');
+const scanSession = createDirectoryScanSession(handle);
+const rootChildren = await scanSession.scanChildren('');
 const nextTree = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
 const defaultPath = selectDefaultLoadedDocument(nextTree.nodes);
 
+folderScanSessionRef.current = scanSession;
 setFolderDirectoryHandle(handle);
 setFolderTree(nextTree);
 setFolderActivePath(defaultPath);
@@ -1208,11 +1380,13 @@ async function reloadFolderTree() {
   setStatus('正在重载目录');
 
   try {
-    const directoriesToReload = [...folderTree.loadedDirectoryPaths];
+    const directoriesToReload = [...folderTree.loadedDirectoryPaths]
+      .sort((a, b) => a.split('/').filter(Boolean).length - b.split('/').filter(Boolean).length);
+    const scanSession = createDirectoryScanSession(folderDirectoryHandle);
     let nextTree = createEmptyLazyFileTree();
 
     for (const directoryPath of directoriesToReload.length ? directoriesToReload : ['']) {
-      const children = await scanDirectoryChildren(folderDirectoryHandle, directoryPath);
+      const children = await scanSession.scanChildren(directoryPath);
       if (!isCurrentOpenRequest(requestId)) {
         return;
       }
@@ -1220,6 +1394,7 @@ async function reloadFolderTree() {
     }
 
     nextTree = setLazyExpandedPaths(nextTree, folderTree.expandedPaths);
+    folderScanSessionRef.current = scanSession;
     setFolderTree(nextTree);
     setStatus(null);
   } catch (err) {
@@ -1314,18 +1489,19 @@ export type HydratedDirectorySegment = {
 };
 
 export async function hydrateDirectoryPath(handle: DirectoryLike, documentPath: string): Promise<HydratedDirectorySegment[]> {
+  const scanSession = createDirectoryScanSession(handle);
   const parts = documentPath.split('/').filter(Boolean);
   if (parts.length <= 1) {
-    return [{ path: '', children: await scanDirectoryChildren(handle, '') }];
+    return [{ path: '', children: await scanSession.scanChildren('') }];
   }
 
   const segments: HydratedDirectorySegment[] = [];
   const directoryPaths = parts.slice(0, -1).map((_, index) => parts.slice(0, index + 1).join('/'));
 
-  segments.push({ path: '', children: await scanDirectoryChildren(handle, '') });
+  segments.push({ path: '', children: await scanSession.scanChildren('') });
 
   for (const directoryPath of directoryPaths) {
-    segments.push({ path: directoryPath, children: await scanDirectoryChildren(handle, directoryPath) });
+    segments.push({ path: directoryPath, children: await scanSession.scanChildren(directoryPath) });
   }
 
   return segments;
@@ -1362,7 +1538,15 @@ it('restores the remembered folder document without recursively scanning the ful
     { path: 'docs', children: [{ id: 'docs/guides', type: 'directory', name: 'guides', path: 'docs/guides', children: [], loadState: 'loaded' }] },
     { path: 'docs/guides', children: [{ id: 'docs/guides/install.md', type: 'file', name: 'install.md', path: 'docs/guides/install.md' }] },
   ]);
-  vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue(createSnapshot('install.md', '# Install'));
+  const file = new File(['# Install'], 'install.md', { type: 'text/markdown' });
+  vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+    path: 'docs/guides/install.md',
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    lastModified: file.lastModified,
+    file,
+  });
 
   render(<App />);
 
@@ -1427,16 +1611,18 @@ it('opens an AI project by loading only the project root directory', async () =>
     sources: {},
   });
   vi.mocked(aiProjects.requestAiProjectDirectoryPermission).mockResolvedValue(true);
-  vi.mocked(fileSystemAccess.scanDirectoryChildren).mockResolvedValue([
+  const scanChildren = vi.fn().mockResolvedValue([
     { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
   ]);
+  vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue({ scanChildren });
 
   render(<App />);
 
   await user.click(screen.getByRole('tab', { name: 'AI 项目' }));
   await user.click(await screen.findByRole('button', { name: /AI Docs/ }));
 
-  expect(fileSystemAccess.scanDirectoryChildren).toHaveBeenCalledWith(projectHandle, '');
+  expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(projectHandle);
+  expect(scanChildren).toHaveBeenCalledWith('');
   expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
 });
 ```
@@ -1457,11 +1643,19 @@ In `src/reader/App.tsx`, change:
 const [aiProjectTrees, setAiProjectTrees] = useState<Record<string, LazyFileTreeState>>({});
 ```
 
+Add a project scan session ref near the folder scan session ref:
+
+```ts
+const aiProjectScanSessionsRef = useRef<Record<string, DirectoryScanSession>>({});
+```
+
 Update `activateAiProject`:
 
 ```ts
-const rootChildren = await scanDirectoryChildren(handle, '');
+const scanSession = createDirectoryScanSession(handle);
+const rootChildren = await scanSession.scanChildren('');
 const nextTree = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
+aiProjectScanSessionsRef.current = { ...aiProjectScanSessionsRef.current, [project.id]: scanSession };
 setAiProjectTrees((current) => ({ ...current, [project.id]: nextTree }));
 ```
 
@@ -1469,8 +1663,8 @@ Add:
 
 ```ts
 async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
-  const handle = project.directoryHandle;
-  if (!handle) {
+  const scanSession = aiProjectScanSessionsRef.current[project.id];
+  if (!scanSession) {
     return;
   }
 
@@ -1480,7 +1674,7 @@ async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
   }));
 
   try {
-    const children = await scanDirectoryChildren(handle, path);
+    const children = await scanSession.scanChildren(path);
     setAiProjectTrees((current) => ({
       ...current,
       [project.id]: replaceDirectoryChildren(current[project.id] ?? createEmptyLazyFileTree(), path, children),
@@ -1694,8 +1888,8 @@ Expected: commit succeeds.
 ### Task 10: Remove Legacy FileTree Usage And Tighten Tests
 
 **Files:**
-- Modify or Delete: `src/reader/components/FileTree.tsx`
-- Modify or Delete: `src/reader/components/FileTree.test.tsx`
+- Delete: `src/reader/components/FileTree.tsx`
+- Delete: `src/reader/components/FileTree.test.tsx`
 - Modify: `src/reader/components/FileDrawer.tsx`
 - Modify: `src/reader/App.test.tsx`
 
@@ -1707,17 +1901,15 @@ Run:
 rg "FileTree|FileTreeNode|scanMarkdownDirectory|folderExpandedPaths|aiProjectExpandedPaths" src/reader src/shared
 ```
 
-Expected: remaining usages are either legacy compatibility exports, recursive tests intentionally kept, or imports to migrate.
+Expected: production `FileTree` imports are gone. Legacy `FileTreeNode` type and recursive scan tests may remain only for compatibility APIs outside the drawer UI.
 
-- [ ] **Step 2: Delete or demote legacy component**
+- [ ] **Step 2: Delete legacy component**
 
-If no callers need it, delete:
+Delete the legacy recursive component after `FileDrawer` and tests have migrated:
 
 ```bash
 git rm src/reader/components/FileTree.tsx src/reader/components/FileTree.test.tsx
 ```
-
-If tests still need legacy behavior temporarily, keep the files but remove production imports. Do not leave `FileDrawer` importing `FileTree`.
 
 - [ ] **Step 3: Update tests to Arborist**
 
@@ -1839,23 +2031,9 @@ Run:
 npm test -- src/reader/components/ArboristFileTree.performance.test.tsx --run
 ```
 
-Expected: PASS if Arborist virtualization works in the test environment. If jsdom cannot measure layout, set explicit `height` and `width` props on `Tree` from the wrapper and rerun.
+Expected: PASS. The wrapper already provides `FALLBACK_TREE_HEIGHT`, so this test must not depend on jsdom layout measurement.
 
-- [ ] **Step 2: Add stable tree dimensions if needed**
-
-If the test fails because Arborist needs dimensions, update `ArboristFileTree` props:
-
-```tsx
-<Tree<LazyFileTreeNode>
-  height={600}
-  width="100%"
-  ...
->
-```
-
-Then prefer CSS-controlled container dimensions if Arborist accepts them reliably in the browser.
-
-- [ ] **Step 3: Commit performance guard**
+- [ ] **Step 2: Commit performance guard**
 
 Run:
 
@@ -1942,5 +2120,6 @@ Expected: commit succeeds only if there are actual changes.
 
 - Spec coverage: The plan covers Arborist dependency, lazy scanning, lazy state, component rendering, folder migration, remembered document hydration, AI project migration, navigation, legacy cleanup, performance guardrails, and final verification.
 - Placeholder scan: No `TBD`, `TODO`, or intentionally incomplete implementation steps remain.
-- Type consistency: The plan consistently uses `LazyFileTreeNode`, `LazyFileTreeState`, `scanDirectoryChildren`, `hydrateDirectoryPath`, and `ArboristFileTree`.
+- Type consistency: The plan consistently uses `LazyFileTreeNode`, `LazyFileTreeState`, `DirectoryScanSession`, `hydrateDirectoryPath`, and `ArboristFileTree`.
 - Scope check: The implementation is focused on read-only file trees. Editing, drag/drop, global search, and deep recursive refresh are intentionally excluded from 2.0.
+- P0/P1 review risks addressed: Arborist expansion uses the verified `initialOpenState`/`TreeApi` contract instead of an invalid `openByDefault` map; row-level ARIA stays on Arborist rows instead of nested `treeitem` nodes; nested lazy loading uses per-root `DirectoryScanSession` handle caches instead of repeatedly walking from the root; reload orders loaded directories by path depth; and performance tests rely on the wrapper's deterministic fallback height.
