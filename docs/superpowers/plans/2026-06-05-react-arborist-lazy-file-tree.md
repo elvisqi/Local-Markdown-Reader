@@ -26,6 +26,7 @@
 - `TreeProps.openByDefault` is a boolean, not an open-state map, and Arborist defaults it to `true`. Set `openByDefault={false}`, use `initialOpenState: Record<string, boolean>` for first render, and synchronize later external expansion changes with `treeRef.current.open(id, false)` and `treeRef.current.close(id, false)`.
 - `TreeApi.open`, `TreeApi.close`, and `NodeApi.toggle` call `onToggle(id)`. Synchronization effects must guard against feeding their own imperative open/close calls back into `onExpandedPathsChange`.
 - `childrenAccessor="children"` makes any node with `children: []` an internal directory. File nodes must omit `children`.
+- Arborist recursively creates node metadata for every object supplied in `data`, independent of whether a parent is currently open. Unloaded directories must therefore keep `children: []`; do not pre-materialize hidden descendants as placeholder data.
 - Arborist's default row renderer already owns `role="treeitem"`, `aria-level`, `aria-selected`, and `aria-expanded`. Custom node content must not add another `role="treeitem"`; use a custom `renderRow` when row-level ARIA such as `aria-current="page"` is needed.
 - Arborist uses `react-window` and requires a numeric `height`. The wrapper must measure the available drawer height with `ResizeObserver` and provide a deterministic fallback for tests and browsers without `ResizeObserver`.
 - Arborist flattens currently visible open nodes before virtual rendering. This is acceptable only because our data layer loads directories lazily; do not pass a fully recursive 100,000-node tree to Arborist.
@@ -76,9 +77,10 @@ Run:
 
 ```bash
 npm ls react-arborist
+npm ls react-window react-dnd react-dnd-html5-backend redux use-sync-external-store
 ```
 
-Expected: output contains `react-arborist@3.8.0` and exits 0.
+Expected: output contains `react-arborist@3.8.0` and the required transitive runtime dependencies, and both commands exit 0.
 
 - [ ] **Step 3: Commit dependency**
 
@@ -498,6 +500,7 @@ import {
   clearDirectoryError,
   createEmptyLazyFileTree,
   markDirectoryLoading,
+  pruneExpandedPaths,
   replaceDirectoryChildren,
   selectDirectoryNode,
   selectLoadedDocumentExists,
@@ -561,6 +564,16 @@ describe('lazyFileTree', () => {
     const cleared = clearDirectoryError(loading, 'docs');
 
     expect(selectDirectoryNode(cleared.nodes, 'docs')).toMatchObject({ loadState: 'unloaded' });
+  });
+
+  it('prunes expanded paths that no longer exist after reload', () => {
+    const withRoot = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
+    const expanded = {
+      ...withRoot,
+      expandedPaths: new Set(['docs', 'missing', 'docs/missing']),
+    };
+
+    expect([...pruneExpandedPaths(expanded).expandedPaths]).toEqual(['docs']);
   });
 });
 ```
@@ -672,6 +685,14 @@ export function setExpandedPaths(state: LazyFileTreeState, paths: Iterable<strin
   };
 }
 
+export function pruneExpandedPaths(state: LazyFileTreeState): LazyFileTreeState {
+  const existingDirectoryPaths = collectDirectoryPaths(state.nodes);
+  return {
+    ...state,
+    expandedPaths: new Set([...state.expandedPaths].filter((path) => existingDirectoryPaths.has(path))),
+  };
+}
+
 export function upsertLoadedPath(
   state: LazyFileTreeState,
   documentPath: string,
@@ -715,6 +736,19 @@ export function selectLoadedDocumentExists(nodes: LazyFileTreeNode[], path: stri
 
     return selectLoadedDocumentExists(node.children, path);
   });
+}
+
+function collectDirectoryPaths(nodes: LazyFileTreeNode[], paths = new Set<string>()): Set<string> {
+  nodes.forEach((node) => {
+    if (node.type !== 'directory') {
+      return;
+    }
+
+    paths.add(node.path);
+    collectDirectoryPaths(node.children, paths);
+  });
+
+  return paths;
 }
 
 function updateDirectory(
@@ -1371,6 +1405,7 @@ import {
   createEmptyLazyFileTree,
   markDirectoryError,
   markDirectoryLoading,
+  pruneExpandedPaths,
   selectLoadedDocumentExists,
   replaceDirectoryChildren,
   setExpandedPaths as setLazyExpandedPaths,
@@ -1412,18 +1447,17 @@ async function loadFolderDirectory(path: string) {
   if (!scanSession) {
     return;
   }
-  const requestId = openRequestIdRef.current;
 
   setFolderTree((current) => markDirectoryLoading(current, path));
 
   try {
     const children = await scanSession.scanChildren(path);
-    if (!isCurrentOpenRequest(requestId) || folderScanSessionRef.current !== scanSession) {
+    if (folderScanSessionRef.current !== scanSession) {
       return;
     }
     setFolderTree((current) => replaceDirectoryChildren(current, path, children));
   } catch (err) {
-    if (!isCurrentOpenRequest(requestId) || folderScanSessionRef.current !== scanSession) {
+    if (folderScanSessionRef.current !== scanSession) {
       return;
     }
     setFolderTree((current) =>
@@ -1433,11 +1467,14 @@ async function loadFolderDirectory(path: string) {
 }
 ```
 
-Update `openFolder` root loading:
+Update `openFolder` root loading. Keep the previous `folderScanSessionRef.current` installed until the new root scan succeeds, so a canceled or failed folder-open attempt does not break lazy expansion for the currently open folder:
 
 ```ts
 const scanSession = createDirectoryScanSession(handle);
 const rootChildren = await scanSession.scanChildren('');
+if (!isCurrentOpenRequest(requestId)) {
+  return;
+}
 const nextTree = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
 const defaultPath = selectDefaultLoadedDocument(nextTree.nodes);
 
@@ -1503,7 +1540,7 @@ async function reloadFolderTree() {
       nextTree = replaceDirectoryChildren(nextTree, directoryPath, children);
     }
 
-    nextTree = setLazyExpandedPaths(nextTree, folderTree.expandedPaths);
+    nextTree = pruneExpandedPaths(setLazyExpandedPaths(nextTree, folderTree.expandedPaths));
     folderScanSessionRef.current = scanSession;
     setFolderTree(nextTree);
     setStatus(null);
@@ -1847,7 +1884,7 @@ Update `clearAiProjects` to clear project scan sessions alongside tree state:
 aiProjectScanSessionsRef.current = {};
 ```
 
-Update `activateAiProject`:
+Update `activateAiProject` root loading. As with folders, keep the previous project scan session installed until the new root scan succeeds:
 
 ```ts
 const scanSession = createDirectoryScanSession(handle);
@@ -1882,7 +1919,6 @@ async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
   if (!scanSession) {
     return;
   }
-  const requestId = openRequestIdRef.current;
 
   setAiProjectTrees((current) => ({
     ...current,
@@ -1891,7 +1927,7 @@ async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
 
   try {
     const children = await scanSession.scanChildren(path);
-    if (!isCurrentOpenRequest(requestId) || aiProjectScanSessionsRef.current[project.id] !== scanSession) {
+    if (aiProjectScanSessionsRef.current[project.id] !== scanSession) {
       return;
     }
     setAiProjectTrees((current) => ({
@@ -1899,7 +1935,7 @@ async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
       [project.id]: replaceDirectoryChildren(current[project.id] ?? createEmptyLazyFileTree(), path, children),
     }));
   } catch (err) {
-    if (!isCurrentOpenRequest(requestId) || aiProjectScanSessionsRef.current[project.id] !== scanSession) {
+    if (aiProjectScanSessionsRef.current[project.id] !== scanSession) {
       return;
     }
     setAiProjectTrees((current) => ({
@@ -2243,6 +2279,7 @@ Create `src/reader/components/ArboristFileTree.performance.test.tsx`:
 
 ```tsx
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { ArboristFileTree } from './ArboristFileTree';
 import type { LazyFileTreeNode } from '../../shared/types';
@@ -2256,19 +2293,14 @@ function createLargeLoadedTree(count: number): LazyFileTreeNode[] {
   }));
 }
 
-function createReachableLazyTree(directoryCount: number, filesPerDirectory: number): LazyFileTreeNode[] {
+function createUnloadedDirectoryRoots(directoryCount: number): LazyFileTreeNode[] {
   return Array.from({ length: directoryCount }, (_, directoryIndex) => ({
     id: `dir-${directoryIndex}`,
     type: 'directory',
     name: `dir-${directoryIndex}`,
     path: `dir-${directoryIndex}`,
     loadState: 'unloaded',
-    children: Array.from({ length: filesPerDirectory }, (_, fileIndex) => ({
-      id: `dir-${directoryIndex}/file-${fileIndex}.md`,
-      type: 'file',
-      name: `file-${fileIndex}.md`,
-      path: `dir-${directoryIndex}/file-${fileIndex}.md`,
-    })),
+    children: [],
   }));
 }
 
@@ -2290,21 +2322,29 @@ describe('ArboristFileTree performance guardrails', () => {
     expect(screen.getAllByRole('treeitem').length).toBeLessThan(200);
   });
 
-  it('keeps total reachable nodes hidden while unopened directories stay closed', () => {
+  it('keeps reachable descendants out of Arborist data until a directory is loaded', async () => {
+    const user = userEvent.setup();
+    const onLoadDirectory = vi.fn();
+
     render(
       <div style={{ height: 420 }}>
         <ArboristFileTree
-          nodes={createReachableLazyTree(1_000, 100)}
+          nodes={createUnloadedDirectoryRoots(1_000)}
           activePath={null}
           expandedPaths={new Set()}
           onExpandedPathsChange={vi.fn()}
-          onLoadDirectory={vi.fn()}
+          onLoadDirectory={onLoadDirectory}
           onSelectFile={vi.fn()}
         />
       </div>,
     );
 
     expect(screen.getAllByRole('treeitem').length).toBeLessThan(200);
+    expect(screen.queryByRole('treeitem', { name: 'file-0.md' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('treeitem', { name: 'dir-0' }));
+
+    expect(onLoadDirectory).toHaveBeenCalledWith('dir-0');
     expect(screen.queryByRole('treeitem', { name: 'file-0.md' })).not.toBeInTheDocument();
   });
 });
@@ -2407,4 +2447,4 @@ Expected: commit succeeds only if there are actual changes.
 - Completeness scan: No incomplete markers or intentionally unfinished implementation steps remain.
 - Type consistency: The plan consistently uses `LazyFileTreeNode`, `LazyFileTreeState`, `DirectoryScanSession`, `hydrateDirectoryPath`, and `ArboristFileTree`.
 - Scope check: The implementation is focused on read-only file trees. Editing, drag/drop, global search, and deep recursive refresh are intentionally excluded from 2.0.
-- P0/P1 review risks addressed: Arborist expansion uses `openByDefault={false}` plus the verified `initialOpenState`/`TreeApi` contract instead of relying on Arborist's default-open behavior; row-level ARIA stays on Arborist rows instead of nested `treeitem` nodes; nested lazy loading uses per-root `DirectoryScanSession` handle caches instead of repeatedly walking from the root; reload orders loaded directories by path depth; stale loaded paths are distinguished from real permission/I/O failures; and performance tests cover both virtual DOM count and hidden reachable descendants.
+- P0/P1 review risks addressed: Arborist expansion uses `openByDefault={false}` plus the verified `initialOpenState`/`TreeApi` contract instead of relying on Arborist's default-open behavior; row-level ARIA stays on Arborist rows instead of nested `treeitem` nodes; nested lazy loading uses per-root `DirectoryScanSession` handle caches instead of repeatedly walking from the root; reload orders loaded directories by path depth and prunes stale expanded paths; stale loaded paths are distinguished from real permission/I/O failures; and performance tests cover both virtual DOM count and the requirement that unloaded reachable descendants are not supplied to Arborist.
