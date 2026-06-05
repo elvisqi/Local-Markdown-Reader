@@ -1,7 +1,7 @@
 import type { AiProjectEntry, AiProjectProvider, AiProjectSourceRecord } from '../aiProjects';
-import type { FileTreeNode, LazyFileTreeNode } from '../../shared/types';
+import type { LazyFileTreeNode } from '../../shared/types';
+import type { LazyFileTreeState } from '../lazyFileTree';
 import { ArboristFileTree } from './ArboristFileTree';
-import { FileTree } from './FileTree';
 import type { KeyboardEvent, PointerEvent } from 'react';
 
 type FileDrawerTab = 'folder' | 'ai-projects';
@@ -14,9 +14,8 @@ type FileDrawerProps = {
   activeTab: FileDrawerTab;
   aiProjects: AiProjectEntry[];
   aiProjectSources: Partial<Record<AiProjectProvider, AiProjectSourceRecord>>;
-  aiProjectTrees: Record<string, FileTreeNode[]>;
+  aiProjectTrees: Record<string, LazyFileTreeState>;
   aiProjectActivePaths: Record<string, string | null>;
-  aiProjectExpandedPaths: Record<string, string[]>;
   aiProjectStatus: string | null;
   activeAiProjectId: string | null;
   onOpenFolder: () => void;
@@ -28,7 +27,8 @@ type FileDrawerProps = {
   onClearAiProjects: () => void;
   onOpenAiProject: (project: AiProjectEntry) => void;
   onReloadAiProject: (project: AiProjectEntry) => void;
-  onAiProjectExpandedPathsChange: (project: AiProjectEntry, paths: string[]) => void;
+  onAiProjectExpandedPathsChange: (project: AiProjectEntry, paths: Set<string>) => void;
+  onLoadProjectDirectory: (project: AiProjectEntry, path: string) => void;
   onSelectAiProjectFile: (project: AiProjectEntry, path: string) => void;
   onClose: () => void;
   onSelect: (path: string) => void;
@@ -46,7 +46,6 @@ export function FileDrawer({
   aiProjectSources,
   aiProjectTrees,
   aiProjectActivePaths,
-  aiProjectExpandedPaths,
   aiProjectStatus,
   activeAiProjectId,
   onOpenFolder,
@@ -59,6 +58,7 @@ export function FileDrawer({
   onOpenAiProject,
   onReloadAiProject,
   onAiProjectExpandedPathsChange,
+  onLoadProjectDirectory,
   onSelectAiProjectFile,
   onClose,
   onSelect,
@@ -127,7 +127,6 @@ export function FileDrawer({
           sources={aiProjectSources}
           projectTrees={aiProjectTrees}
           projectActivePaths={aiProjectActivePaths}
-          projectExpandedPaths={aiProjectExpandedPaths}
           status={aiProjectStatus}
           activeProjectId={activeAiProjectId}
           onOpenSettings={onOpenAiProjectSettings}
@@ -135,6 +134,7 @@ export function FileDrawer({
           onOpenProject={onOpenAiProject}
           onReloadProject={onReloadAiProject}
           onProjectExpandedPathsChange={onAiProjectExpandedPathsChange}
+          onLoadProjectDirectory={onLoadProjectDirectory}
           onSelectProjectFile={onSelectAiProjectFile}
         />
       )}
@@ -156,16 +156,16 @@ export function FileDrawer({
 type AiProjectsPanelProps = {
   projects: AiProjectEntry[];
   sources: Partial<Record<AiProjectProvider, AiProjectSourceRecord>>;
-  projectTrees: Record<string, FileTreeNode[]>;
+  projectTrees: Record<string, LazyFileTreeState>;
   projectActivePaths: Record<string, string | null>;
-  projectExpandedPaths: Record<string, string[]>;
   status: string | null;
   activeProjectId: string | null;
   onOpenSettings: () => void;
   onClear: () => void;
   onOpenProject: (project: AiProjectEntry) => void;
   onReloadProject: (project: AiProjectEntry) => void;
-  onProjectExpandedPathsChange: (project: AiProjectEntry, paths: string[]) => void;
+  onProjectExpandedPathsChange: (project: AiProjectEntry, paths: Set<string>) => void;
+  onLoadProjectDirectory: (project: AiProjectEntry, path: string) => void;
   onSelectProjectFile: (project: AiProjectEntry, path: string) => void;
 };
 
@@ -174,7 +174,6 @@ function AiProjectsPanel({
   sources,
   projectTrees,
   projectActivePaths,
-  projectExpandedPaths,
   status,
   activeProjectId,
   onOpenSettings,
@@ -182,6 +181,7 @@ function AiProjectsPanel({
   onOpenProject,
   onReloadProject,
   onProjectExpandedPathsChange,
+  onLoadProjectDirectory,
   onSelectProjectFile,
 }: AiProjectsPanelProps) {
   const hasSources = Boolean(sources.codex || sources.claude);
@@ -206,7 +206,6 @@ function AiProjectsPanel({
           {projects.map((project) => {
             const tree = projectTrees[project.id];
             const activePath = projectActivePaths[project.id] ?? null;
-            const expandedPaths = projectExpandedPaths[project.id] ?? [];
             const showReload = Boolean(project.directoryHandle || tree);
 
             return (
@@ -237,12 +236,13 @@ function AiProjectsPanel({
                 </div>
                 {tree && (
                   <div className="ai-project-tree">
-                    <FileTree
-                      tree={tree}
+                    <ArboristFileTree
+                      nodes={tree.nodes}
                       activePath={activePath}
-                      expandedPaths={expandedPaths}
+                      expandedPaths={tree.expandedPaths}
                       onExpandedPathsChange={(paths) => onProjectExpandedPathsChange(project, paths)}
-                      onSelect={(path) => onSelectProjectFile(project, path)}
+                      onLoadDirectory={(path) => onLoadProjectDirectory(project, path)}
+                      onSelectFile={(path) => onSelectProjectFile(project, path)}
                     />
                   </div>
                 )}

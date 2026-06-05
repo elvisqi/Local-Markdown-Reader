@@ -55,6 +55,7 @@ vi.mock('./aiProjects', async () => {
   return {
     ...actual,
     loadAiProjectState: vi.fn(async () => ({ sources: {}, projects: [] })),
+    requestAiProjectDirectoryPermission: vi.fn(async () => true),
     saveAiProjectState: vi.fn(async () => undefined),
   };
 });
@@ -212,6 +213,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(null);
     vi.mocked(recentDocument.saveLastDocument).mockResolvedValue(undefined);
     vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({ sources: {}, projects: [] });
+    vi.mocked(aiProjects.requestAiProjectDirectoryPermission).mockResolvedValue(true);
     vi.mocked(aiProjects.saveAiProjectState).mockResolvedValue(undefined);
     vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue(null);
   });
@@ -1111,6 +1113,39 @@ describe('App file navigation and drawer behavior', () => {
     expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledTimes(2);
   });
 
+  it('opens an AI project by loading only the project root directory', async () => {
+    const user = userEvent.setup();
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'project-1',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/AI Docs',
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+      discoveredAt: 1,
+    };
+    const scanChildren = vi.fn().mockResolvedValue([
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ]);
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      projects: [project],
+      sources: {},
+    });
+    vi.mocked(aiProjects.requestAiProjectDirectoryPermission).mockResolvedValue(true);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue({ scanChildren });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(screen.getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/AI Docs'));
+
+    expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(projectHandle);
+    expect(scanChildren).toHaveBeenCalledWith('');
+    expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
+  });
+
   it('opens AI project directories inline in the AI project workspace', async () => {
     const user = userEvent.setup();
     const projectHandle = { kind: 'directory', name: 'md-viewer' } as FileSystemDirectoryHandle;
@@ -1839,7 +1874,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/empty-ai-docs'));
 
-    await waitFor(() => expect(screen.getByText('这个项目目录里没有找到 Markdown、HTML 或 JSON 文件。')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('这个项目根目录没有可显示的文件或子目录。')).toBeInTheDocument());
     expect(screen.queryAllByRole('heading', { name: 'docs/01-intro.md' })).toHaveLength(0);
     expect(screen.getByRole('heading', { name: '打开本地文件夹' })).toBeInTheDocument();
   });

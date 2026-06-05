@@ -73,12 +73,12 @@ import {
   loadLastDocument,
   requestDirectoryReadPermission,
   saveLastDocument,
-  selectRememberedDocumentPath,
   type LastDocumentRecord,
 } from './recentDocument';
 import { JsonDocumentReader } from './JsonDocumentReader';
 import {
   createEmptyLazyFileTree,
+  type LazyFileTreeState,
   markDirectoryError,
   markDirectoryLoading,
   pruneExpandedPaths,
@@ -160,9 +160,8 @@ export function App() {
   const [activePath, setActivePath] = useState<string | null>(null);
   const [activeAiProjectId, setActiveAiProjectId] = useState<string | null>(null);
   const [aiProjectState, setAiProjectState] = useState<AiProjectState>(EMPTY_AI_PROJECT_STATE);
-  const [aiProjectTrees, setAiProjectTrees] = useState<Record<string, FileTreeNode[]>>({});
+  const [aiProjectTrees, setAiProjectTrees] = useState<Record<string, LazyFileTreeState>>({});
   const [aiProjectActivePaths, setAiProjectActivePaths] = useState<Record<string, string | null>>({});
-  const [aiProjectExpandedPaths, setAiProjectExpandedPaths] = useState<Record<string, string[]>>({});
   const [aiProjectStatus, setAiProjectStatus] = useState<string | null>(null);
   const [activeDocumentSource, setActiveDocumentSource] = useState<DocumentSource>(null);
   const [activeDocumentKind, setActiveDocumentKind] = useState<ActiveDocumentKind>('markdown');
@@ -179,6 +178,7 @@ export function App() {
   const [largeAnchorLine, setLargeAnchorLine] = useState(1);
   const openRequestIdRef = useRef(0);
   const folderScanSessionRef = useRef<DirectoryScanSession | null>(null);
+  const aiProjectScanSessionsRef = useRef<Record<string, DirectoryScanSession>>({});
   const renderedContentRef = useRef<HTMLDivElement | null>(null);
   const htmlPreviewRef = useRef<HTMLIFrameElement | null>(null);
   const htmlPreviewLastRenderRef = useRef<{ key: string; target: Window | null } | null>(null);
@@ -190,7 +190,7 @@ export function App() {
   const outlineVisible = settings.reading.showOutline && activeDocumentKind === 'markdown';
   const activeNavigationTree = useMemo(() => {
     if (activeDocumentSource?.type === 'ai-project') {
-      return aiProjectTrees[activeDocumentSource.projectId] ?? [];
+      return convertLoadedLazyTreeToFileTreeNodes(aiProjectTrees[activeDocumentSource.projectId]?.nodes ?? []);
     }
 
     return activeDocumentSource?.type === 'folder' ? convertLoadedLazyTreeToFileTreeNodes(folderTree.nodes) : [];
@@ -997,12 +997,18 @@ export function App() {
       let rememberedPath: string | null;
 
       if (source.type === 'ai-project') {
-        const nextTree = await scanMarkdownDirectory(record.directoryHandle);
+        const scanSession = createDirectoryScanSession(record.directoryHandle);
+        const hydrated = await hydrateDirectoryPath(scanSession, record.path);
         if (!isCurrentOpenRequest(requestId)) {
           return;
         }
 
-        rememberedPath = selectRememberedDocumentPath(nextTree, record.path);
+        const nextTree = upsertLoadedPath(createEmptyLazyFileTree(), record.path, hydrated);
+        rememberedPath = selectRememberedLoadedDocument(nextTree.nodes, record.path);
+        aiProjectScanSessionsRef.current = {
+          ...aiProjectScanSessionsRef.current,
+          [source.projectId]: scanSession,
+        };
         setActiveAiProjectId(source.projectId);
         setAiProjectTrees((current) => ({ ...current, [source.projectId]: nextTree }));
         setAiProjectActivePaths((current) => ({ ...current, [source.projectId]: rememberedPath }));
@@ -1150,9 +1156,9 @@ export function App() {
 
   async function clearAiProjects() {
     setAiProjectState(EMPTY_AI_PROJECT_STATE);
+    aiProjectScanSessionsRef.current = {};
     setAiProjectTrees({});
     setAiProjectActivePaths({});
-    setAiProjectExpandedPaths({});
     setActiveAiProjectId(null);
     setAiProjectStatus('已清空 AI 项目记录。');
     await clearAiProjectState();
@@ -1292,11 +1298,13 @@ export function App() {
     openDefaultFile: boolean,
     requestId: number,
   ) {
-    const nextTree = await scanMarkdownDirectory(handle);
+    const scanSession = createDirectoryScanSession(handle);
+    const rootChildren = await scanSession.scanChildren('');
     if (!isCurrentOpenRequest(requestId)) {
       return;
     }
 
+    const nextTree = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
     const nextState = mergeAiProjectDirectory(aiProjectState, project, handle);
 
     setAiProjectState(nextState);
@@ -1305,16 +1313,21 @@ export function App() {
       return;
     }
 
+    aiProjectScanSessionsRef.current = {
+      ...aiProjectScanSessionsRef.current,
+      [project.id]: scanSession,
+    };
     setActiveAiProjectId(project.id);
     setAiProjectTrees((current) => ({ ...current, [project.id]: nextTree }));
     setDrawerTab('ai-projects');
     openFileDrawer();
-    setAiProjectStatus(nextTree.length ? null : '这个项目目录里没有找到 Markdown、HTML 或 JSON 文件。');
+    setAiProjectStatus(nextTree.nodes.length ? null : '这个项目根目录没有可显示的文件或子目录。');
 
     const projectActivePath = aiProjectActivePaths[project.id] ?? null;
-    const treeAnalysis = analyzeDocumentTree(nextTree, projectActivePath);
-    const activeFileExists = treeAnalysis.containsPath;
-    const defaultPath = treeAnalysis.defaultPath;
+    const activeFileExists = projectActivePath
+      ? selectLoadedDocumentExists(nextTree.nodes, projectActivePath)
+      : false;
+    const defaultPath = selectDefaultLoadedDocument(nextTree.nodes);
     const source: DocumentSource = { type: 'ai-project', projectId: project.id, handle };
     const pathToOpen = activeFileExists ? projectActivePath : defaultPath;
 
@@ -1331,6 +1344,43 @@ export function App() {
     if (!defaultPath) {
       setAiProjectActivePaths((current) => ({ ...current, [project.id]: null }));
       clearReaderForSource(source);
+    }
+  }
+
+  async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
+    const scanSession = aiProjectScanSessionsRef.current[project.id];
+    if (!scanSession) {
+      return;
+    }
+
+    setAiProjectTrees((current) => ({
+      ...current,
+      [project.id]: markDirectoryLoading(current[project.id] ?? createEmptyLazyFileTree(), path),
+    }));
+
+    try {
+      const children = await scanSession.scanChildren(path);
+      if (aiProjectScanSessionsRef.current[project.id] !== scanSession) {
+        return;
+      }
+
+      setAiProjectTrees((current) => ({
+        ...current,
+        [project.id]: replaceDirectoryChildren(current[project.id] ?? createEmptyLazyFileTree(), path, children),
+      }));
+    } catch (err) {
+      if (aiProjectScanSessionsRef.current[project.id] !== scanSession) {
+        return;
+      }
+
+      setAiProjectTrees((current) => ({
+        ...current,
+        [project.id]: markDirectoryError(
+          current[project.id] ?? createEmptyLazyFileTree(),
+          path,
+          err instanceof Error ? err.message : '无法读取目录。',
+        ),
+      }));
     }
   }
 
@@ -1734,7 +1784,6 @@ export function App() {
           aiProjectSources={aiProjectState.sources}
           aiProjectTrees={aiProjectTrees}
           aiProjectActivePaths={aiProjectActivePaths}
-          aiProjectExpandedPaths={aiProjectExpandedPaths}
           aiProjectStatus={aiProjectStatus}
           activeAiProjectId={activeAiProjectId}
           onOpenFolder={openFolder}
@@ -1747,8 +1796,12 @@ export function App() {
           onOpenAiProject={(project) => void openAiProject(project)}
           onReloadAiProject={(project) => void reloadAiProject(project)}
           onAiProjectExpandedPathsChange={(project, paths) =>
-            setAiProjectExpandedPaths((current) => ({ ...current, [project.id]: paths }))
+            setAiProjectTrees((current) => ({
+              ...current,
+              [project.id]: setLazyExpandedPaths(current[project.id] ?? createEmptyLazyFileTree(), paths),
+            }))
           }
+          onLoadProjectDirectory={(project, path) => void loadAiProjectDirectory(project, path)}
           onSelectAiProjectFile={selectAiProjectFile}
           onClose={() => setDrawerOpen(false)}
           onSelect={(path) => {
@@ -1923,32 +1976,6 @@ function convertLoadedLazyTreeToFileTreeNodes(nodes: LazyFileTreeNode[]): FileTr
       path: node.path,
       children: convertLoadedLazyTreeToFileTreeNodes(node.children),
     }];
-  });
-}
-
-function convertFileTreeNodesToLoadedLazyState(nodes: FileTreeNode[]) {
-  return replaceDirectoryChildren(createEmptyLazyFileTree(), '', convertFileTreeNodesToLazyNodes(nodes));
-}
-
-function convertFileTreeNodesToLazyNodes(nodes: FileTreeNode[]): LazyFileTreeNode[] {
-  return nodes.map((node) => {
-    if (node.type === 'file') {
-      return {
-        id: node.path,
-        type: 'file',
-        name: node.name,
-        path: node.path,
-      };
-    }
-
-    return {
-      id: node.path,
-      type: 'directory',
-      name: node.name,
-      path: node.path,
-      loadState: 'loaded',
-      children: convertFileTreeNodesToLazyNodes(node.children),
-    };
   });
 }
 

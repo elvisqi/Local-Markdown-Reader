@@ -4,30 +4,32 @@ import { useState } from 'react';
 
 import { FileDrawer } from './FileDrawer';
 import type { AiProjectEntry } from '../aiProjects';
-import type { FileTreeNode } from '../../shared/types';
+import type { LazyFileTreeNode } from '../../shared/types';
+import { createEmptyLazyFileTree, replaceDirectoryChildren, setExpandedPaths, type LazyFileTreeState } from '../lazyFileTree';
 
 const defaultProps = {
   open: true,
-  tree: [],
+  tree: [] as LazyFileTreeNode[],
   activePath: null,
-  expandedPaths: [],
+  expandedPaths: new Set<string>(),
   activeTab: 'folder' as const,
   aiProjects: [],
   aiProjectSources: {},
   aiProjectStatus: null,
   activeAiProjectId: null,
-  aiProjectTrees: {},
+  aiProjectTrees: {} as Record<string, LazyFileTreeState>,
   aiProjectActivePaths: {},
-  aiProjectExpandedPaths: {},
   onOpenFolder: vi.fn(),
   onReloadFolder: vi.fn(),
   onFolderExpandedPathsChange: vi.fn(),
+  onLoadFolderDirectory: vi.fn(),
   onTabChange: vi.fn(),
   onOpenAiProjectSettings: vi.fn(),
   onClearAiProjects: vi.fn(),
   onOpenAiProject: vi.fn(),
   onReloadAiProject: vi.fn(),
   onAiProjectExpandedPathsChange: vi.fn(),
+  onLoadProjectDirectory: vi.fn(),
   onSelectAiProjectFile: vi.fn(),
   onClose: vi.fn(),
   onSelect: vi.fn(),
@@ -40,7 +42,7 @@ type StatefulAiProjectDrawerProps = {
   onReloadAiProject: (project: AiProjectEntry) => void;
   onSelectAiProjectFile: (project: AiProjectEntry, path: string) => void;
   project: AiProjectEntry;
-  tree: FileTreeNode[];
+  tree: LazyFileTreeState;
 };
 
 function StatefulAiProjectDrawer({
@@ -50,7 +52,7 @@ function StatefulAiProjectDrawer({
   project,
   tree,
 }: StatefulAiProjectDrawerProps) {
-  const [expandedPaths, setExpandedPaths] = useState<Record<string, string[]>>({});
+  const [projectTrees, setProjectTrees] = useState<Record<string, LazyFileTreeState>>({ [project.id]: tree });
 
   return (
     <FileDrawer
@@ -59,15 +61,25 @@ function StatefulAiProjectDrawer({
       activeAiProjectId={project.id}
       aiProjectActivePaths={{ [project.id]: activePath }}
       aiProjects={[project]}
-      aiProjectTrees={{ [project.id]: tree }}
-      aiProjectExpandedPaths={expandedPaths}
+      aiProjectTrees={projectTrees}
       onAiProjectExpandedPathsChange={(nextProject, paths) => {
-        setExpandedPaths((current) => ({ ...current, [nextProject.id]: paths }));
+        setProjectTrees((current) => ({
+          ...current,
+          [nextProject.id]: setExpandedPaths(current[nextProject.id] ?? createEmptyLazyFileTree(), paths),
+        }));
       }}
       onReloadAiProject={onReloadAiProject}
       onSelectAiProjectFile={onSelectAiProjectFile}
     />
   );
+}
+
+function loadedLazyTree(nodes: LazyFileTreeNode[], expandedPaths: Iterable<string> = []): LazyFileTreeState {
+  return setExpandedPaths(replaceDirectoryChildren(createEmptyLazyFileTree(), '', nodes), expandedPaths);
+}
+
+function getFileTreeItem(name: string): HTMLElement {
+  return screen.queryByRole('treeitem', { name }) ?? screen.getByRole('button', { name });
 }
 
 describe('FileDrawer', () => {
@@ -260,24 +272,25 @@ describe('FileDrawer', () => {
       <StatefulAiProjectDrawer
         activePath="README.md"
         project={project}
-        tree={[
-          { type: 'file', name: 'README.md', path: 'README.md' },
+        tree={loadedLazyTree([
+          { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
           {
+            id: 'docs',
             type: 'directory',
             name: 'docs',
             path: 'docs',
-            children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+            loadState: 'loaded',
+            children: [{ id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
           },
-        ]}
+        ], ['docs'])}
         onReloadAiProject={onReloadAiProject}
         onSelectAiProjectFile={onSelectAiProjectFile}
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'README.md' })).toHaveAttribute('aria-current', 'page');
+    expect(getFileTreeItem('README.md')).toHaveAttribute('aria-current', 'page');
 
-    await user.click(screen.getByText('docs'));
-    await user.click(screen.getByRole('button', { name: 'guide.md' }));
+    await user.click(getFileTreeItem('guide.md'));
 
     expect(onSelectAiProjectFile).toHaveBeenCalledWith(project, 'docs/guide.md');
 
@@ -346,13 +359,13 @@ describe('FileDrawer', () => {
         aiProjectActivePaths={{ [projectB.id]: 'guide.md' }}
         aiProjects={[projectA, projectB]}
         aiProjectTrees={{
-          [projectA.id]: [{ type: 'file', name: 'README.md', path: 'README.md' }],
-          [projectB.id]: [{ type: 'file', name: 'guide.md', path: 'guide.md' }],
+          [projectA.id]: loadedLazyTree([{ id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' }]),
+          [projectB.id]: loadedLazyTree([{ id: 'guide.md', type: 'file', name: 'guide.md', path: 'guide.md' }]),
         }}
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'README.md' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'guide.md' })).toHaveAttribute('aria-current', 'page');
+    expect(getFileTreeItem('README.md')).toBeInTheDocument();
+    expect(getFileTreeItem('guide.md')).toHaveAttribute('aria-current', 'page');
   });
 });
