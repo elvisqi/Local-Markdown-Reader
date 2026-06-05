@@ -49,6 +49,12 @@ describe('table layout styles', () => {
     expect(getRule('.file-tree__directory[aria-expanded="true"]::before')).toMatch(/transform:\s*rotate\(90deg\)/);
   });
 
+  it('styles virtualized Arborist file tree rows without resizing content', () => {
+    expect(getRule('.file-tree__row')).toMatch(/display:\s*flex/);
+    expect(getRule('.file-tree__row:active')).toMatch(/transform:\s*translateY\(1px\)/);
+    expect(getRule('.file-tree__name')).toMatch(/text-overflow:\s*ellipsis/);
+  });
+
   it('keeps long code lines from widening the reader grid', () => {
     expect(getRule('.document-reader')).toMatch(/min-width:\s*0/);
     expect(getRule('.document-reader > div')).toMatch(/min-width:\s*0/);

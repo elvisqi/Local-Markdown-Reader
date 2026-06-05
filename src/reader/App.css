@@ -339,6 +339,69 @@ select {
   scrollbar-gutter: stable;
 }
 
+.file-tree--arborist {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+.file-tree__row {
+  align-items: center;
+  border-radius: 6px;
+  color: inherit;
+  cursor: default;
+  display: flex;
+  font-size: 0.88rem;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0 0.4rem;
+}
+
+.file-tree__node {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+  height: 100%;
+  min-width: 0;
+}
+
+.file-tree__row:hover {
+  background: color-mix(in srgb, var(--reader-link) 10%, transparent);
+}
+
+.file-tree__row.is-active {
+  background: color-mix(in srgb, var(--reader-link) 16%, transparent);
+  color: var(--reader-link);
+  font-weight: 600;
+}
+
+.file-tree__row:active {
+  transform: translateY(1px);
+}
+
+.file-tree__disclosure {
+  flex: 0 0 1rem;
+  text-align: center;
+}
+
+.file-tree__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-tree__state {
+  color: var(--reader-muted);
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  margin-left: auto;
+}
+
+.file-tree__state.is-error {
+  color: color-mix(in srgb, #d92d20 80%, var(--reader-text));
+}
+
 .ai-projects {
   gap: 12px;
 }
