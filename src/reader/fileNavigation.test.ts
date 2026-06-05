@@ -1,5 +1,5 @@
-import type { FileTreeNode } from '../shared/types';
-import { selectSiblingDocumentNavigation } from './fileNavigation';
+import type { FileTreeNode, LazyFileTreeNode } from '../shared/types';
+import { selectSiblingDocumentNavigation, selectSiblingDocumentNavigationFromLazyTree } from './fileNavigation';
 
 describe('selectSiblingDocumentNavigation', () => {
   const tree: FileTreeNode[] = [
@@ -51,6 +51,27 @@ describe('selectSiblingDocumentNavigation', () => {
   it('returns empty navigation when the active path is missing', () => {
     expect(selectSiblingDocumentNavigation(tree, 'missing.md')).toEqual({
       previous: null,
+      next: null,
+    });
+  });
+
+  it('selects sibling document navigation from loaded lazy directory branches', () => {
+    const lazyTree: LazyFileTreeNode[] = [
+      {
+        id: 'docs',
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        loadState: 'loaded',
+        children: [
+          { id: 'docs/a.md', type: 'file', name: 'a.md', path: 'docs/a.md' },
+          { id: 'docs/b.md', type: 'file', name: 'b.md', path: 'docs/b.md' },
+        ],
+      },
+    ];
+
+    expect(selectSiblingDocumentNavigationFromLazyTree(lazyTree, 'docs/b.md')).toEqual({
+      previous: { name: 'a.md', path: 'docs/a.md' },
       next: null,
     });
   });

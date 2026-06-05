@@ -6,10 +6,8 @@ import type {
 } from 'react';
 
 import {
-  analyzeDocumentTree,
   getDocumentFileKind,
   selectDefaultLoadedDocument,
-  selectDefaultDocument,
   selectRememberedLoadedDocument,
 } from '../shared/fileSystem';
 import { renderHtmlDocument } from '../shared/render/html';
@@ -17,7 +15,7 @@ import { resolveMarkdownHref } from '../shared/render/links';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, subscribeSettings } from '../shared/settings';
 import { consumeTemporaryMarkdownDocument, type TemporaryMarkdownDocument } from '../shared/temporaryDocument';
-import type { FileTreeNode, LazyFileTreeNode, OutlineItem, RenderResult } from '../shared/types';
+import type { LazyFileTreeNode, OutlineItem, RenderResult } from '../shared/types';
 import { selectActiveHeadingId } from './activeHeading';
 import {
   clearAiProjectState,
@@ -33,7 +31,7 @@ import { FileDrawer } from './components/FileDrawer';
 import { LargeDocumentReader } from './components/LargeDocumentReader';
 import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
-import { selectSiblingMarkdownNavigation } from './fileNavigation';
+import { selectSiblingDocumentNavigationFromLazyTree } from './fileNavigation';
 import {
   createDirectoryScanSession,
   hydrateDirectoryPath,
@@ -43,7 +41,6 @@ import {
   readAssetFile,
   readDocumentFileSnapshot,
   readMarkdownFileSlice,
-  scanMarkdownDirectory,
   type DirectoryScanSession,
   type DocumentFileSnapshot,
 } from './fileSystemAccess';
@@ -190,13 +187,13 @@ export function App() {
   const outlineVisible = settings.reading.showOutline && activeDocumentKind === 'markdown';
   const activeNavigationTree = useMemo(() => {
     if (activeDocumentSource?.type === 'ai-project') {
-      return convertLoadedLazyTreeToFileTreeNodes(aiProjectTrees[activeDocumentSource.projectId]?.nodes ?? []);
+      return aiProjectTrees[activeDocumentSource.projectId]?.nodes ?? [];
     }
 
-    return activeDocumentSource?.type === 'folder' ? convertLoadedLazyTreeToFileTreeNodes(folderTree.nodes) : [];
+    return activeDocumentSource?.type === 'folder' ? folderTree.nodes : [];
   }, [activeDocumentSource, aiProjectTrees, folderTree.nodes]);
   const fileNavigation = useMemo(
-    () => selectSiblingMarkdownNavigation(activeNavigationTree, activePath),
+    () => selectSiblingDocumentNavigationFromLazyTree(activeNavigationTree, activePath),
     [activeNavigationTree, activePath],
   );
   useEffect(() => {
@@ -1956,27 +1953,8 @@ function flattenOutlineIds(outline: OutlineItem[]): string[] {
   return outline.flatMap((item) => [item.id, ...flattenOutlineIds(item.children)]);
 }
 
-function isDocumentPathInTree(tree: FileTreeNode[], path: string): boolean {
-  return analyzeDocumentTree(tree, path).containsPath;
-}
-
-function convertLoadedLazyTreeToFileTreeNodes(nodes: LazyFileTreeNode[]): FileTreeNode[] {
-  return nodes.flatMap((node): FileTreeNode[] => {
-    if (node.type === 'file') {
-      return [{ type: 'file', name: node.name, path: node.path }];
-    }
-
-    if (node.loadState !== 'loaded') {
-      return [];
-    }
-
-    return [{
-      type: 'directory',
-      name: node.name,
-      path: node.path,
-      children: convertLoadedLazyTreeToFileTreeNodes(node.children),
-    }];
-  });
+function isDocumentPathInTree(tree: LazyFileTreeNode[], path: string): boolean {
+  return selectLoadedDocumentExists(tree, path);
 }
 
 function selectPathDepth(path: string): number {
