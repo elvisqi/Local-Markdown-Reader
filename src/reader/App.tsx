@@ -10,6 +10,7 @@ import {
   getDocumentFileKind,
   selectDefaultLoadedDocument,
   selectDefaultDocument,
+  selectRememberedLoadedDocument,
 } from '../shared/fileSystem';
 import { renderHtmlDocument } from '../shared/render/html';
 import { resolveMarkdownHref } from '../shared/render/links';
@@ -35,6 +36,7 @@ import { ReaderToolbar } from './components/ReaderToolbar';
 import { selectSiblingMarkdownNavigation } from './fileNavigation';
 import {
   createDirectoryScanSession,
+  hydrateDirectoryPath,
   isStaleLoadedDirectoryError,
   openDirectory,
   openDocumentFile,
@@ -83,6 +85,7 @@ import {
   replaceDirectoryChildren,
   selectLoadedDocumentExists,
   setExpandedPaths as setLazyExpandedPaths,
+  upsertLoadedPath,
 } from './lazyFileTree';
 import { RenderedMarkdownContent } from './RenderedMarkdownContent';
 import { installTableFullscreen } from './tableFullscreen';
@@ -988,25 +991,34 @@ export function App() {
     setStatus(`正在恢复上次文档：${record.path}`);
 
     try {
-      const nextTree = await scanMarkdownDirectory(record.directoryHandle);
-      if (!isCurrentOpenRequest(requestId)) {
-        return;
-      }
-
-      const rememberedPath = selectRememberedDocumentPath(nextTree, record.path);
       const source: DocumentSource = record.source === 'ai-project' && record.aiProjectId
         ? { type: 'ai-project', projectId: record.aiProjectId, handle: record.directoryHandle }
         : { type: 'folder', handle: record.directoryHandle };
+      let rememberedPath: string | null;
 
       if (source.type === 'ai-project') {
+        const nextTree = await scanMarkdownDirectory(record.directoryHandle);
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
+
+        rememberedPath = selectRememberedDocumentPath(nextTree, record.path);
         setActiveAiProjectId(source.projectId);
         setAiProjectTrees((current) => ({ ...current, [source.projectId]: nextTree }));
         setAiProjectActivePaths((current) => ({ ...current, [source.projectId]: rememberedPath }));
         setDrawerTab('ai-projects');
       } else {
+        const scanSession = createDirectoryScanSession(record.directoryHandle);
+        const hydrated = await hydrateDirectoryPath(scanSession, record.path);
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
+
+        const nextTree = upsertLoadedPath(createEmptyLazyFileTree(), record.path, hydrated);
+        rememberedPath = selectRememberedLoadedDocument(nextTree.nodes, record.path);
+        folderScanSessionRef.current = scanSession;
         setFolderDirectoryHandle(record.directoryHandle);
-        folderScanSessionRef.current = null;
-        setFolderTree(convertFileTreeNodesToLoadedLazyState(nextTree));
+        setFolderTree(nextTree);
         setFolderActivePath(rememberedPath);
         setActiveAiProjectId(null);
       }

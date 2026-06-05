@@ -92,6 +92,11 @@ export type DirectoryScanSession = {
   scanChildren: (directoryPath: string) => Promise<LazyFileTreeNode[]>;
 };
 
+export type HydratedDirectorySegment = {
+  path: string;
+  children: LazyFileTreeNode[];
+};
+
 export function isStaleLoadedDirectoryError(err: unknown): boolean {
   return err instanceof Error && err.message.startsWith('Directory handle not loaded: ');
 }
@@ -118,6 +123,31 @@ export function createDirectoryScanSession(rootHandle: DirectoryLike): Directory
 
 export async function scanDirectoryChildren(handle: DirectoryLike, directoryPath: string): Promise<LazyFileTreeNode[]> {
   return createDirectoryScanSession(handle).scanChildren(directoryPath);
+}
+
+export async function hydrateDirectoryPath(
+  scanSession: DirectoryScanSession,
+  documentPath: string,
+): Promise<HydratedDirectorySegment[]> {
+  const parts = documentPath.split('/').filter(Boolean);
+  const segments: HydratedDirectorySegment[] = [
+    { path: '', children: await scanSession.scanChildren('') },
+  ];
+
+  const directoryPaths = parts.slice(0, -1).map((_, index) => parts.slice(0, index + 1).join('/'));
+  for (const directoryPath of directoryPaths) {
+    try {
+      segments.push({ path: directoryPath, children: await scanSession.scanChildren(directoryPath) });
+    } catch (err) {
+      if (!isStaleLoadedDirectoryError(err)) {
+        throw err;
+      }
+
+      break;
+    }
+  }
+
+  return segments;
 }
 
 export async function readMarkdownFile(handle: DirectoryLike, path: string): Promise<string> {

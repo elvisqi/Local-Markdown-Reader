@@ -101,6 +101,31 @@ function toLoadedLazyFileTree(nodes: FileTreeNode[]): LazyFileTreeNode[] {
   });
 }
 
+function toHydratedLazySegments(nodes: FileTreeNode[], documentPath: string): Array<{ path: string; children: LazyFileTreeNode[] }> {
+  const parts = documentPath.split('/').filter(Boolean);
+  const segments: Array<{ path: string; children: LazyFileTreeNode[] }> = [
+    { path: '', children: toLoadedLazyFileTree(nodes) },
+  ];
+  let currentNodes = nodes;
+  const currentPath: string[] = [];
+
+  for (const part of parts.slice(0, -1)) {
+    currentPath.push(part);
+    const directory = currentNodes.find((node) => node.type === 'directory' && node.name === part);
+    if (!directory || directory.type !== 'directory') {
+      break;
+    }
+
+    currentNodes = directory.children;
+    segments.push({
+      path: currentPath.join('/'),
+      children: toLoadedLazyFileTree(currentNodes),
+    });
+  }
+
+  return segments;
+}
+
 describe('App file navigation and drawer behavior', () => {
   const directoryHandle = { name: 'Docs' } as FileSystemDirectoryHandle;
   const tree: FileTreeNode[] = [
@@ -140,7 +165,9 @@ describe('App file navigation and drawer behavior', () => {
         return toLoadedLazyFileTree(await fileSystemAccess.scanMarkdownDirectory(handle));
       }),
     }));
-    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockResolvedValue([]);
+    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockImplementation(async (_scanSession, path) =>
+      toHydratedLazySegments(await fileSystemAccess.scanMarkdownDirectory(directoryHandle), path),
+    );
     vi.mocked(fileSystemAccess.readDocumentFile).mockImplementation(async (_handle, path) => `# ${path}`);
     vi.mocked(fileSystemAccess.readAssetFile).mockResolvedValue(null);
     vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
@@ -483,6 +510,50 @@ describe('App file navigation and drawer behavior', () => {
 
     expect(scanChildren).toHaveBeenLastCalledWith('docs');
     expect(await screen.findByRole('treeitem', { name: 'guide.md' })).toBeInTheDocument();
+  });
+
+  it('restores the remembered folder document without recursively scanning the full directory', async () => {
+    const record = {
+      directoryHandle: { kind: 'directory', name: 'Docs' } as FileSystemDirectoryHandle,
+      directoryName: 'Docs',
+      path: 'docs/guides/install.md',
+      updatedAt: Date.now(),
+      source: 'folder' as const,
+    };
+    const scanSession = { scanChildren: vi.fn() };
+    const file = new File(['# Install'], 'install.md', { type: 'text/markdown' });
+    vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(record);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue(scanSession);
+    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockResolvedValue([
+      {
+        path: '',
+        children: [{ id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'loaded' }],
+      },
+      {
+        path: 'docs',
+        children: [{ id: 'docs/guides', type: 'directory', name: 'guides', path: 'docs/guides', children: [], loadState: 'loaded' }],
+      },
+      {
+        path: 'docs/guides',
+        children: [{ id: 'docs/guides/install.md', type: 'file', name: 'install.md', path: 'docs/guides/install.md' }],
+      },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'docs/guides/install.md',
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+      file,
+    });
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Install' })).not.toHaveLength(0));
+
+    expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(record.directoryHandle);
+    expect(fileSystemAccess.hydrateDirectoryPath).toHaveBeenCalledWith(scanSession, 'docs/guides/install.md');
+    expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
   });
 
   it('falls back to the default drawer layout when local layout preferences are malformed', async () => {
@@ -3282,6 +3353,17 @@ describe('App file navigation and drawer behavior', () => {
       updatedAt: 456,
     };
     vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(rememberedRecord);
+    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockResolvedValue([
+      {
+        path: '',
+        children: [{ id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'loaded' }],
+      },
+      {
+        path: 'docs',
+        children: [{ id: 'docs/02-design.md', type: 'file', name: '02-design.md', path: 'docs/02-design.md' }],
+      },
+    ]);
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockClear();
     vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue(null);
     window.history.replaceState(null, '', '/reader.html?temporaryDocument=temp-1');
 
@@ -3289,7 +3371,8 @@ describe('App file navigation and drawer behavior', () => {
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/02-design.md' })).not.toHaveLength(0));
     expect(temporaryDocument.consumeTemporaryMarkdownDocument).toHaveBeenCalledWith('temp-1');
-    expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledWith(directoryHandle);
+    expect(fileSystemAccess.hydrateDirectoryPath).toHaveBeenCalledWith(expect.any(Object), 'docs/02-design.md');
+    expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
   });
 
   it('copies markdown source from raw mode inside the document page', async () => {

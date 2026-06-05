@@ -1,5 +1,6 @@
 import {
   createDirectoryScanSession,
+  hydrateDirectoryPath,
   openMarkdownFile,
   openDocumentFile,
   readMarkdownFile,
@@ -139,6 +140,38 @@ describe('fileSystemAccess', () => {
     expect(rootEntries).toHaveBeenCalledTimes(1);
     expect(docsEntries).toHaveBeenCalledTimes(1);
     expect(guidesEntries).toHaveBeenCalledTimes(1);
+  });
+
+  it('hydrates direct children along a remembered document path', async () => {
+    const root = dir('root', [dir('docs', [dir('guides', [file('install.md')])])]);
+    const scanSession = createDirectoryScanSession(root as unknown as FileSystemDirectoryHandle);
+
+    await expect(hydrateDirectoryPath(scanSession, 'docs/guides/install.md')).resolves.toEqual([
+      {
+        path: '',
+        children: [{ id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' }],
+      },
+      {
+        path: 'docs',
+        children: [{ id: 'docs/guides', type: 'directory', name: 'guides', path: 'docs/guides', children: [], loadState: 'unloaded' }],
+      },
+      {
+        path: 'docs/guides',
+        children: [{ id: 'docs/guides/install.md', type: 'file', name: 'install.md', path: 'docs/guides/install.md' }],
+      },
+    ]);
+  });
+
+  it('returns loaded ancestors when a remembered directory no longer exists', async () => {
+    const root = dir('root', [file('README.md')]);
+    const scanSession = createDirectoryScanSession(root as unknown as FileSystemDirectoryHandle);
+
+    await expect(hydrateDirectoryPath(scanSession, 'docs/guides/install.md')).resolves.toEqual([
+      {
+        path: '',
+        children: [{ id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' }],
+      },
+    ]);
   });
 
   it('reads a nested Markdown file by path', async () => {
