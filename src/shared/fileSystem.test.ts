@@ -1,4 +1,4 @@
-import type { FileTreeNode } from './types';
+import type { FileTreeNode, LazyFileTreeNode } from './types';
 import {
   analyzeDocumentTree,
   flattenDocumentFiles,
@@ -9,8 +9,12 @@ import {
   isReadableDocumentFile,
   normalizePath,
   selectDefaultDocument,
+  selectDefaultLoadedDocument,
+  selectPathAncestors,
+  selectRememberedLoadedDocument,
   shouldIgnoreDirectory,
   sortFileEntries,
+  sortLazyFileTreeNodes,
 } from './fileSystem';
 
 describe('file system helpers', () => {
@@ -174,5 +178,54 @@ describe('file system helpers', () => {
       { name: 'api.html', path: 'docs/api.html' },
       { name: 'data.json', path: 'docs/data.json' },
     ]);
+  });
+});
+
+describe('lazy file tree helpers', () => {
+  it('selects directory ancestors for a document path', () => {
+    expect(selectPathAncestors('docs/guides/install.md')).toEqual(['docs', 'docs/guides']);
+    expect(selectPathAncestors('README.md')).toEqual([]);
+  });
+
+  it('sorts lazy directories before files using existing name collation', () => {
+    const nodes: LazyFileTreeNode[] = [
+      { id: 'z.md', type: 'file', name: 'z.md', path: 'z.md' },
+      { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+      { id: 'a.md', type: 'file', name: 'a.md', path: 'a.md' },
+    ];
+
+    expect(sortLazyFileTreeNodes(nodes).map((node) => node.name)).toEqual(['docs', 'a.md', 'z.md']);
+  });
+
+  it('selects a default file from loaded lazy nodes only', () => {
+    const nodes: LazyFileTreeNode[] = [
+      { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ];
+
+    expect(selectDefaultLoadedDocument(nodes)).toBe('README.md');
+  });
+
+  it('keeps a remembered file when that file exists in loaded lazy nodes', () => {
+    const nodes: LazyFileTreeNode[] = [
+      {
+        id: 'docs',
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [{ id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+        loadState: 'loaded',
+      },
+    ];
+
+    expect(selectRememberedLoadedDocument(nodes, 'docs/guide.md')).toBe('docs/guide.md');
+  });
+
+  it('falls back to the default loaded document when the remembered file is missing', () => {
+    const nodes: LazyFileTreeNode[] = [
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ];
+
+    expect(selectRememberedLoadedDocument(nodes, 'missing.md')).toBe('README.md');
   });
 });

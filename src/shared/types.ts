@@ -67,6 +67,25 @@ export type FileTreeNode =
       path: string;
     };
 
+export type LazyDirectoryLoadState = 'unloaded' | 'loading' | 'loaded' | 'error';
+
+export type LazyFileTreeNode =
+  | {
+      id: string;
+      type: 'directory';
+      name: string;
+      path: string;
+      children: LazyFileTreeNode[];
+      loadState: LazyDirectoryLoadState;
+      errorMessage?: string;
+    }
+  | {
+      id: string;
+      type: 'file';
+      name: string;
+      path: string;
+    };
+
 export type DocumentFileEntry = {
   name: string;
   path: string;
