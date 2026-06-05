@@ -43,10 +43,9 @@ describe('table layout styles', () => {
     expect(css).toMatch(/box-shadow:\s*inset 0 1px 2px rgba\(18,\s*26,\s*36,\s*0\.16\)/);
   });
 
-  it('shows disclosure arrows for file tree directory buttons', () => {
-    expect(getRule('.file-tree__directory')).toMatch(/display:\s*flex/);
-    expect(getRule('.file-tree__directory::before')).toMatch(/content:\s*"▶"/);
-    expect(getRule('.file-tree__directory[aria-expanded="true"]::before')).toMatch(/transform:\s*rotate\(90deg\)/);
+  it('shows disclosure affordances for Arborist file tree directories', () => {
+    expect(getRule('.file-tree__disclosure')).toMatch(/flex:\s*0 0 1rem/);
+    expect(getRule('.file-tree__disclosure')).toMatch(/text-align:\s*center/);
   });
 
   it('styles virtualized Arborist file tree rows without resizing content', () => {

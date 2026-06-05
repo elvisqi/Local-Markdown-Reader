@@ -88,6 +88,26 @@ describe('ArboristFileTree', () => {
     expect(screen.queryByRole('treeitem', { name: 'guide.md' })).not.toBeInTheDocument();
   });
 
+  it('lets users collapse the directory containing the active file', async () => {
+    const user = userEvent.setup();
+    const onExpandedPathsChange = vi.fn();
+
+    render(
+      <ArboristFileTree
+        nodes={tree}
+        activePath="docs/guide.md"
+        expandedPaths={new Set(['docs'])}
+        onExpandedPathsChange={onExpandedPathsChange}
+        onLoadDirectory={vi.fn()}
+        onSelectFile={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('treeitem', { name: 'docs' }));
+
+    expect(onExpandedPathsChange).toHaveBeenCalledWith(new Set());
+  });
+
   it('syncs externally controlled expanded paths without reporting a user toggle', () => {
     const onExpandedPathsChange = vi.fn();
     const { rerender } = render(

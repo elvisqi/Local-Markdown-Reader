@@ -31,8 +31,6 @@ select {
 .ai-projects__toolbar button:active:not(:disabled),
 .ai-project-row__main:active:not(:disabled),
 .ai-project-row__reload:active:not(:disabled),
-.file-tree__directory:active:not(:disabled),
-.file-tree__file:active:not(:disabled),
 .outline-panel button:active:not(:disabled),
 .raw-source__toolbar button:active:not(:disabled),
 .table-fullscreen__trigger:active:not(:disabled),
@@ -534,64 +532,12 @@ select {
   overflow: visible;
 }
 
-.file-tree__directory,
-.file-tree__file,
 .outline-panel button {
   display: block;
   width: 100%;
   border: 0;
   background: transparent;
   text-align: left;
-}
-
-.file-tree__directory {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 0;
-  color: var(--reader-muted);
-}
-
-.file-tree__directory::before {
-  content: "▶";
-  display: inline-block;
-  width: 10px;
-  flex: 0 0 10px;
-  color: var(--reader-muted);
-  font-size: 10px;
-  line-height: 1;
-  transform: rotate(0deg);
-}
-
-.file-tree__directory[aria-expanded="true"]::before {
-  transform: rotate(90deg);
-}
-
-.file-tree__file {
-  border-radius: 6px;
-  padding: 6px 8px;
-  color: var(--reader-muted);
-}
-
-.file-tree__directory:hover {
-  color: var(--reader-text);
-}
-
-.file-tree .is-active-branch > .file-tree__directory {
-  color: var(--reader-text);
-  font-weight: 600;
-}
-
-.file-tree__file:hover {
-  background: color-mix(in srgb, var(--reader-link) 8%, transparent);
-  color: var(--reader-text);
-}
-
-.file-tree__file.is-active,
-.file-tree__file[aria-current="page"] {
-  background: color-mix(in srgb, var(--reader-link) 12%, transparent);
-  color: var(--reader-link);
-  font-weight: 600;
 }
 
 .outline-panel__resize-handle {
