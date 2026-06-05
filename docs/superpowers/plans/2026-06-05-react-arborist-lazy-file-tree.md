@@ -102,7 +102,7 @@ Expected: commit succeeds with only dependency files staged.
 
 - [ ] **Step 1: Write failing helper tests**
 
-Append these tests to `src/shared/fileSystem.test.ts`:
+Update the top-level imports in `src/shared/fileSystem.test.ts`, then append the `describe('lazy file tree helpers', ...)` block below the existing tests:
 
 ```ts
 import type { LazyFileTreeNode } from './types';
@@ -797,13 +797,14 @@ describe('ArboristFileTree', () => {
   it('renders files and activates a selected file', async () => {
     const user = userEvent.setup();
     const onSelectFile = vi.fn();
+    const onExpandedPathsChange = vi.fn();
 
     render(
       <ArboristFileTree
         nodes={tree}
         activePath="README.md"
         expandedPaths={new Set(['docs'])}
-        onExpandedPathsChange={vi.fn()}
+        onExpandedPathsChange={onExpandedPathsChange}
         onLoadDirectory={vi.fn()}
         onSelectFile={onSelectFile}
       />,
@@ -815,6 +816,8 @@ describe('ArboristFileTree', () => {
     await user.click(screen.getByRole('treeitem', { name: 'guide.md' }));
 
     expect(onSelectFile).toHaveBeenCalledWith('docs/guide.md');
+    expect(onSelectFile).toHaveBeenCalledOnce();
+    expect(screen.getByRole('treeitem', { name: 'guide.md' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('loads an unloaded directory when it is opened', async () => {
@@ -913,7 +916,7 @@ Expected: FAIL because the component does not exist.
 Create `src/reader/components/ArboristFileTree.tsx`:
 
 ```tsx
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { type MouseEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Tree,
   type NodeApi,
@@ -1017,7 +1020,7 @@ export function ArboristFileTree({
   }, [onSelectFile]);
 
   if (!nodes.length) {
-    return <p className="empty-note">没有找到 Markdown、HTML 或 JSON 文件。</p>;
+    return <p className="empty-note">当前目录层级没有可显示的文件或子目录。</p>;
   }
 
   return (
@@ -1065,19 +1068,22 @@ type FileTreeRowContainerProps = RowRendererProps<LazyFileTreeNode> & {
 function FileTreeRowContainer({ node, attrs, innerRef, children, activePath }: FileTreeRowContainerProps) {
   const active = node.data.type === 'file' && node.data.path === activePath;
 
+  function handleClick(event: MouseEvent<HTMLDivElement>) {
+    node.handleClick(event);
+
+    if (node.data.type === 'directory') {
+      node.toggle();
+    }
+  }
+
   return (
     <div
       {...attrs}
       ref={innerRef}
       aria-current={active ? 'page' : undefined}
       className={`file-tree__row file-tree__row--${node.data.type}${active ? ' is-active' : ''}${node.isSelected ? ' is-selected' : ''}`}
-      onClick={() => {
-        if (node.data.type === 'directory') {
-          node.toggle();
-        } else {
-          node.tree.activate(node.id);
-        }
-      }}
+      onClick={handleClick}
+      onFocus={(event) => event.stopPropagation()}
     >
       {children}
     </div>
@@ -1175,6 +1181,10 @@ Add to `src/reader/App.css` near existing `.file-tree` rules:
   font-weight: 600;
 }
 
+.file-tree__row:active {
+  transform: translateY(1px);
+}
+
 .file-tree__disclosure {
   flex: 0 0 1rem;
   text-align: center;
@@ -1199,7 +1209,7 @@ Add to `src/reader/App.css` near existing `.file-tree` rules:
 }
 ```
 
-Update `src/reader/tableLayoutStyles.test.ts` to assert `.file-tree__row` has `display: flex` and `.file-tree__name` has `text-overflow: ellipsis`.
+Update `src/reader/tableLayoutStyles.test.ts` to assert `.file-tree__row` has `display: flex`, `.file-tree__row:active` has `transform: translateY(1px)`, and `.file-tree__name` has `text-overflow: ellipsis`.
 
 - [ ] **Step 4: Verify component and CSS tests pass**
 
@@ -1340,6 +1350,7 @@ import {
   createEmptyLazyFileTree,
   markDirectoryError,
   markDirectoryLoading,
+  selectLoadedDocumentExists,
   replaceDirectoryChildren,
   setExpandedPaths as setLazyExpandedPaths,
 } from './lazyFileTree';
@@ -1376,13 +1387,20 @@ async function loadFolderDirectory(path: string) {
   if (!scanSession) {
     return;
   }
+  const requestId = openRequestIdRef.current;
 
   setFolderTree((current) => markDirectoryLoading(current, path));
 
   try {
     const children = await scanSession.scanChildren(path);
+    if (!isCurrentOpenRequest(requestId) || folderScanSessionRef.current !== scanSession) {
+      return;
+    }
     setFolderTree((current) => replaceDirectoryChildren(current, path, children));
   } catch (err) {
+    if (!isCurrentOpenRequest(requestId) || folderScanSessionRef.current !== scanSession) {
+      return;
+    }
     setFolderTree((current) =>
       markDirectoryError(current, path, err instanceof Error ? err.message : '无法读取目录。'),
     );
@@ -1403,7 +1421,7 @@ setFolderDirectoryHandle(handle);
 setFolderTree(nextTree);
 setFolderActivePath(defaultPath);
 setDrawerOpen(true);
-setStatus(nextTree.nodes.length ? null : '这个文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
+setStatus(nextTree.nodes.length ? null : '这个文件夹根目录没有可显示的文件或子目录。');
 
 if (defaultPath) {
   await openFile(handle, defaultPath, true, { source: { type: 'folder', handle }, requestId });
@@ -1526,13 +1544,13 @@ Expected: commit succeeds.
 
 - [ ] **Step 1: Write path hydration tests**
 
-Add to `src/reader/fileSystemAccess.test.ts` import:
+Update the import in `src/reader/fileSystemAccess.test.ts`:
 
 ```ts
 hydrateDirectoryPath,
 ```
 
-Add test:
+Add this test inside `describe('fileSystemAccess', () => { ... })`:
 
 ```ts
 it('hydrates direct children along a remembered document path', async () => {
@@ -1551,6 +1569,18 @@ it('hydrates direct children along a remembered document path', async () => {
     {
       path: 'docs/guides',
       children: [{ id: 'docs/guides/install.md', type: 'file', name: 'install.md', path: 'docs/guides/install.md' }],
+    },
+  ]);
+});
+
+it('returns loaded ancestors when a remembered directory no longer exists', async () => {
+  const root = dir('root', [file('README.md')]);
+  const scanSession = createDirectoryScanSession(root as unknown as FileSystemDirectoryHandle);
+
+  await expect(hydrateDirectoryPath(scanSession, 'docs/guides/install.md')).resolves.toEqual([
+    {
+      path: '',
+      children: [{ id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' }],
     },
   ]);
 });
@@ -1589,7 +1619,11 @@ export async function hydrateDirectoryPath(
   segments.push({ path: '', children: await scanSession.scanChildren('') });
 
   for (const directoryPath of directoryPaths) {
-    segments.push({ path: directoryPath, children: await scanSession.scanChildren(directoryPath) });
+    try {
+      segments.push({ path: directoryPath, children: await scanSession.scanChildren(directoryPath) });
+    } catch (err) {
+      break;
+    }
   }
 
   return segments;
@@ -1634,7 +1668,7 @@ if (source.type === 'ai-project') {
 
 - [ ] **Step 4: Add App restore regression**
 
-In `src/reader/App.test.tsx`, add:
+In `src/reader/App.test.tsx`, add this test inside `describe('App file navigation and drawer behavior', ...)`:
 
 ```tsx
 it('restores the remembered folder document without recursively scanning the full directory', async () => {
@@ -1665,8 +1699,8 @@ it('restores the remembered folder document without recursively scanning the ful
 
   render(<App />);
 
-  expect(await screen.findByText(/可以恢复上次文档/)).toBeInTheDocument();
-  await userEvent.click(screen.getByRole('button', { name: /恢复上次/ }));
+  expect(await screen.findByText('上次打开：Docs/docs/guides/install.md')).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: '恢复上次文档' }));
 
   expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(record.directoryHandle);
   expect(fileSystemAccess.hydrateDirectoryPath).toHaveBeenCalledWith(scanSession, 'docs/guides/install.md');
@@ -1713,7 +1747,7 @@ In `src/reader/App.test.tsx`, update the `vi.mock('./aiProjects', ...)` return o
     requestAiProjectDirectoryPermission: vi.fn(async () => true),
 ```
 
-Add to `src/reader/App.test.tsx`:
+Add this test inside `describe('App file navigation and drawer behavior', ...)`:
 
 ```tsx
 it('opens an AI project by loading only the project root directory', async () => {
@@ -1765,6 +1799,13 @@ In `src/reader/App.tsx`, change:
 const [aiProjectTrees, setAiProjectTrees] = useState<Record<string, LazyFileTreeState>>({});
 ```
 
+Remove the separate AI project expanded-path state because each project tree owns its `expandedPaths`:
+
+```ts
+// Delete this state:
+const [aiProjectExpandedPaths, setAiProjectExpandedPaths] = useState<Record<string, string[]>>({});
+```
+
 Add a project scan session ref near the folder scan session ref:
 
 ```ts
@@ -1787,6 +1828,23 @@ aiProjectScanSessionsRef.current = { ...aiProjectScanSessionsRef.current, [proje
 setAiProjectTrees((current) => ({ ...current, [project.id]: nextTree }));
 ```
 
+Update the rest of `activateAiProject` to use lazy tree nodes instead of recursive tree analysis:
+
+```ts
+setActiveAiProjectId(project.id);
+setDrawerTab('ai-projects');
+openFileDrawer();
+setAiProjectStatus(nextTree.nodes.length ? null : '这个项目根目录没有可显示的文件或子目录。');
+
+const projectActivePath = aiProjectActivePaths[project.id] ?? null;
+const activeFileExists = projectActivePath
+  ? selectLoadedDocumentExists(nextTree.nodes, projectActivePath)
+  : false;
+const defaultPath = selectDefaultLoadedDocument(nextTree.nodes);
+const source: DocumentSource = { type: 'ai-project', projectId: project.id, handle };
+const pathToOpen = activeFileExists ? projectActivePath : defaultPath;
+```
+
 Add:
 
 ```ts
@@ -1795,6 +1853,7 @@ async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
   if (!scanSession) {
     return;
   }
+  const requestId = openRequestIdRef.current;
 
   setAiProjectTrees((current) => ({
     ...current,
@@ -1803,11 +1862,17 @@ async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
 
   try {
     const children = await scanSession.scanChildren(path);
+    if (!isCurrentOpenRequest(requestId) || aiProjectScanSessionsRef.current[project.id] !== scanSession) {
+      return;
+    }
     setAiProjectTrees((current) => ({
       ...current,
       [project.id]: replaceDirectoryChildren(current[project.id] ?? createEmptyLazyFileTree(), path, children),
     }));
   } catch (err) {
+    if (!isCurrentOpenRequest(requestId) || aiProjectScanSessionsRef.current[project.id] !== scanSession) {
+      return;
+    }
     setAiProjectTrees((current) => ({
       ...current,
       [project.id]: markDirectoryError(
@@ -1820,6 +1885,21 @@ async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
 }
 ```
 
+Update `FileDrawer` props from `App`:
+
+```tsx
+aiProjectTrees={aiProjectTrees}
+onAiProjectExpandedPathsChange={(project, paths) =>
+  setAiProjectTrees((current) => ({
+    ...current,
+    [project.id]: setLazyExpandedPaths(current[project.id] ?? createEmptyLazyFileTree(), paths),
+  }))
+}
+onLoadProjectDirectory={(project, path) => void loadAiProjectDirectory(project, path)}
+```
+
+Remove the old `aiProjectExpandedPaths={aiProjectExpandedPaths}` prop from the `FileDrawer` call.
+
 - [ ] **Step 3: Update FileDrawer AI panel**
 
 In `src/reader/components/FileDrawer.tsx`, add the lazy tree state type import:
@@ -1829,6 +1909,8 @@ import type { LazyFileTreeState } from '../lazyFileTree';
 ```
 
 Change `AiProjectsPanelProps` project trees type to `Record<string, LazyFileTreeState>`.
+
+Remove `aiProjectExpandedPaths` and `projectExpandedPaths` from `FileDrawerProps`, `AiProjectsPanelProps`, destructuring, and the `AiProjectsPanel` call. Expansion now comes from each `LazyFileTreeState`.
 
 Render:
 
@@ -1879,7 +1961,7 @@ Expected: commit succeeds.
 
 - [ ] **Step 1: Write lazy navigation tests**
 
-Add to `src/reader/fileNavigation.test.ts`:
+Update the top-level imports in `src/reader/fileNavigation.test.ts`, then add this test inside the existing `describe('selectSiblingDocumentNavigation', ...)` block:
 
 ```ts
 import type { LazyFileTreeNode } from '../shared/types';
@@ -1979,7 +2061,13 @@ Refactor the existing function to reuse `selectAround` instead of duplicating pr
 
 - [ ] **Step 3: Wire App navigation to lazy tree**
 
-In `src/reader/App.tsx`, set `activeNavigationTree` to lazy nodes:
+In `src/reader/App.tsx`, replace the old navigation import:
+
+```ts
+import { selectSiblingDocumentNavigationFromLazyTree } from './fileNavigation';
+```
+
+Then set `activeNavigationTree` to lazy nodes:
 
 ```ts
 const activeNavigationTree = useMemo(() => {
