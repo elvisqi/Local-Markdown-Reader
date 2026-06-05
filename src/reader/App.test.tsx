@@ -804,6 +804,91 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'start' }));
   });
 
+  it('opens relative document links into unloaded lazy branches by hydrating the target path', async () => {
+    const user = userEvent.setup();
+    const scanSession = {
+      scanChildren: vi.fn(async (path: string) => {
+        if (path === '') {
+          return [
+            { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+            {
+              id: 'references',
+              type: 'directory',
+              name: 'references',
+              path: 'references',
+              children: [],
+              loadState: 'unloaded',
+            },
+          ] satisfies LazyFileTreeNode[];
+        }
+
+        if (path === 'docs') {
+          return [
+            { id: 'docs/01-intro.md', type: 'file', name: '01-intro.md', path: 'docs/01-intro.md' },
+          ] satisfies LazyFileTreeNode[];
+        }
+
+        if (path === 'references') {
+          return [
+            { id: 'references/guide.md', type: 'file', name: 'guide.md', path: 'references/guide.md' },
+          ] satisfies LazyFileTreeNode[];
+        }
+
+        return [];
+      }),
+    };
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue(scanSession);
+    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockImplementation(async (_scanSession, path) => [
+      {
+        path: '',
+        children: [
+          { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+          {
+            id: 'references',
+            type: 'directory',
+            name: 'references',
+            path: 'references',
+            children: [],
+            loadState: 'unloaded',
+          },
+        ],
+      },
+      {
+        path: path.split('/').slice(0, -1).join('/'),
+        children: [{ id: path, type: 'file', name: path.split('/').at(-1) ?? path, path }],
+      },
+    ] satisfies Array<{ path: string; children: LazyFileTreeNode[] }>);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const source = path === 'docs/01-intro.md'
+        ? '# Intro\n\n[Guide](../references/guide.md#target)'
+        : '# Guide\n\n## Target';
+      const file = new File([source], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await user.click(await screen.findByRole('treeitem', { name: 'docs' }));
+    await user.click(await screen.findByRole('treeitem', { name: '01-intro.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Intro' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('link', { name: 'Guide' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Guide' })).not.toHaveLength(0));
+    expect(fileSystemAccess.hydrateDirectoryPath).toHaveBeenCalledWith(scanSession, 'references/guide.md');
+    expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(directoryHandle, 'references/guide.md');
+    await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'start' }));
+  });
+
   it('preserves the current Markdown anchor when pushing a linked document into history', async () => {
     const user = userEvent.setup();
     const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
@@ -1210,6 +1295,91 @@ describe('App file navigation and drawer behavior', () => {
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0));
     expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(projectHandle, 'docs/guide.md');
+  });
+
+  it('reloads an AI project while preserving loaded branches and the active nested file', async () => {
+    const user = userEvent.setup();
+    const projectHandle = { kind: 'directory', name: 'md-viewer' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'codex:/Users/qiyu/Github/md-viewer',
+      provider: 'codex' as const,
+      name: 'md-viewer',
+      expectedPath: '/Users/qiyu/Github/md-viewer',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'md-viewer',
+    };
+    const initialScanChildren = vi.fn(async (path: string) => {
+      if (path === '') {
+        return [
+          { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+          { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+        ] satisfies LazyFileTreeNode[];
+      }
+
+      if (path === 'docs') {
+        return [
+          { id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' },
+        ] satisfies LazyFileTreeNode[];
+      }
+
+      return [];
+    });
+    const reloadScanChildren = vi.fn(async (path: string) => {
+      if (path === '') {
+        return [
+          { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+          { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+        ] satisfies LazyFileTreeNode[];
+      }
+
+      if (path === 'docs') {
+        return [
+          { id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' },
+          { id: 'docs/new.md', type: 'file', name: 'new.md', path: 'docs/new.md' },
+        ] satisfies LazyFileTreeNode[];
+      }
+
+      return [];
+    });
+
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    let scanSessionCreationCount = 0;
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockImplementation(() => {
+      scanSessionCreationCount += 1;
+      return { scanChildren: scanSessionCreationCount === 1 ? initialScanChildren : reloadScanChildren };
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(screen.getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/md-viewer'));
+    await user.click(await screen.findByRole('treeitem', { name: 'docs' }));
+    await user.click(await screen.findByRole('treeitem', { name: 'guide.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('button', { name: '重载项目：md-viewer' }));
+
+    await waitFor(() => expect(getDrawerFileItem('new.md')).toBeInTheDocument());
+    expect(getDrawerFileItem('guide.md')).toHaveAttribute('aria-current', 'page');
+    expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0);
+    expect(reloadScanChildren).toHaveBeenCalledWith('');
+    expect(reloadScanChildren).toHaveBeenCalledWith('docs');
   });
 
   it('keeps previously opened AI project trees visible after opening another project', async () => {

@@ -793,13 +793,15 @@ export function App() {
       return;
     }
 
-    if (!isDocumentPathInTree(activeNavigationTree, state.path)) {
+    const requestId = beginOpenRequest();
+    const documentSource = activeDocumentSource;
+    const pathAvailable = await ensureLoadedDocumentPath(documentSource, state.path, requestId);
+    if (!pathAvailable) {
       return;
     }
 
-    const requestId = beginOpenRequest();
-    const opened = await openFile(activeDocumentSource.handle, state.path, true, {
-      source: activeDocumentSource,
+    const opened = await openFile(documentSource.handle, state.path, true, {
+      source: documentSource,
       requestId,
     });
 
@@ -1278,7 +1280,7 @@ export function App() {
         return;
       }
 
-      await activateAiProject(project, project.directoryHandle, false, requestId);
+      await reloadLoadedAiProjectTree(project, project.directoryHandle, requestId);
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
         return;
@@ -1287,6 +1289,77 @@ export function App() {
       setAiProjectStatus(null);
       setError(err instanceof Error ? err.message : `无法重载项目 ${project.name}。`);
     }
+  }
+
+  async function reloadLoadedAiProjectTree(
+    project: AiProjectEntry,
+    handle: FileSystemDirectoryHandle,
+    requestId: number,
+  ) {
+    const currentTree = aiProjectTrees[project.id] ?? createEmptyLazyFileTree();
+    const directoriesToReload = [...new Set(['', ...currentTree.loadedDirectoryPaths])]
+      .sort((a, b) => selectPathDepth(a) - selectPathDepth(b));
+    const scanSession = createDirectoryScanSession(handle);
+    let nextTree = createEmptyLazyFileTree();
+
+    for (const directoryPath of directoriesToReload) {
+      let children: LazyFileTreeNode[];
+      try {
+        children = await scanSession.scanChildren(directoryPath);
+      } catch (err) {
+        if (directoryPath && isStaleLoadedDirectoryError(err)) {
+          continue;
+        }
+
+        throw err;
+      }
+
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
+      nextTree = replaceDirectoryChildren(nextTree, directoryPath, children);
+    }
+
+    nextTree = pruneExpandedPaths(setLazyExpandedPaths(nextTree, currentTree.expandedPaths));
+    const nextState = mergeAiProjectDirectory(aiProjectState, project, handle);
+
+    setAiProjectState(nextState);
+    await saveAiProjectState(nextState);
+    if (!isCurrentOpenRequest(requestId)) {
+      return;
+    }
+
+    aiProjectScanSessionsRef.current = {
+      ...aiProjectScanSessionsRef.current,
+      [project.id]: scanSession,
+    };
+    setActiveAiProjectId(project.id);
+    setAiProjectTrees((current) => ({ ...current, [project.id]: nextTree }));
+    setDrawerTab('ai-projects');
+    openFileDrawer();
+    setAiProjectStatus(nextTree.nodes.length ? null : '这个项目根目录没有可显示的文件或子目录。');
+
+    const projectActivePath = aiProjectActivePaths[project.id] ?? null;
+    const activeFileExists = projectActivePath
+      ? selectLoadedDocumentExists(nextTree.nodes, projectActivePath)
+      : false;
+    const fallbackPath = activeFileExists ? null : selectDefaultLoadedDocument(nextTree.nodes);
+    const source: DocumentSource = { type: 'ai-project', projectId: project.id, handle };
+
+    if (activeFileExists) {
+      setAiProjectActivePaths((current) => ({ ...current, [project.id]: projectActivePath }));
+      setAiProjectStatus(null);
+      return;
+    }
+
+    if (fallbackPath) {
+      await openFile(handle, fallbackPath, true, { source, requestId });
+      return;
+    }
+
+    setAiProjectActivePaths((current) => ({ ...current, [project.id]: null }));
+    clearReaderForSource(source);
   }
 
   async function activateAiProject(
@@ -1567,20 +1640,22 @@ export function App() {
       return;
     }
 
-    if (!isDocumentPathInTree(activeNavigationTree, path)) {
+    const requestId = beginOpenRequest();
+    const documentSource = activeDocumentSource;
+    const pathAvailable = await ensureLoadedDocumentPath(documentSource, path, requestId);
+    if (!pathAvailable) {
       return;
     }
 
-    const requestId = beginOpenRequest();
     const linkedDocumentKind = getDocumentFileKind(path);
     const previousHistoryState = createReaderHistoryState(
-      activeDocumentSource,
+      documentSource,
       activePath,
       resolveActiveDocumentHistoryHash(),
       window.scrollY,
     );
-    const opened = await openFile(activeDocumentSource.handle, path, true, {
-      source: activeDocumentSource,
+    const opened = await openFile(documentSource.handle, path, true, {
+      source: documentSource,
       requestId,
     });
 
@@ -1589,7 +1664,7 @@ export function App() {
         window.history.replaceState(previousHistoryState, '', window.location.href);
       }
 
-      const nextHistoryState = createReaderHistoryState(activeDocumentSource, path, hash, 0);
+      const nextHistoryState = createReaderHistoryState(documentSource, path, hash, 0);
       if (nextHistoryState) {
         window.history.pushState(nextHistoryState, '', window.location.href);
       }
@@ -1609,6 +1684,54 @@ export function App() {
         document.getElementById(hash)?.scrollIntoView({ block: 'start' });
         setActiveHeadingId(hash);
       });
+    }
+  }
+
+  async function ensureLoadedDocumentPath(
+    source: Exclude<DocumentSource, null | { type: 'standalone' }>,
+    path: string,
+    requestId: number,
+  ): Promise<boolean> {
+    const currentNodes = source.type === 'folder'
+      ? folderTree.nodes
+      : aiProjectTrees[source.projectId]?.nodes ?? [];
+    if (selectLoadedDocumentExists(currentNodes, path)) {
+      return true;
+    }
+
+    const scanSession = source.type === 'folder'
+      ? folderScanSessionRef.current
+      : aiProjectScanSessionsRef.current[source.projectId];
+    if (!scanSession) {
+      return false;
+    }
+
+    try {
+      const hydrated = await hydrateDirectoryPath(scanSession, path);
+      if (!isCurrentOpenRequest(requestId)) {
+        return false;
+      }
+
+      if (source.type === 'folder') {
+        const nextTree = upsertLoadedPath(folderTree, path, hydrated);
+        setFolderTree(nextTree);
+        return selectLoadedDocumentExists(nextTree.nodes, path);
+      }
+
+      const nextTree = upsertLoadedPath(aiProjectTrees[source.projectId] ?? createEmptyLazyFileTree(), path, hydrated);
+      setAiProjectTrees((current) => {
+        return {
+          ...current,
+          [source.projectId]: nextTree,
+        };
+      });
+      return selectLoadedDocumentExists(nextTree.nodes, path);
+    } catch (err) {
+      if (isStaleLoadedDirectoryError(err)) {
+        return false;
+      }
+
+      throw err;
     }
   }
 
@@ -1951,10 +2074,6 @@ function HtmlDocumentPreview({
 
 function flattenOutlineIds(outline: OutlineItem[]): string[] {
   return outline.flatMap((item) => [item.id, ...flattenOutlineIds(item.children)]);
-}
-
-function isDocumentPathInTree(tree: LazyFileTreeNode[], path: string): boolean {
-  return selectLoadedDocumentExists(tree, path);
 }
 
 function selectPathDepth(path: string): number {
