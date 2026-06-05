@@ -23,7 +23,7 @@
 ## Verified React Arborist Contracts
 
 - `react-arborist@3.8.0` exports `Tree`, `NodeApi`, `TreeApi`, `NodeRendererProps`, and `RowRendererProps`.
-- `TreeProps.openByDefault` is a boolean, not an open-state map. Use `initialOpenState: Record<string, boolean>` for first render and synchronize later external expansion changes with `treeRef.current.open(id, false)` and `treeRef.current.close(id, false)`.
+- `TreeProps.openByDefault` is a boolean, not an open-state map, and Arborist defaults it to `true`. Set `openByDefault={false}`, use `initialOpenState: Record<string, boolean>` for first render, and synchronize later external expansion changes with `treeRef.current.open(id, false)` and `treeRef.current.close(id, false)`.
 - `TreeApi.open`, `TreeApi.close`, and `NodeApi.toggle` call `onToggle(id)`. Synchronization effects must guard against feeding their own imperative open/close calls back into `onExpandedPathsChange`.
 - `childrenAccessor="children"` makes any node with `children: []` an internal directory. File nodes must omit `children`.
 - Arborist's default row renderer already owns `role="treeitem"`, `aria-level`, `aria-selected`, and `aria-expanded`. Custom node content must not add another `role="treeitem"`; use a custom `renderRow` when row-level ARIA such as `aria-current="page"` is needed.
@@ -385,6 +385,10 @@ Add this function after `scanDocumentDirectory`:
 export type DirectoryScanSession = {
   scanChildren: (directoryPath: string) => Promise<LazyFileTreeNode[]>;
 };
+
+export function isStaleLoadedDirectoryError(err: unknown): boolean {
+  return err instanceof Error && err.message.startsWith('Directory handle not loaded: ');
+}
 
 export function createDirectoryScanSession(rootHandle: DirectoryLike): DirectoryScanSession {
   const handlesByPath = new Map<string, DirectoryLike>([['', rootHandle]]);
@@ -845,6 +849,22 @@ describe('ArboristFileTree', () => {
     expect(onExpandedPathsChange).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps loaded directories closed unless their path is externally expanded', () => {
+    render(
+      <ArboristFileTree
+        nodes={tree}
+        activePath={null}
+        expandedPaths={new Set()}
+        onExpandedPathsChange={vi.fn()}
+        onLoadDirectory={vi.fn()}
+        onSelectFile={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('treeitem', { name: 'docs' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('treeitem', { name: 'guide.md' })).not.toBeInTheDocument();
+  });
+
   it('syncs externally controlled expanded paths without reporting a user toggle', () => {
     const onExpandedPathsChange = vi.fn();
     const { rerender } = render(
@@ -1035,6 +1055,7 @@ export function ArboristFileTree({
         width="100%"
         indent={INDENT}
         overscanCount={12}
+        openByDefault={false}
         initialOpenState={initialOpenStateRef.current ?? {}}
         disableDrag
         disableDrop
@@ -1354,7 +1375,11 @@ import {
   replaceDirectoryChildren,
   setExpandedPaths as setLazyExpandedPaths,
 } from './lazyFileTree';
-import { createDirectoryScanSession, type DirectoryScanSession } from './fileSystemAccess';
+import {
+  createDirectoryScanSession,
+  isStaleLoadedDirectoryError,
+  type DirectoryScanSession,
+} from './fileSystemAccess';
 import type { LazyFileTreeNode } from '../shared/types';
 ```
 
@@ -1465,7 +1490,7 @@ async function reloadFolderTree() {
       try {
         children = await scanSession.scanChildren(directoryPath);
       } catch (err) {
-        if (directoryPath) {
+        if (directoryPath && isStaleLoadedDirectoryError(err)) {
           continue;
         }
 
@@ -1596,7 +1621,7 @@ Expected: FAIL because `hydrateDirectoryPath` does not exist.
 
 - [ ] **Step 2: Implement path hydration**
 
-Add to `src/reader/fileSystemAccess.ts`:
+Use the `isStaleLoadedDirectoryError` helper added in Task 3, then add to `src/reader/fileSystemAccess.ts`:
 
 ```ts
 export type HydratedDirectorySegment = {
@@ -1622,6 +1647,10 @@ export async function hydrateDirectoryPath(
     try {
       segments.push({ path: directoryPath, children: await scanSession.scanChildren(directoryPath) });
     } catch (err) {
+      if (!isStaleLoadedDirectoryError(err)) {
+        throw err;
+      }
+
       break;
     }
   }
@@ -2227,6 +2256,22 @@ function createLargeLoadedTree(count: number): LazyFileTreeNode[] {
   }));
 }
 
+function createReachableLazyTree(directoryCount: number, filesPerDirectory: number): LazyFileTreeNode[] {
+  return Array.from({ length: directoryCount }, (_, directoryIndex) => ({
+    id: `dir-${directoryIndex}`,
+    type: 'directory',
+    name: `dir-${directoryIndex}`,
+    path: `dir-${directoryIndex}`,
+    loadState: 'unloaded',
+    children: Array.from({ length: filesPerDirectory }, (_, fileIndex) => ({
+      id: `dir-${directoryIndex}/file-${fileIndex}.md`,
+      type: 'file',
+      name: `file-${fileIndex}.md`,
+      path: `dir-${directoryIndex}/file-${fileIndex}.md`,
+    })),
+  }));
+}
+
 describe('ArboristFileTree performance guardrails', () => {
   it('does not mount every row for a very large loaded root', () => {
     render(
@@ -2243,6 +2288,24 @@ describe('ArboristFileTree performance guardrails', () => {
     );
 
     expect(screen.getAllByRole('treeitem').length).toBeLessThan(200);
+  });
+
+  it('keeps total reachable nodes hidden while unopened directories stay closed', () => {
+    render(
+      <div style={{ height: 420 }}>
+        <ArboristFileTree
+          nodes={createReachableLazyTree(1_000, 100)}
+          activePath={null}
+          expandedPaths={new Set()}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </div>,
+    );
+
+    expect(screen.getAllByRole('treeitem').length).toBeLessThan(200);
+    expect(screen.queryByRole('treeitem', { name: 'file-0.md' })).not.toBeInTheDocument();
   });
 });
 ```
@@ -2344,4 +2407,4 @@ Expected: commit succeeds only if there are actual changes.
 - Completeness scan: No incomplete markers or intentionally unfinished implementation steps remain.
 - Type consistency: The plan consistently uses `LazyFileTreeNode`, `LazyFileTreeState`, `DirectoryScanSession`, `hydrateDirectoryPath`, and `ArboristFileTree`.
 - Scope check: The implementation is focused on read-only file trees. Editing, drag/drop, global search, and deep recursive refresh are intentionally excluded from 2.0.
-- P0/P1 review risks addressed: Arborist expansion uses the verified `initialOpenState`/`TreeApi` contract instead of an invalid `openByDefault` map; row-level ARIA stays on Arborist rows instead of nested `treeitem` nodes; nested lazy loading uses per-root `DirectoryScanSession` handle caches instead of repeatedly walking from the root; reload orders loaded directories by path depth; and performance tests rely on the wrapper's deterministic fallback height.
+- P0/P1 review risks addressed: Arborist expansion uses `openByDefault={false}` plus the verified `initialOpenState`/`TreeApi` contract instead of relying on Arborist's default-open behavior; row-level ARIA stays on Arborist rows instead of nested `treeitem` nodes; nested lazy loading uses per-root `DirectoryScanSession` handle caches instead of repeatedly walking from the root; reload orders loaded directories by path depth; stale loaded paths are distinguished from real permission/I/O failures; and performance tests cover both virtual DOM count and hidden reachable descendants.
