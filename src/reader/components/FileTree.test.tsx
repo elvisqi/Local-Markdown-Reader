@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 
@@ -90,6 +90,226 @@ describe('FileTree', () => {
 
     expect(screen.getByRole('button', { name: 'guide.md' })).toHaveClass('is-active');
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'center' });
+  });
+
+  it('does not scroll the tree after a file is selected from the tree', async () => {
+    const user = userEvent.setup();
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+      },
+    ];
+
+    function ControlledTree() {
+      const [activePath, setActivePath] = useState<string | null>(null);
+
+      return <FileTree tree={tree} activePath={activePath} onSelect={setActivePath} />;
+    }
+
+    render(<ControlledTree />);
+
+    await user.click(screen.getByRole('button', { name: 'docs' }));
+    vi.mocked(Element.prototype.scrollIntoView).mockClear();
+
+    await user.click(screen.getByRole('button', { name: 'guide.md' }));
+
+    expect(screen.getByRole('button', { name: 'guide.md' })).toHaveClass('is-active');
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('preserves the tree scroll position after selecting a visible deep file', async () => {
+    const user = userEvent.setup();
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [
+          {
+            type: 'directory',
+            name: 'guides',
+            path: 'docs/guides',
+            children: [{ type: 'file', name: 'guide.md', path: 'docs/guides/guide.md' }],
+          },
+        ],
+      },
+      {
+        type: 'directory',
+        name: 'notes',
+        path: 'notes',
+        children: [
+          {
+            type: 'directory',
+            name: 'daily',
+            path: 'notes/daily',
+            children: [{ type: 'file', name: 'today.md', path: 'notes/daily/today.md' }],
+          },
+        ],
+      },
+    ];
+
+    function ControlledTree() {
+      const [activePath, setActivePath] = useState<string | null>('docs/guides/guide.md');
+
+      return (
+        <FileTree
+          tree={tree}
+          activePath={activePath}
+          expandedPaths={['docs', 'docs/guides', 'notes', 'notes/daily']}
+          onSelect={(path) => {
+            screen.getByRole('navigation', { name: '文档文件' }).scrollTop = 960;
+            setActivePath(path);
+          }}
+        />
+      );
+    }
+
+    render(<ControlledTree />);
+
+    const fileTree = screen.getByRole('navigation', { name: '文档文件' });
+    fileTree.scrollTop = 320;
+    vi.mocked(Element.prototype.scrollIntoView).mockClear();
+
+    await user.click(screen.getByRole('button', { name: 'today.md' }));
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'today.md' })).toHaveClass('is-active'));
+    expect(fileTree.scrollTop).toBe(320);
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('restores the tree scroll position after browser focus scrolls on the next frame', async () => {
+    const user = userEvent.setup();
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'folder-a',
+        path: 'folder-a',
+        children: [
+          {
+            type: 'directory',
+            name: 'deep-a',
+            path: 'folder-a/deep-a',
+            children: [{ type: 'file', name: 'a.md', path: 'folder-a/deep-a/a.md' }],
+          },
+        ],
+      },
+      {
+        type: 'directory',
+        name: 'folder-b',
+        path: 'folder-b',
+        children: [
+          {
+            type: 'directory',
+            name: 'deep-b',
+            path: 'folder-b/deep-b',
+            children: [{ type: 'file', name: 'b.md', path: 'folder-b/deep-b/b.md' }],
+          },
+        ],
+      },
+    ];
+
+    const originalRequestAnimationFrame = window.requestAnimationFrame;
+    window.requestAnimationFrame = ((callback: FrameRequestCallback) => window.setTimeout(() => callback(0), 0)) as typeof window.requestAnimationFrame;
+
+    function ControlledTree() {
+      const [activePath, setActivePath] = useState<string | null>('folder-a/deep-a/a.md');
+
+      return (
+        <FileTree
+          tree={tree}
+          activePath={activePath}
+          expandedPaths={['folder-a', 'folder-a/deep-a', 'folder-b', 'folder-b/deep-b']}
+          onSelect={(path) => {
+            setActivePath(path);
+            window.requestAnimationFrame(() => {
+              screen.getByRole('navigation', { name: '文档文件' }).scrollTop = 880;
+            });
+          }}
+        />
+      );
+    }
+
+    try {
+      render(<ControlledTree />);
+
+      const fileTree = screen.getByRole('navigation', { name: '文档文件' });
+      fileTree.scrollTop = 260;
+      vi.mocked(Element.prototype.scrollIntoView).mockClear();
+
+      await user.click(screen.getByRole('button', { name: 'b.md' }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      await waitFor(() => expect(screen.getByRole('button', { name: 'b.md' })).toHaveClass('is-active'));
+      expect(fileTree.scrollTop).toBe(260);
+      expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+    } finally {
+      window.requestAnimationFrame = originalRequestAnimationFrame;
+    }
+  });
+
+  it('preserves outer drawer scroll when selecting a file from a different folder branch', async () => {
+    const user = userEvent.setup();
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'folder-a',
+        path: 'folder-a',
+        children: [
+          {
+            type: 'directory',
+            name: 'deep-a',
+            path: 'folder-a/deep-a',
+            children: [{ type: 'file', name: 'a.md', path: 'folder-a/deep-a/a.md' }],
+          },
+        ],
+      },
+      {
+        type: 'directory',
+        name: 'folder-b',
+        path: 'folder-b',
+        children: [
+          {
+            type: 'directory',
+            name: 'deep-b',
+            path: 'folder-b/deep-b',
+            children: [{ type: 'file', name: 'b.md', path: 'folder-b/deep-b/b.md' }],
+          },
+        ],
+      },
+    ];
+
+    function ControlledTree() {
+      const [activePath, setActivePath] = useState<string | null>('folder-a/deep-a/a.md');
+
+      return (
+        <div data-testid="outer-drawer-scroll">
+          <FileTree
+            tree={tree}
+            activePath={activePath}
+            expandedPaths={['folder-a', 'folder-a/deep-a', 'folder-b', 'folder-b/deep-b']}
+            onSelect={(path) => {
+              setActivePath(path);
+              screen.getByTestId('outer-drawer-scroll').scrollTop = 740;
+            }}
+          />
+        </div>
+      );
+    }
+
+    render(<ControlledTree />);
+
+    const outerDrawerScroll = screen.getByTestId('outer-drawer-scroll');
+    outerDrawerScroll.scrollTop = 280;
+    vi.mocked(Element.prototype.scrollIntoView).mockClear();
+
+    await user.click(screen.getByRole('button', { name: 'b.md' }));
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'b.md' })).toHaveClass('is-active'));
+    expect(outerDrawerScroll.scrollTop).toBe(280);
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
   });
 
   it('only expands the folder branch containing the active file by default', () => {
