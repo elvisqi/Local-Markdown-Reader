@@ -317,4 +317,62 @@ describe('FileTree', () => {
     expect(screen.getByRole('button', { name: 'guides' })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('button', { name: 'archive' })).toHaveAttribute('aria-expanded', 'true');
   });
+
+  it('lets users collapse the directory containing the active file', async () => {
+    const user = userEvent.setup();
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+      },
+    ];
+
+    render(<FileTree tree={tree} activePath="docs/guide.md" onSelect={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'docs' })).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(screen.getByRole('button', { name: 'docs' }));
+
+    expect(screen.getByRole('button', { name: 'docs' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('button', { name: 'guide.md' })).not.toBeInTheDocument();
+  });
+
+  it('lets users collapse the active directory in controlled mode without scrolling the active file again', async () => {
+    const user = userEvent.setup();
+    const tree: FileTreeNode[] = [
+      {
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+      },
+    ];
+
+    function ControlledTree() {
+      const [expandedPaths, setExpandedPaths] = useState<string[]>([]);
+
+      return (
+        <FileTree
+          tree={tree}
+          activePath="docs/guide.md"
+          expandedPaths={expandedPaths}
+          onExpandedPathsChange={setExpandedPaths}
+          onSelect={vi.fn()}
+        />
+      );
+    }
+
+    render(<ControlledTree />);
+
+    expect(await screen.findByRole('button', { name: 'guide.md' })).toBeInTheDocument();
+    vi.mocked(Element.prototype.scrollIntoView).mockClear();
+
+    await user.click(screen.getByRole('button', { name: 'docs' }));
+
+    expect(screen.getByRole('button', { name: 'docs' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('button', { name: 'guide.md' })).not.toBeInTheDocument();
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+  });
 });

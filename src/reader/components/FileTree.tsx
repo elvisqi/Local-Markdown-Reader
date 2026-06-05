@@ -26,39 +26,50 @@ export function FileTree({
     [activePath, currentExpandedPaths, tree],
   );
   const expandedPathSet = treeState.expandedPaths;
+  const latestExpandedPathsRef = useRef(currentExpandedPaths);
+  const manuallyCollapsedActivePathsRef = useRef(new Set<string>());
 
   useEffect(() => {
-    const activePaths = [...treeState.activeDirectoryPaths];
-    const hasMissingActivePath = activePaths.some((path) => !currentExpandedPaths.includes(path));
+    latestExpandedPathsRef.current = currentExpandedPaths;
+  }, [currentExpandedPaths]);
+
+  useEffect(() => {
+    manuallyCollapsedActivePathsRef.current.clear();
+  }, [activePath, tree]);
+
+  useEffect(() => {
+    const activePaths = [...selectActiveDirectoryPaths(tree, activePath)];
+    const latestExpandedPaths = latestExpandedPathsRef.current;
+    const pathsToOpen = activePaths.filter((path) => !manuallyCollapsedActivePathsRef.current.has(path));
+    const hasMissingActivePath = pathsToOpen.some((path) => !latestExpandedPaths.includes(path));
 
     if (!hasMissingActivePath) {
       return;
     }
 
-    const nextPaths = [...new Set([...currentExpandedPaths, ...activePaths])];
+    const nextPaths = [...new Set([...latestExpandedPaths, ...pathsToOpen])];
 
     if (expandedPaths) {
       onExpandedPathsChange?.(nextPaths);
     } else {
       setUncontrolledExpandedPaths(nextPaths);
     }
-  }, [
-    currentExpandedPaths,
-    expandedPaths,
-    onExpandedPathsChange,
-    treeState.activeDirectoryPaths,
-  ]);
+  }, [activePath, expandedPaths, onExpandedPathsChange, tree]);
 
   if (!tree.length) {
     return <p className="empty-note">没有找到 Markdown、HTML 或 JSON 文件。</p>;
   }
 
   function handleToggleDirectory(path: string, open: boolean) {
-    const next = new Set(expandedPathSet);
+    const next = new Set(currentExpandedPaths.filter((currentPath) => treeState.directoryPaths.has(currentPath)));
 
     if (open) {
+      manuallyCollapsedActivePathsRef.current.delete(path);
       next.add(path);
     } else {
+      if (treeState.activeDirectoryPaths.has(path)) {
+        manuallyCollapsedActivePathsRef.current.add(path);
+      }
       next.delete(path);
     }
 
@@ -104,7 +115,7 @@ function TreeList({
     <ul>
       {nodes.map((node) => {
         const activeBranch = node.type === 'directory' && activeDirectoryPaths.has(node.path);
-        const open = activeBranch || expandedPaths.has(node.path);
+        const open = expandedPaths.has(node.path);
 
         return (
           <li key={node.path} className={activeBranch ? 'is-active-branch' : undefined}>
@@ -220,7 +231,6 @@ function createFileTreeState(nodes: FileTreeNode[], activePath: string | null, e
   nodes.forEach(visit);
 
   const nextExpandedPaths = new Set(expandedPaths.filter((path) => directoryPaths.has(path)));
-  activeDirectoryPaths.forEach((path) => nextExpandedPaths.add(path));
 
   return {
     activeDirectoryPaths,
