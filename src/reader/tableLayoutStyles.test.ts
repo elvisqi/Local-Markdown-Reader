@@ -44,13 +44,17 @@ describe('table layout styles', () => {
   });
 
   it('shows disclosure affordances for Arborist file tree directories', () => {
-    expect(getRule('.file-tree__disclosure')).toMatch(/flex:\s*0 0 1rem/);
+    expect(getRule('.file-tree__disclosure')).toMatch(/flex:\s*0 0 0\.9rem/);
     expect(getRule('.file-tree__disclosure')).toMatch(/text-align:\s*center/);
   });
 
   it('styles virtualized Arborist file tree rows without resizing content', () => {
+    expect(getRule('.file-tree')).toMatch(/overflow-x:\s*hidden/);
+    expect(getRule('.file-tree--arborist')).toMatch(/flex:\s*1 1 auto/);
+    expect(getRule('.file-tree__row')).toMatch(/height:\s*24px/);
     expect(getRule('.file-tree__row')).toMatch(/display:\s*flex/);
-    expect(getRule('.file-tree__row:active')).toMatch(/transform:\s*translateY\(1px\)/);
+    expect(getRule('.file-tree__row:active')).not.toMatch(/transform:\s*translateY/);
+    expect(css).toMatch(/\.file-tree__row\.is-active,\n\.file-tree__row\[aria-current="page"\]\s*\{[^}]*background:/s);
     expect(getRule('.file-tree__name')).toMatch(/text-overflow:\s*ellipsis/);
   });
 

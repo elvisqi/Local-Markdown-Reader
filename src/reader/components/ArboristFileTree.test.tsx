@@ -47,6 +47,43 @@ describe('ArboristFileTree', () => {
     expect(screen.getByRole('treeitem', { name: 'guide.md' })).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('exposes full paths in row titles while allowing visible names to truncate', () => {
+    const nodes: LazyFileTreeNode[] = [
+      {
+        id: 'very-long-directory-name',
+        type: 'directory',
+        name: 'very-long-directory-name',
+        path: 'very-long-directory-name',
+        loadState: 'loaded',
+        children: [
+          {
+            id: 'very-long-directory-name/extremely-long-document-name-that-will-truncate.md',
+            type: 'file',
+            name: 'extremely-long-document-name-that-will-truncate.md',
+            path: 'very-long-directory-name/extremely-long-document-name-that-will-truncate.md',
+          },
+        ],
+      },
+    ];
+
+    render(
+      <ArboristFileTree
+        nodes={nodes}
+        activePath={null}
+        expandedPaths={new Set(['very-long-directory-name'])}
+        onExpandedPathsChange={vi.fn()}
+        onLoadDirectory={vi.fn()}
+        onSelectFile={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('very-long-directory-name')).toHaveAttribute('title', 'very-long-directory-name');
+    expect(screen.getByText('extremely-long-document-name-that-will-truncate.md')).toHaveAttribute(
+      'title',
+      'very-long-directory-name/extremely-long-document-name-that-will-truncate.md',
+    );
+  });
+
   it('loads an unloaded directory when it is opened', async () => {
     const user = userEvent.setup();
     const onLoadDirectory = vi.fn();

@@ -18,7 +18,7 @@ type ArboristFileTreeProps = {
   onSelectFile: (path: string) => void;
 };
 
-const ROW_HEIGHT = 28;
+const ROW_HEIGHT = 24;
 const INDENT = 18;
 const FALLBACK_TREE_HEIGHT = 500;
 
@@ -192,7 +192,7 @@ function FileTreeNode({ node, style, dragHandle, expandedPaths }: FileTreeNodePr
           {open ? '▾' : '▸'}
         </span>
       )}
-      <span className="file-tree__name">{data.name}</span>
+      <span className="file-tree__name" title={data.path}>{data.name}</span>
       {data.type === 'directory' && data.loadState === 'loading' && (
         <span className="file-tree__state">正在加载</span>
       )}
