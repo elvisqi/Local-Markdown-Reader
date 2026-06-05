@@ -37,6 +37,18 @@ describe('table layout styles', () => {
     expect(rule).toMatch(/opacity:\s*0\.48/);
   });
 
+  it('shows pressed feedback for reader action buttons', () => {
+    expect(css).toMatch(/\.file-drawer__panel-actions button:active:not\(:disabled\)/);
+    expect(css).toMatch(/transform:\s*translateY\(1px\)/);
+    expect(css).toMatch(/box-shadow:\s*inset 0 1px 2px rgba\(18,\s*26,\s*36,\s*0\.16\)/);
+  });
+
+  it('shows disclosure arrows for file tree directory buttons', () => {
+    expect(getRule('.file-tree__directory')).toMatch(/display:\s*flex/);
+    expect(getRule('.file-tree__directory::before')).toMatch(/content:\s*"▶"/);
+    expect(getRule('.file-tree__directory[aria-expanded="true"]::before')).toMatch(/transform:\s*rotate\(90deg\)/);
+  });
+
   it('keeps long code lines from widening the reader grid', () => {
     expect(getRule('.document-reader')).toMatch(/min-width:\s*0/);
     expect(getRule('.document-reader > div')).toMatch(/min-width:\s*0/);

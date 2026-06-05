@@ -24,6 +24,30 @@ select {
   min-height: 30px;
 }
 
+.reader-toolbar button:active:not(:disabled),
+.file-drawer__close:active:not(:disabled),
+.file-drawer__tabs button:active:not(:disabled),
+.file-drawer__panel-actions button:active:not(:disabled),
+.ai-projects__toolbar button:active:not(:disabled),
+.ai-project-row__main:active:not(:disabled),
+.ai-project-row__reload:active:not(:disabled),
+.file-tree__directory:active:not(:disabled),
+.file-tree__file:active:not(:disabled),
+.outline-panel button:active:not(:disabled),
+.raw-source__toolbar button:active:not(:disabled),
+.table-fullscreen__trigger:active:not(:disabled),
+.table-fullscreen__close:active:not(:disabled),
+.mermaid-zoom__button:active:not(:disabled),
+.mermaid-fullscreen__trigger:active:not(:disabled),
+.large-document-reader__tools button:active:not(:disabled),
+.large-document-reader__view-toggle button:active:not(:disabled),
+.large-document-reader__search-results button:active:not(:disabled),
+.empty-state__actions button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--reader-link) 12%, var(--reader-surface));
+  box-shadow: inset 0 1px 2px rgba(18, 26, 36, 0.16);
+  transform: translateY(1px);
+}
+
 .reader-toolbar button:disabled {
   opacity: 0.48;
   cursor: not-allowed;
@@ -447,17 +471,7 @@ select {
   overflow: visible;
 }
 
-.file-tree summary {
-  cursor: pointer;
-  padding: 6px 0;
-  color: var(--reader-muted);
-}
-
-.file-tree .is-active-branch > details > summary {
-  color: var(--reader-text);
-  font-weight: 600;
-}
-
+.file-tree__directory,
 .file-tree__file,
 .outline-panel button {
   display: block;
@@ -467,10 +481,42 @@ select {
   text-align: left;
 }
 
+.file-tree__directory {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  color: var(--reader-muted);
+}
+
+.file-tree__directory::before {
+  content: "▶";
+  display: inline-block;
+  width: 10px;
+  flex: 0 0 10px;
+  color: var(--reader-muted);
+  font-size: 10px;
+  line-height: 1;
+  transform: rotate(0deg);
+}
+
+.file-tree__directory[aria-expanded="true"]::before {
+  transform: rotate(90deg);
+}
+
 .file-tree__file {
   border-radius: 6px;
   padding: 6px 8px;
   color: var(--reader-muted);
+}
+
+.file-tree__directory:hover {
+  color: var(--reader-text);
+}
+
+.file-tree .is-active-branch > .file-tree__directory {
+  color: var(--reader-text);
+  font-weight: 600;
 }
 
 .file-tree__file:hover {

@@ -1751,24 +1751,24 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-docs/folder-a.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByText('folder-notes'));
-    expect(within(screen.getByLabelText('文件列表')).getByText('folder-notes').closest('details')).toHaveAttribute('open');
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-notes' }));
+    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-notes' })).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-docs/project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByText('project-notes'));
-    expect(within(screen.getByLabelText('文件列表')).getByText('project-notes').closest('details')).toHaveAttribute('open');
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-notes' }));
+    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-notes' })).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-docs/folder-a.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByText('folder-notes').closest('details')).toHaveAttribute('open');
+    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-notes' })).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-docs/project-a.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByText('project-notes').closest('details')).toHaveAttribute('open');
+    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-notes' })).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('opens HTML files from the authorized folder in a raw iframe preview with scripts enabled', async () => {

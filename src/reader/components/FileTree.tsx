@@ -28,17 +28,26 @@ export function FileTree({
   const expandedPathSet = treeState.expandedPaths;
 
   useEffect(() => {
-    const nextPaths = [...expandedPathSet];
+    const activePaths = [...treeState.activeDirectoryPaths];
+    const hasMissingActivePath = activePaths.some((path) => !currentExpandedPaths.includes(path));
 
-    if (expandedPaths && !pathsEqual(expandedPaths, nextPaths)) {
-      onExpandedPathsChange?.(nextPaths);
+    if (!hasMissingActivePath) {
       return;
     }
 
-    if (!expandedPaths && !pathsEqual(uncontrolledExpandedPaths, nextPaths)) {
+    const nextPaths = [...new Set([...currentExpandedPaths, ...activePaths])];
+
+    if (expandedPaths) {
+      onExpandedPathsChange?.(nextPaths);
+    } else {
       setUncontrolledExpandedPaths(nextPaths);
     }
-  }, [expandedPathSet, expandedPaths, onExpandedPathsChange, uncontrolledExpandedPaths]);
+  }, [
+    currentExpandedPaths,
+    expandedPaths,
+    onExpandedPathsChange,
+    treeState.activeDirectoryPaths,
+  ]);
 
   if (!tree.length) {
     return <p className="empty-note">没有找到 Markdown、HTML 或 JSON 文件。</p>;
@@ -100,14 +109,15 @@ function TreeList({
         return (
           <li key={node.path} className={activeBranch ? 'is-active-branch' : undefined}>
             {node.type === 'directory' ? (
-              <details
-                open={open}
-                onToggle={(event) => {
-                  event.stopPropagation();
-                  onToggleDirectory(node.path, event.currentTarget.open);
-                }}
-              >
-                <summary>{node.name}</summary>
+              <>
+                <button
+                  type="button"
+                  className="file-tree__directory"
+                  aria-expanded={open}
+                  onClick={() => onToggleDirectory(node.path, !open)}
+                >
+                  {node.name}
+                </button>
                 {open && (
                   <TreeList
                     nodes={node.children}
@@ -118,7 +128,7 @@ function TreeList({
                     onSelect={onSelect}
                   />
                 )}
-              </details>
+              </>
             ) : (
               <FileTreeButton node={node} active={node.path === activePath} onSelect={onSelect} />
             )}
@@ -194,7 +204,11 @@ function createFileTreeState(nodes: FileTreeNode[], activePath: string | null, e
     }
 
     directoryPaths.add(node.path);
-    const containsActiveFile = node.children.some(visit);
+    let containsActiveFile = false;
+
+    for (const child of node.children) {
+      containsActiveFile = visit(child) || containsActiveFile;
+    }
 
     if (containsActiveFile) {
       activeDirectoryPaths.add(node.path);
@@ -213,13 +227,4 @@ function createFileTreeState(nodes: FileTreeNode[], activePath: string | null, e
     directoryPaths,
     expandedPaths: nextExpandedPaths,
   };
-}
-
-function pathsEqual(left: string[], right: string[]): boolean {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  const rightSet = new Set(right);
-  return left.every((path) => rightSet.has(path));
 }
