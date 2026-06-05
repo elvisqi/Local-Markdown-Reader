@@ -5,13 +5,18 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from 'react';
 
-import { analyzeDocumentTree, getDocumentFileKind, selectDefaultDocument } from '../shared/fileSystem';
+import {
+  analyzeDocumentTree,
+  getDocumentFileKind,
+  selectDefaultLoadedDocument,
+  selectDefaultDocument,
+} from '../shared/fileSystem';
 import { renderHtmlDocument } from '../shared/render/html';
 import { resolveMarkdownHref } from '../shared/render/links';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, subscribeSettings } from '../shared/settings';
 import { consumeTemporaryMarkdownDocument, type TemporaryMarkdownDocument } from '../shared/temporaryDocument';
-import type { FileTreeNode, OutlineItem, RenderResult } from '../shared/types';
+import type { FileTreeNode, LazyFileTreeNode, OutlineItem, RenderResult } from '../shared/types';
 import { selectActiveHeadingId } from './activeHeading';
 import {
   clearAiProjectState,
@@ -29,12 +34,15 @@ import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
 import { selectSiblingMarkdownNavigation } from './fileNavigation';
 import {
+  createDirectoryScanSession,
+  isStaleLoadedDirectoryError,
   openDirectory,
   openDocumentFile,
   readAssetFile,
   readDocumentFileSnapshot,
   readMarkdownFileSlice,
   scanMarkdownDirectory,
+  type DirectoryScanSession,
   type DocumentFileSnapshot,
 } from './fileSystemAccess';
 import {
@@ -67,6 +75,15 @@ import {
   type LastDocumentRecord,
 } from './recentDocument';
 import { JsonDocumentReader } from './JsonDocumentReader';
+import {
+  createEmptyLazyFileTree,
+  markDirectoryError,
+  markDirectoryLoading,
+  pruneExpandedPaths,
+  replaceDirectoryChildren,
+  selectLoadedDocumentExists,
+  setExpandedPaths as setLazyExpandedPaths,
+} from './lazyFileTree';
 import { RenderedMarkdownContent } from './RenderedMarkdownContent';
 import { installTableFullscreen } from './tableFullscreen';
 import './App.css';
@@ -135,9 +152,8 @@ export function App() {
   const [isResizingOutlinePanel, setIsResizingOutlinePanel] = useState(false);
   const [drawerTab, setDrawerTab] = useState<FileDrawerTab>('folder');
   const [folderDirectoryHandle, setFolderDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null);
-  const [folderTree, setFolderTree] = useState<FileTreeNode[]>([]);
+  const [folderTree, setFolderTree] = useState(createEmptyLazyFileTree);
   const [folderActivePath, setFolderActivePath] = useState<string | null>(null);
-  const [folderExpandedPaths, setFolderExpandedPaths] = useState<string[]>([]);
   const [activePath, setActivePath] = useState<string | null>(null);
   const [activeAiProjectId, setActiveAiProjectId] = useState<string | null>(null);
   const [aiProjectState, setAiProjectState] = useState<AiProjectState>(EMPTY_AI_PROJECT_STATE);
@@ -159,6 +175,7 @@ export function App() {
   const [largeDocument, setLargeDocument] = useState<LargeDocumentSession | null>(null);
   const [largeAnchorLine, setLargeAnchorLine] = useState(1);
   const openRequestIdRef = useRef(0);
+  const folderScanSessionRef = useRef<DirectoryScanSession | null>(null);
   const renderedContentRef = useRef<HTMLDivElement | null>(null);
   const htmlPreviewRef = useRef<HTMLIFrameElement | null>(null);
   const htmlPreviewLastRenderRef = useRef<{ key: string; target: Window | null } | null>(null);
@@ -173,8 +190,8 @@ export function App() {
       return aiProjectTrees[activeDocumentSource.projectId] ?? [];
     }
 
-    return activeDocumentSource?.type === 'folder' ? folderTree : [];
-  }, [activeDocumentSource, aiProjectTrees, folderTree]);
+    return activeDocumentSource?.type === 'folder' ? convertLoadedLazyTreeToFileTreeNodes(folderTree.nodes) : [];
+  }, [activeDocumentSource, aiProjectTrees, folderTree.nodes]);
   const fileNavigation = useMemo(
     () => selectSiblingMarkdownNavigation(activeNavigationTree, activePath),
     [activeNavigationTree, activePath],
@@ -457,19 +474,21 @@ export function App() {
         return;
       }
 
-      const nextTree = await scanMarkdownDirectory(handle);
+      const scanSession = createDirectoryScanSession(handle);
+      const rootChildren = await scanSession.scanChildren('');
       if (!isCurrentOpenRequest(requestId)) {
         return;
       }
 
-      const defaultPath = selectDefaultDocument(nextTree);
+      const nextTree = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
+      const defaultPath = selectDefaultLoadedDocument(nextTree.nodes);
 
+      folderScanSessionRef.current = scanSession;
       setFolderDirectoryHandle(handle);
       setFolderTree(nextTree);
       setFolderActivePath(defaultPath);
-      setFolderExpandedPaths([]);
-      setDrawerOpen(false);
-      setStatus(nextTree.length ? null : '这个文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
+      setDrawerOpen(!defaultPath);
+      setStatus(nextTree.nodes.length ? null : '这个文件夹根目录没有可显示的文件或子目录。');
 
       if (defaultPath) {
         await openFile(handle, defaultPath, true, { source: { type: 'folder', handle }, requestId });
@@ -483,6 +502,32 @@ export function App() {
 
       setStatus(null);
       setError(err instanceof Error ? err.message : '无法打开文件夹。');
+    }
+  }
+
+  async function loadFolderDirectory(path: string) {
+    const scanSession = folderScanSessionRef.current;
+    if (!scanSession) {
+      return;
+    }
+
+    setFolderTree((current) => markDirectoryLoading(current, path));
+
+    try {
+      const children = await scanSession.scanChildren(path);
+      if (folderScanSessionRef.current !== scanSession) {
+        return;
+      }
+
+      setFolderTree((current) => replaceDirectoryChildren(current, path, children));
+    } catch (err) {
+      if (folderScanSessionRef.current !== scanSession) {
+        return;
+      }
+
+      setFolderTree((current) =>
+        markDirectoryError(current, path, err instanceof Error ? err.message : '无法读取目录。'),
+      );
     }
   }
 
@@ -960,7 +1005,8 @@ export function App() {
         setDrawerTab('ai-projects');
       } else {
         setFolderDirectoryHandle(record.directoryHandle);
-        setFolderTree(nextTree);
+        folderScanSessionRef.current = null;
+        setFolderTree(convertFileTreeNodesToLoadedLazyState(nextTree));
         setFolderActivePath(rememberedPath);
         setActiveAiProjectId(null);
       }
@@ -1029,15 +1075,37 @@ export function App() {
     setStatus('正在重载目录');
 
     try {
-      const nextTree = await scanMarkdownDirectory(folderDirectoryHandle);
-      if (!isCurrentOpenRequest(requestId)) {
-        return;
+      const directoriesToReload = [...new Set(['', ...folderTree.loadedDirectoryPaths])]
+        .sort((a, b) => selectPathDepth(a) - selectPathDepth(b));
+      const scanSession = createDirectoryScanSession(folderDirectoryHandle);
+      let nextTree = createEmptyLazyFileTree();
+
+      for (const directoryPath of directoriesToReload) {
+        let children: LazyFileTreeNode[];
+        try {
+          children = await scanSession.scanChildren(directoryPath);
+        } catch (err) {
+          if (directoryPath && isStaleLoadedDirectoryError(err)) {
+            continue;
+          }
+
+          throw err;
+        }
+
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
+
+        nextTree = replaceDirectoryChildren(nextTree, directoryPath, children);
       }
 
-      const treeAnalysis = analyzeDocumentTree(nextTree, folderActivePath);
-      const activeFileExists = treeAnalysis.containsPath;
-      const fallbackPath = activeFileExists ? null : treeAnalysis.defaultPath;
+      nextTree = pruneExpandedPaths(setLazyExpandedPaths(nextTree, folderTree.expandedPaths));
+      const activeFileExists = folderActivePath
+        ? selectLoadedDocumentExists(nextTree.nodes, folderActivePath)
+        : false;
+      const fallbackPath = activeFileExists ? null : selectDefaultLoadedDocument(nextTree.nodes);
 
+      folderScanSessionRef.current = scanSession;
       setFolderTree(nextTree);
 
       if (activeFileExists) {
@@ -1057,7 +1125,7 @@ export function App() {
       if (activeDocumentSource?.type === 'folder') {
         clearReaderForSource({ type: 'folder', handle: folderDirectoryHandle });
       }
-      setStatus('这个文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
+      setStatus('这个文件夹根目录没有可显示的文件或子目录。');
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
         return;
@@ -1646,9 +1714,9 @@ export function App() {
       >
         <FileDrawer
           open={drawerOpen}
-          tree={folderTree}
+          tree={folderTree.nodes}
           activePath={folderActivePath}
-          expandedPaths={folderExpandedPaths}
+          expandedPaths={folderTree.expandedPaths}
           activeTab={drawerTab}
           aiProjects={aiProjectState.projects}
           aiProjectSources={aiProjectState.sources}
@@ -1659,7 +1727,8 @@ export function App() {
           activeAiProjectId={activeAiProjectId}
           onOpenFolder={openFolder}
           onReloadFolder={() => void reloadFolderTree()}
-          onFolderExpandedPathsChange={setFolderExpandedPaths}
+          onFolderExpandedPathsChange={(paths) => setFolderTree((current) => setLazyExpandedPaths(current, paths))}
+          onLoadFolderDirectory={(path) => void loadFolderDirectory(path)}
           onTabChange={changeDrawerTab}
           onOpenAiProjectSettings={() => void openAiProjectSettings()}
           onClearAiProjects={() => void clearAiProjects()}
@@ -1824,6 +1893,55 @@ function flattenOutlineIds(outline: OutlineItem[]): string[] {
 
 function isDocumentPathInTree(tree: FileTreeNode[], path: string): boolean {
   return analyzeDocumentTree(tree, path).containsPath;
+}
+
+function convertLoadedLazyTreeToFileTreeNodes(nodes: LazyFileTreeNode[]): FileTreeNode[] {
+  return nodes.flatMap((node): FileTreeNode[] => {
+    if (node.type === 'file') {
+      return [{ type: 'file', name: node.name, path: node.path }];
+    }
+
+    if (node.loadState !== 'loaded') {
+      return [];
+    }
+
+    return [{
+      type: 'directory',
+      name: node.name,
+      path: node.path,
+      children: convertLoadedLazyTreeToFileTreeNodes(node.children),
+    }];
+  });
+}
+
+function convertFileTreeNodesToLoadedLazyState(nodes: FileTreeNode[]) {
+  return replaceDirectoryChildren(createEmptyLazyFileTree(), '', convertFileTreeNodesToLazyNodes(nodes));
+}
+
+function convertFileTreeNodesToLazyNodes(nodes: FileTreeNode[]): LazyFileTreeNode[] {
+  return nodes.map((node) => {
+    if (node.type === 'file') {
+      return {
+        id: node.path,
+        type: 'file',
+        name: node.name,
+        path: node.path,
+      };
+    }
+
+    return {
+      id: node.path,
+      type: 'directory',
+      name: node.name,
+      path: node.path,
+      loadState: 'loaded',
+      children: convertFileTreeNodesToLazyNodes(node.children),
+    };
+  });
+}
+
+function selectPathDepth(path: string): number {
+  return path.split('/').filter(Boolean).length;
 }
 
 function selectSourceSaveName(path: string | null, kind: ActiveDocumentKind): string {

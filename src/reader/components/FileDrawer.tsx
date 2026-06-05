@@ -1,5 +1,6 @@
 import type { AiProjectEntry, AiProjectProvider, AiProjectSourceRecord } from '../aiProjects';
-import type { FileTreeNode } from '../../shared/types';
+import type { FileTreeNode, LazyFileTreeNode } from '../../shared/types';
+import { ArboristFileTree } from './ArboristFileTree';
 import { FileTree } from './FileTree';
 import type { KeyboardEvent, PointerEvent } from 'react';
 
@@ -7,9 +8,9 @@ type FileDrawerTab = 'folder' | 'ai-projects';
 
 type FileDrawerProps = {
   open: boolean;
-  tree: FileTreeNode[];
+  tree: LazyFileTreeNode[];
   activePath: string | null;
-  expandedPaths: string[];
+  expandedPaths: Set<string>;
   activeTab: FileDrawerTab;
   aiProjects: AiProjectEntry[];
   aiProjectSources: Partial<Record<AiProjectProvider, AiProjectSourceRecord>>;
@@ -20,7 +21,8 @@ type FileDrawerProps = {
   activeAiProjectId: string | null;
   onOpenFolder: () => void;
   onReloadFolder: () => void;
-  onFolderExpandedPathsChange: (paths: string[]) => void;
+  onFolderExpandedPathsChange: (paths: Set<string>) => void;
+  onLoadFolderDirectory: (path: string) => void;
   onTabChange: (tab: FileDrawerTab) => void;
   onOpenAiProjectSettings: () => void;
   onClearAiProjects: () => void;
@@ -50,6 +52,7 @@ export function FileDrawer({
   onOpenFolder,
   onReloadFolder,
   onFolderExpandedPathsChange,
+  onLoadFolderDirectory,
   onTabChange,
   onOpenAiProjectSettings,
   onClearAiProjects,
@@ -109,12 +112,13 @@ export function FileDrawer({
               重载目录
             </button>
           </div>
-          <FileTree
-            tree={tree}
+          <ArboristFileTree
+            nodes={tree}
             activePath={activePath}
             expandedPaths={expandedPaths}
             onExpandedPathsChange={onFolderExpandedPathsChange}
-            onSelect={onSelect}
+            onLoadDirectory={onLoadFolderDirectory}
+            onSelectFile={onSelect}
           />
         </section>
       ) : (

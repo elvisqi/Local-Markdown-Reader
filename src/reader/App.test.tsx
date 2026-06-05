@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type { FileTreeNode } from '../shared/types';
+import type { FileTreeNode, LazyFileTreeNode } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/settings';
 import { App } from './App';
 import * as aiProjects from './aiProjects';
@@ -13,6 +13,8 @@ vi.mock('./fileSystemAccess', async () => {
 
   return {
     ...actual,
+    createDirectoryScanSession: vi.fn(),
+    hydrateDirectoryPath: vi.fn(),
     openDirectory: vi.fn(),
     openDocumentFile: vi.fn(),
     openMarkdownFile: vi.fn(),
@@ -77,6 +79,28 @@ function isTestReaderHistoryState(value: unknown): value is { path: string; hash
   return Boolean(value && typeof value === 'object' && (value as { marker?: unknown }).marker === 'local-markdown-reader');
 }
 
+function toLoadedLazyFileTree(nodes: FileTreeNode[]): LazyFileTreeNode[] {
+  return nodes.map((node) => {
+    if (node.type === 'file') {
+      return {
+        id: node.path,
+        type: 'file',
+        name: node.name,
+        path: node.path,
+      };
+    }
+
+    return {
+      id: node.path,
+      type: 'directory',
+      name: node.name,
+      path: node.path,
+      loadState: 'loaded',
+      children: toLoadedLazyFileTree(node.children),
+    };
+  });
+}
+
 describe('App file navigation and drawer behavior', () => {
   const directoryHandle = { name: 'Docs' } as FileSystemDirectoryHandle;
   const tree: FileTreeNode[] = [
@@ -107,6 +131,16 @@ describe('App file navigation and drawer behavior', () => {
     URL.revokeObjectURL = vi.fn();
     vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(tree);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockImplementation((handle) => ({
+      scanChildren: vi.fn(async (path) => {
+        if (path) {
+          return [];
+        }
+
+        return toLoadedLazyFileTree(await fileSystemAccess.scanMarkdownDirectory(handle));
+      }),
+    }));
+    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockResolvedValue([]);
     vi.mocked(fileSystemAccess.readDocumentFile).mockImplementation(async (_handle, path) => `# ${path}`);
     vi.mocked(fileSystemAccess.readAssetFile).mockResolvedValue(null);
     vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
@@ -191,6 +225,20 @@ describe('App file navigation and drawer behavior', () => {
       ) as { html?: string } | undefined;
 
     expect(renderPayload?.html).toContain(`data-reader-link-id="${linkId}"`);
+  }
+
+  function getDrawerFileItem(name: string, drawer = screen.getByLabelText('文件列表')): HTMLElement {
+    const drawerQueries = within(drawer);
+    return drawerQueries.queryByRole('treeitem', { name }) ?? drawerQueries.getByRole('button', { name });
+  }
+
+  function queryDrawerFileItem(name: string, drawer = screen.queryByLabelText('文件列表')): HTMLElement | null {
+    if (!drawer) {
+      return null;
+    }
+
+    const drawerQueries = within(drawer);
+    return drawerQueries.queryByRole('treeitem', { name }) ?? drawerQueries.queryByRole('button', { name });
   }
 
   it('restores drawer open state and width from local layout preferences without live cross-tab updates', async () => {
@@ -392,6 +440,49 @@ describe('App file navigation and drawer behavior', () => {
       '--file-drawer-width': '528px',
       '--outline-panel-width': '100px',
     });
+  });
+
+  it('opens a folder by scanning only root children', async () => {
+    const user = userEvent.setup();
+    const directoryHandle = { kind: 'directory', name: 'Docs' } as FileSystemDirectoryHandle;
+    const scanChildren = vi.fn().mockResolvedValue([
+      { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ]);
+    vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue({ scanChildren });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: /打开文件夹/ }));
+
+    expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(directoryHandle);
+    expect(scanChildren).toHaveBeenCalledWith('');
+    expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
+  });
+
+  it('loads a folder branch when the user expands it', async () => {
+    const user = userEvent.setup();
+    const directoryHandle = { kind: 'directory', name: 'Docs' } as FileSystemDirectoryHandle;
+    const scanChildren = vi.fn()
+      .mockResolvedValueOnce([
+        { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+      ])
+      .mockResolvedValueOnce([
+        { id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' },
+      ]);
+    vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue({ scanChildren });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: /打开文件夹/ }));
+    await user.click(await screen.findByRole('treeitem', { name: 'docs' }));
+
+    expect(scanChildren).toHaveBeenLastCalledWith('docs');
+    expect(await screen.findByRole('treeitem', { name: 'guide.md' })).toBeInTheDocument();
   });
 
   it('falls back to the default drawer layout when local layout preferences are malformed', async () => {
@@ -855,12 +946,12 @@ describe('App file navigation and drawer behavior', () => {
 
     await user.click(screen.getByRole('button', { name: '文件' }));
 
-    expect(screen.getByRole('button', { name: '02-design.md' })).toBeInTheDocument();
+    expect(getDrawerFileItem('02-design.md')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '02-design.md' }));
+    await user.click(getDrawerFileItem('02-design.md'));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/02-design.md' })).not.toHaveLength(0));
-    expect(screen.getByRole('button', { name: '02-design.md' })).toBeInTheDocument();
+    expect(getDrawerFileItem('02-design.md')).toBeInTheDocument();
   });
 
   it('opens sibling files with left and right arrow keys outside editable controls', async () => {
@@ -943,7 +1034,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '重载目录' }));
 
     await waitFor(() =>
-      expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '04-new.md' })).toBeInTheDocument(),
+      expect(getDrawerFileItem('04-new.md')).toBeInTheDocument(),
     );
     expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0);
     expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledTimes(2);
@@ -1004,12 +1095,12 @@ describe('App file navigation and drawer behavior', () => {
 
     const drawer = screen.getByLabelText('文件列表');
     await waitFor(() =>
-      expect(within(drawer).getByRole('button', { name: 'README.md' })).toHaveAttribute('aria-current', 'page'),
+      expect(getDrawerFileItem('README.md', drawer)).toHaveAttribute('aria-current', 'page'),
     );
     expect(drawer).toBeInTheDocument();
 
     await user.click(within(drawer).getByText('docs'));
-    await user.click(within(drawer).getByRole('button', { name: 'guide.md' }));
+    await user.click(getDrawerFileItem('guide.md', drawer));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0));
     expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(projectHandle, 'docs/guide.md');
@@ -1062,13 +1153,13 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(screen.getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/alpha'));
-    await waitFor(() => expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'alpha.md' })).toBeInTheDocument());
+    await waitFor(() => expect(getDrawerFileItem('alpha.md')).toBeInTheDocument());
 
     await user.click(screen.getByTitle('/Users/qiyu/Github/beta'));
 
     const drawer = screen.getByLabelText('文件列表');
-    await waitFor(() => expect(within(drawer).getByRole('button', { name: 'beta.md' })).toBeInTheDocument());
-    expect(within(drawer).getByRole('button', { name: 'alpha.md' })).toBeInTheDocument();
+    await waitFor(() => expect(getDrawerFileItem('beta.md', drawer)).toBeInTheDocument());
+    expect(getDrawerFileItem('alpha.md', drawer)).toBeInTheDocument();
   });
 
   it('keeps folder and AI project reading sessions independent when switching tabs', async () => {
@@ -1119,29 +1210,29 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' }));
+    await user.click(getDrawerFileItem('folder-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
 
     const folderDrawer = screen.getByLabelText('文件列表');
-    expect(within(folderDrawer).getByRole('button', { name: 'folder-a.md' })).toBeInTheDocument();
-    expect(within(folderDrawer).getByRole('button', { name: 'folder-b.md' })).toHaveAttribute('aria-current', 'page');
-    expect(within(folderDrawer).queryByRole('button', { name: 'project-a.md' })).not.toBeInTheDocument();
+    expect(getDrawerFileItem('folder-a.md', folderDrawer)).toBeInTheDocument();
+    expect(getDrawerFileItem('folder-b.md', folderDrawer)).toHaveAttribute('aria-current', 'page');
+    expect(queryDrawerFileItem('project-a.md', folderDrawer)).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
 
     await user.click(within(folderDrawer).getByRole('tab', { name: 'AI 项目' }));
 
     const aiDrawer = screen.getByLabelText('文件列表');
-    expect(within(aiDrawer).getByRole('button', { name: 'project-a.md' })).toBeInTheDocument();
-    expect(within(aiDrawer).getByRole('button', { name: 'project-b.md' })).toHaveAttribute('aria-current', 'page');
-    expect(within(aiDrawer).queryByRole('button', { name: 'folder-a.md' })).not.toBeInTheDocument();
+    expect(getDrawerFileItem('project-a.md', aiDrawer)).toBeInTheDocument();
+    expect(getDrawerFileItem('project-b.md', aiDrawer)).toHaveAttribute('aria-current', 'page');
+    expect(queryDrawerFileItem('folder-a.md', aiDrawer)).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
     expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(projectHandle, 'project-b.md');
   });
@@ -1197,7 +1288,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
@@ -1208,7 +1299,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('project-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -1254,7 +1345,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'README.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByTitle('/Users/qiyu/Github/ai-docs'));
@@ -1380,7 +1471,7 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(resolveNormalSample).toBeTypeOf('function'));
 
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'z-big.md' }));
+    await user.click(getDrawerFileItem('z-big.md'));
     await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
 
     const finishNormalSample = resolveNormalSample as ((source: string) => void) | null;
@@ -1751,24 +1842,24 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-docs/folder-a.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-notes' }));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-notes' })).toHaveAttribute('aria-expanded', 'true');
+    await user.click(getDrawerFileItem('folder-notes'));
+    expect(getDrawerFileItem('folder-notes')).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-docs/project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-notes' }));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-notes' })).toHaveAttribute('aria-expanded', 'true');
+    await user.click(getDrawerFileItem('project-notes'));
+    expect(getDrawerFileItem('project-notes')).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-docs/folder-a.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-notes' })).toHaveAttribute('aria-expanded', 'true');
+    expect(getDrawerFileItem('folder-notes')).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-docs/project-a.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-notes' })).toHaveAttribute('aria-expanded', 'true');
+    expect(getDrawerFileItem('project-notes')).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('opens HTML files from the authorized folder in a raw iframe preview with scripts enabled', async () => {
@@ -1805,7 +1896,7 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'README.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'report.html' }));
+    await user.click(getDrawerFileItem('report.html'));
 
     const preview = await screen.findByTitle('HTML 预览：report.html');
     expect(preview).toBeInstanceOf(HTMLIFrameElement);
@@ -2356,7 +2447,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '项目总览.html' }));
+    await user.click(getDrawerFileItem('项目总览.html'));
     const sourcePreview = await screen.findByTitle('HTML 预览：项目总览.html') as HTMLIFrameElement;
     const sourcePostMessage = vi.fn();
     const sourceFrameWindow = {
@@ -2400,7 +2491,7 @@ describe('App file navigation and drawer behavior', () => {
       value: targetFrameWindow,
     });
     expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(directoryHandle, '当前有效资产清单.html');
-    expect(screen.getByRole('button', { name: '当前有效资产清单.html' })).toHaveAttribute('aria-current', 'page');
+    expect(getDrawerFileItem('当前有效资产清单.html')).toHaveAttribute('aria-current', 'page');
     expect(pushStateSpy).toHaveBeenCalled();
     const linkedDocumentState = pushStateSpy.mock.calls
       .map(([state]) => state)
@@ -2481,7 +2572,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '项目总览.html' }));
+    await user.click(getDrawerFileItem('项目总览.html'));
     await waitFor(() => expect(screen.getByTitle('HTML 预览：项目总览.html')).toBeInTheDocument());
 
     vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockClear();
@@ -2525,7 +2616,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '项目总览.html' }));
+    await user.click(getDrawerFileItem('项目总览.html'));
     const sourcePreview = await screen.findByTitle('HTML 预览：项目总览.html') as HTMLIFrameElement;
 
     await user.click(screen.getByLabelText('原文'));
@@ -2574,7 +2665,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '项目总览.html' }));
+    await user.click(getDrawerFileItem('项目总览.html'));
     const sourcePreview = await screen.findByTitle('HTML 预览：项目总览.html') as HTMLIFrameElement;
     const sourcePostMessage = vi.fn();
     const sourceFrameWindow = {
@@ -2641,7 +2732,7 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'README.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'report.html' }));
+    await user.click(getDrawerFileItem('report.html'));
 
     const preview = await screen.findByTitle('HTML 预览：report.html');
     const shell = screen.getByLabelText('文件列表').parentElement;
@@ -2746,13 +2837,13 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' }));
+    await user.click(getDrawerFileItem('folder-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     const finishTemporaryDocument = resolveTemporaryDocument as
@@ -2774,14 +2865,14 @@ describe('App file navigation and drawer behavior', () => {
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('folder-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('project-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -2853,13 +2944,13 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' }));
+    await user.click(getDrawerFileItem('folder-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     const finishTemporaryDocument = resolveTemporaryDocument as
@@ -2888,14 +2979,14 @@ describe('App file navigation and drawer behavior', () => {
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('folder-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('project-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
