@@ -278,6 +278,331 @@ describe('ArboristFileTree', () => {
     expect(screen.getByRole('tree')).toHaveStyle({ height: '790px' });
   });
 
+  it('remeasures remaining viewport height after the tree nodes are refreshed', () => {
+    let animationFrameCallback: FrameRequestCallback | null = null;
+    let treeTop = 220;
+    const refreshedTree: LazyFileTreeNode[] = [
+      ...tree,
+      { id: 'notes.md', type: 'file', name: 'notes.md', path: 'notes.md' },
+    ];
+
+    vi.stubGlobal('ResizeObserver', undefined);
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationFrameCallback = callback;
+      return 1;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(900);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function getMockRect(this: HTMLElement) {
+      if (this.classList.contains('file-tree--arborist')) {
+        return createRect({ top: treeTop, bottom: treeTop + 500, height: 500 });
+      }
+      if (this.classList.contains('file-drawer')) {
+        return createRect({ top: 57, bottom: 900, height: 843 });
+      }
+
+      return createRect({});
+    });
+
+    const { rerender } = render(
+      <aside className="file-drawer" style={{ paddingBottom: '16px' }}>
+        <ArboristFileTree
+          heightMode="remaining-viewport"
+          nodes={tree}
+          activePath={null}
+          expandedPaths={new Set()}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </aside>,
+    );
+
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '664px' });
+    act(() => {
+      animationFrameCallback?.(0);
+    });
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '664px' });
+    animationFrameCallback = null;
+
+    treeTop = 94;
+    rerender(
+      <aside className="file-drawer" style={{ paddingBottom: '16px' }}>
+        <ArboristFileTree
+          heightMode="remaining-viewport"
+          nodes={refreshedTree}
+          activePath={null}
+          expandedPaths={new Set()}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </aside>,
+    );
+
+    act(() => {
+      animationFrameCallback?.(0);
+    });
+
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '790px' });
+  });
+
+  it('continues measuring after a refresh until the remaining viewport is available', () => {
+    const animationFrameCallbacks: FrameRequestCallback[] = [];
+    let measurementCount = 0;
+    const refreshedTree: LazyFileTreeNode[] = [
+      ...tree,
+      { id: 'notes.md', type: 'file', name: 'notes.md', path: 'notes.md' },
+    ];
+
+    vi.stubGlobal('ResizeObserver', undefined);
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationFrameCallbacks.push(callback);
+      return animationFrameCallbacks.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(900);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function getMockRect(this: HTMLElement) {
+      if (this.classList.contains('file-tree--arborist')) {
+        measurementCount += 1;
+
+        if (measurementCount <= 2) {
+          return createRect({ top: 900, bottom: 900, height: 0 });
+        }
+
+        return createRect({ top: 94, bottom: 594, height: 500 });
+      }
+      if (this.classList.contains('file-drawer')) {
+        return createRect({ top: 57, bottom: 900, height: 843 });
+      }
+
+      return createRect({});
+    });
+
+    const { rerender } = render(
+      <aside className="file-drawer" style={{ paddingBottom: '16px' }}>
+        <ArboristFileTree
+          heightMode="remaining-viewport"
+          nodes={tree}
+          activePath={null}
+          expandedPaths={new Set()}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </aside>,
+    );
+
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '500px' });
+    measurementCount = 0;
+    animationFrameCallbacks.length = 0;
+
+    rerender(
+      <aside className="file-drawer" style={{ paddingBottom: '16px' }}>
+        <ArboristFileTree
+          heightMode="remaining-viewport"
+          nodes={refreshedTree}
+          activePath={null}
+          expandedPaths={new Set()}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </aside>,
+    );
+
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '500px' });
+
+    act(() => {
+      animationFrameCallbacks.shift()?.(0);
+    });
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '500px' });
+
+    act(() => {
+      animationFrameCallbacks.shift()?.(16);
+    });
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '790px' });
+  });
+
+  it('remeasures when refreshed nodes keep the same layout key', () => {
+    let animationFrameCallback: FrameRequestCallback | null = null;
+    let treeTop = 220;
+    const refreshedTree: LazyFileTreeNode[] = tree.map((node) => ({ ...node }));
+
+    vi.stubGlobal('ResizeObserver', undefined);
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationFrameCallback = callback;
+      return 1;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(900);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function getMockRect(this: HTMLElement) {
+      if (this.classList.contains('file-tree--arborist')) {
+        return createRect({ top: treeTop, bottom: treeTop + 500, height: 500 });
+      }
+      if (this.classList.contains('file-drawer')) {
+        return createRect({ top: 57, bottom: 900, height: 843 });
+      }
+
+      return createRect({});
+    });
+
+    const { rerender } = render(
+      <aside className="file-drawer" style={{ paddingBottom: '16px' }}>
+        <ArboristFileTree
+          heightMode="remaining-viewport"
+          nodes={tree}
+          activePath={null}
+          expandedPaths={new Set()}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </aside>,
+    );
+
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '664px' });
+    act(() => {
+      animationFrameCallback?.(0);
+    });
+    animationFrameCallback = null;
+
+    treeTop = 94;
+    rerender(
+      <aside className="file-drawer" style={{ paddingBottom: '16px' }}>
+        <ArboristFileTree
+          heightMode="remaining-viewport"
+          nodes={refreshedTree}
+          activePath={null}
+          expandedPaths={new Set()}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </aside>,
+    );
+
+    act(() => {
+      animationFrameCallback?.(0);
+    });
+
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '790px' });
+  });
+
+  it('does not accept its own fallback height as the remaining viewport height', () => {
+    const animationFrameCallbacks: FrameRequestCallback[] = [];
+    let measurementCount = 0;
+
+    vi.stubGlobal('ResizeObserver', undefined);
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationFrameCallbacks.push(callback);
+      return animationFrameCallbacks.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(900);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function getMockRect(this: HTMLElement) {
+      if (this.classList.contains('file-tree--arborist')) {
+        measurementCount += 1;
+
+        if (measurementCount <= 2) {
+          return createRect({ top: 900, bottom: 1400, height: 500 });
+        }
+
+        return createRect({ top: 94, bottom: 594, height: 500 });
+      }
+      if (this.classList.contains('file-drawer')) {
+        return createRect({ top: 57, bottom: 900, height: 843 });
+      }
+
+      return createRect({});
+    });
+
+    render(
+      <aside className="file-drawer" style={{ paddingBottom: '16px' }}>
+        <ArboristFileTree
+          heightMode="remaining-viewport"
+          nodes={tree}
+          activePath={null}
+          expandedPaths={new Set()}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </aside>,
+    );
+
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '500px' });
+
+    act(() => {
+      animationFrameCallbacks.shift()?.(0);
+    });
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '500px' });
+
+    act(() => {
+      animationFrameCallbacks.shift()?.(16);
+    });
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '790px' });
+  });
+
+  it('does not accept a parent fallback height as the remaining viewport height', () => {
+    const animationFrameCallbacks: FrameRequestCallback[] = [];
+    let measurementCount = 0;
+
+    vi.stubGlobal('ResizeObserver', undefined);
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationFrameCallbacks.push(callback);
+      return animationFrameCallbacks.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(900);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function getMockRect(this: HTMLElement) {
+      if (this.classList.contains('file-tree--arborist')) {
+        measurementCount += 1;
+
+        if (measurementCount <= 2) {
+          return createRect({ top: 900, bottom: 1400, height: 500 });
+        }
+
+        return createRect({ top: 94, bottom: 594, height: 500 });
+      }
+      if (this.classList.contains('file-drawer')) {
+        if (measurementCount <= 2) {
+          return createRect({ top: 900, bottom: 1400, height: 500 });
+        }
+
+        return createRect({ top: 57, bottom: 900, height: 843 });
+      }
+
+      return createRect({});
+    });
+
+    render(
+      <aside className="file-drawer" style={{ paddingBottom: '16px' }}>
+        <ArboristFileTree
+          heightMode="remaining-viewport"
+          nodes={tree}
+          activePath={null}
+          expandedPaths={new Set()}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </aside>,
+    );
+
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '500px' });
+
+    act(() => {
+      animationFrameCallbacks.shift()?.(0);
+    });
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '500px' });
+
+    act(() => {
+      animationFrameCallbacks.shift()?.(16);
+    });
+    expect(screen.getByRole('tree')).toHaveStyle({ height: '790px' });
+  });
+
   it('uses the observed container height when the flex item fills more space than its current list height', () => {
     let resizeCallback: ResizeObserverCallback | null = null;
     let animationFrameCallback: FrameRequestCallback | null = null;

@@ -23,6 +23,7 @@ type ArboristFileTreeProps = {
 const ROW_HEIGHT = 24;
 const INDENT = 18;
 const FALLBACK_TREE_HEIGHT = 500;
+const MAX_LAYOUT_MEASURE_FRAMES = 6;
 
 export function ArboristFileTree({
   nodes,
@@ -39,6 +40,7 @@ export function ArboristFileTree({
   const syncingOpenStateRef = useRef(false);
   const [treeHeight, setTreeHeight] = useState(FALLBACK_TREE_HEIGHT);
   const initialOpenStateRef = useRef<Record<string, boolean> | null>(null);
+  const layoutMeasureKey = `${createTreeLayoutKey(nodes)}|${[...expandedPaths].sort().join('\n')}`;
 
   if (!initialOpenStateRef.current) {
     initialOpenStateRef.current = Object.fromEntries([...expandedPaths].map((path) => [path, true]));
@@ -50,29 +52,57 @@ export function ArboristFileTree({
       return;
     }
 
-    const updateTreeHeight = (observedHeight?: number, observedParentHeight?: number) => {
-      const nextHeight = measureAvailableTreeHeight(element, {
-        heightMode,
-        observedHeight,
-        observedParentHeight,
-      });
-      setTreeHeight((currentHeight) => currentHeight === nextHeight ? currentHeight : nextHeight);
-    };
-    updateTreeHeight();
+    const scheduledFrames = new Set<number>();
     const scheduleAnimationFrame = typeof requestAnimationFrame === 'function'
       ? requestAnimationFrame
       : (callback: FrameRequestCallback) => window.setTimeout(() => callback(performance.now()), 0);
     const cancelScheduledFrame = typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame : window.clearTimeout;
-    const animationFrame = scheduleAnimationFrame(updateTreeHeight);
+
+    const scheduleLayoutMeasurement = (remainingFrames: number) => {
+      if (remainingFrames <= 0) {
+        return;
+      }
+
+      const frameId = scheduleAnimationFrame(() => {
+        scheduledFrames.delete(frameId);
+        const result = updateTreeHeight();
+
+        if (result.source === 'fallback') {
+          scheduleLayoutMeasurement(remainingFrames - 1);
+        }
+      });
+
+      scheduledFrames.add(frameId);
+    };
+
+    const updateTreeHeight = (observedHeight?: number, observedParentHeight?: number): TreeHeightMeasureResult => {
+      const result = measureAvailableTreeHeight(element, {
+        heightMode,
+        observedHeight,
+        observedParentHeight,
+      });
+      const nextHeight = result.height;
+      setTreeHeight((currentHeight) => currentHeight === nextHeight ? currentHeight : nextHeight);
+      return result;
+    };
+    const initialResult = updateTreeHeight();
+    scheduleLayoutMeasurement(initialResult.source === 'fallback' ? MAX_LAYOUT_MEASURE_FRAMES : 2);
 
     if (typeof ResizeObserver === 'undefined') {
-      return () => cancelScheduledFrame(animationFrame);
+      return () => {
+        scheduledFrames.forEach((frameId) => cancelScheduledFrame(frameId));
+        scheduledFrames.clear();
+      };
     }
 
     const observer = new ResizeObserver((entries) => {
       const observedEntry = entries.find((entry) => entry.target === element);
       const observedParentEntry = entries.find((entry) => entry.target === element.parentElement);
-      updateTreeHeight(observedEntry?.contentRect.height, observedParentEntry?.contentRect.height);
+      const result = updateTreeHeight(observedEntry?.contentRect.height, observedParentEntry?.contentRect.height);
+
+      if (result.source === 'fallback') {
+        scheduleLayoutMeasurement(MAX_LAYOUT_MEASURE_FRAMES);
+      }
     });
     observer.observe(element);
     if (element.parentElement) {
@@ -80,10 +110,11 @@ export function ArboristFileTree({
     }
 
     return () => {
-      cancelScheduledFrame(animationFrame);
+      scheduledFrames.forEach((frameId) => cancelScheduledFrame(frameId));
+      scheduledFrames.clear();
       observer.disconnect();
     };
-  }, [heightMode]);
+  }, [heightMode, layoutMeasureKey, nodes]);
 
   useEffect(() => {
     const tree = treeRef.current;
@@ -271,34 +302,53 @@ function findDirectory(nodes: LazyFileTreeNode[], path: string): Extract<LazyFil
   return null;
 }
 
+function createTreeLayoutKey(nodes: LazyFileTreeNode[]): string {
+  return nodes.map((node) => {
+    if (node.type === 'file') {
+      return `f:${node.id}`;
+    }
+
+    return `d:${node.id}:${node.loadState}:${createTreeLayoutKey(node.children)}`;
+  }).join('|');
+}
+
 type TreeHeightMeasureOptions = {
   heightMode: 'content' | 'remaining-viewport' | 'scroll-container';
   observedHeight?: number;
   observedParentHeight?: number;
 };
 
+type TreeHeightMeasureSource = 'remaining-viewport' | 'scroll-container' | 'parent' | 'observed' | 'own' | 'fallback';
+
+type TreeHeightMeasureResult = {
+  height: number;
+  source: TreeHeightMeasureSource;
+};
+
 function measureAvailableTreeHeight(
   element: HTMLElement,
   { heightMode, observedHeight = 0, observedParentHeight = 0 }: TreeHeightMeasureOptions,
-): number {
+): TreeHeightMeasureResult {
   const parent = element.parentElement;
   const elementRect = element.getBoundingClientRect();
   const ownHeight = element.clientHeight || elementRect.height;
-  const heightCandidates: number[] = [];
+  const heightCandidates: Array<{ height: number; source: TreeHeightMeasureSource }> = [];
 
   if (heightMode === 'remaining-viewport') {
     const viewportRemainingHeight = window.innerHeight - elementRect.top - getFileDrawerBottomInset(element);
 
     if (viewportRemainingHeight > 0) {
-      return Math.max(ROW_HEIGHT, Math.floor(viewportRemainingHeight));
+      return { height: Math.max(ROW_HEIGHT, Math.floor(viewportRemainingHeight)), source: 'remaining-viewport' };
     }
+
+    return { height: FALLBACK_TREE_HEIGHT, source: 'fallback' };
   }
 
   if (heightMode === 'scroll-container') {
     const scrollContainerHeight = findNearestScrollContainerHeight(element);
 
     if (scrollContainerHeight > 0) {
-      return Math.max(ROW_HEIGHT, Math.floor(scrollContainerHeight));
+      return { height: Math.max(ROW_HEIGHT, Math.floor(scrollContainerHeight)), source: 'scroll-container' };
     }
   }
 
@@ -309,21 +359,28 @@ function measureAvailableTreeHeight(
     const remainingParentHeight = parentHeight - offsetWithinParent;
 
     if (remainingParentHeight > 0) {
-      heightCandidates.push(remainingParentHeight);
+      heightCandidates.push({ height: remainingParentHeight, source: 'parent' });
     }
   }
 
   if (observedHeight > ownHeight && ownHeight > 0) {
-    heightCandidates.push(observedHeight);
+    heightCandidates.push({ height: observedHeight, source: 'observed' });
   }
-  if (!heightCandidates.length && ownHeight > 0) {
-    heightCandidates.push(ownHeight);
+  if (heightMode === 'content' && !heightCandidates.length && ownHeight > 0) {
+    heightCandidates.push({ height: ownHeight, source: 'own' });
   }
 
-  const validHeights = heightCandidates.filter((height) => height > 0);
-  const measuredHeight = validHeights.length ? Math.max(...validHeights) : FALLBACK_TREE_HEIGHT;
+  const validHeights = heightCandidates.filter(({ height }) => height > 0);
+  const measured = validHeights.reduce<{ height: number; source: TreeHeightMeasureSource } | null>(
+    (largest, candidate) => (!largest || candidate.height > largest.height ? candidate : largest),
+    null,
+  );
 
-  return Math.max(ROW_HEIGHT, Math.floor(measuredHeight));
+  if (!measured) {
+    return { height: FALLBACK_TREE_HEIGHT, source: 'fallback' };
+  }
+
+  return { height: Math.max(ROW_HEIGHT, Math.floor(measured.height)), source: measured.source };
 }
 
 function getFileDrawerBottomInset(element: HTMLElement): number {
