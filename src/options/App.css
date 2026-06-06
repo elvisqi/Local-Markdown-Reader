@@ -46,7 +46,8 @@ body {
 .options-note,
 .options-status,
 .options-actions,
-.ai-source-setting span {
+.ai-source-setting span,
+.ai-project-list span {
   color: #5c6877;
   font-size: 13px;
 }
@@ -61,14 +62,17 @@ body {
 
 .options-actions,
 .ai-source-setting,
-.ai-source-setting > div {
+.ai-source-setting > div,
+.ai-project-list li,
+.ai-project-list li > div {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .options-actions,
-.ai-source-setting {
+.ai-source-setting,
+.ai-project-list li {
   justify-content: space-between;
 }
 
@@ -93,6 +97,33 @@ body {
 
 .options-actions {
   margin-top: 12px;
+}
+
+.ai-project-list {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #eef1f5;
+}
+
+.ai-project-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid #eef1f5;
+}
+
+.ai-project-list li > div {
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.ai-project-list strong,
+.ai-project-list span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .options-app select,

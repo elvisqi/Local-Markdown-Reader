@@ -44,13 +44,40 @@ describe('table layout styles', () => {
   });
 
   it('shows disclosure affordances for Arborist file tree directories', () => {
-    expect(getRule('.file-tree__disclosure')).toMatch(/flex:\s*0 0 0\.9rem/);
+    expect(getRule('.file-tree__disclosure')).toMatch(/flex:\s*0 0 16px/);
+    expect(getRule('.file-tree__disclosure::before')).toMatch(/border-right:\s*2px solid currentColor/);
+    expect(getRule('.file-tree__disclosure::before')).toMatch(/border-bottom:\s*2px solid currentColor/);
+    expect(getRule('.file-tree__disclosure::before')).toMatch(/transform:\s*rotate\(-45deg\)/);
+    expect(getRule('.file-tree__row\[aria-expanded="true"\] \.file-tree__disclosure::before')).toMatch(/transform:\s*rotate\(45deg\)/);
     expect(getRule('.file-tree__disclosure')).toMatch(/text-align:\s*center/);
+    expect(getRule('.file-tree__row--directory .file-tree__name')).toBe('');
+    expect(getRule('.file-tree__disclosure.is-placeholder')).toBe('');
+  });
+
+  it('uses VS Code style icons and hover indentation guides for the file tree', () => {
+    expect(getRule('.file-tree__icon')).toMatch(/width:\s*16px/);
+    expect(getRule('.file-tree__icon')).toMatch(/height:\s*16px/);
+    expect(getRule('.file-tree__icon--folder')).toBe('');
+    expect(getRule('.file-tree__icon--markdown')).toMatch(/--file-tree-icon-color:\s*#519aba/);
+    expect(getRule('.file-tree__icon--html')).toMatch(/--file-tree-icon-color:\s*#e37933/);
+    expect(getRule('.file-tree__icon--json')).toMatch(/--file-tree-icon-color:\s*#f2c94c/);
+    expect(getRule('.file-tree__icon--python')).toMatch(/--file-tree-icon-color:\s*#519aba/);
+    expect(getRule('.file-tree__icon--javascript')).toMatch(/--file-tree-icon-color:\s*#b5b531/);
+    expect(getRule('.file-tree__icon--word')).toMatch(/--file-tree-icon-color:\s*#4b9cc2/);
+    expect(getRule('.file-tree__indent-guides')).toMatch(/width:\s*calc\(var\(--file-tree-depth\) \* var\(--file-tree-indent-size\)\)/);
+    expect(getRule('.file-tree__indent-guide')).toMatch(/left:\s*calc\(var\(--file-tree-guide-index\) \* var\(--file-tree-indent-size\) \+ 8px\)/);
+    expect(css).toMatch(/\.file-tree--arborist:hover \.file-tree__indent-guide\s*\{[^}]*opacity:\s*1/s);
   });
 
   it('styles virtualized Arborist file tree rows without resizing content', () => {
+    expect(getRule('.file-drawer__panel')).toMatch(/flex:\s*1 1 0/);
+    expect(getRule('.file-drawer__panel')).toMatch(/height:\s*auto/);
     expect(getRule('.file-tree')).toMatch(/overflow-x:\s*hidden/);
-    expect(getRule('.file-tree--arborist')).toMatch(/flex:\s*1 1 auto/);
+    expect(getRule('.file-tree')).toMatch(/flex:\s*1 1 0/);
+    expect(getRule('.file-tree')).toMatch(/height:\s*auto/);
+    expect(getRule('.file-tree--arborist')).toMatch(/flex:\s*1 1 0/);
+    expect(getRule('.file-tree--arborist')).toMatch(/height:\s*auto/);
+    expect(css).toMatch(/\.file-tree--arborist \[role="tree"\] > div\s*\{[^}]*overflow-x:\s*hidden/s);
     expect(getRule('.file-tree__row')).toMatch(/height:\s*24px/);
     expect(getRule('.file-tree__row')).toMatch(/display:\s*flex/);
     expect(getRule('.file-tree__row:active')).not.toMatch(/transform:\s*translateY/);

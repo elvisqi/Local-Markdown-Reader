@@ -84,5 +84,42 @@ describe('options App', () => {
     await waitFor(() => expect(aiProjects.saveAiProjectState).toHaveBeenCalled());
     expect(showDirectoryPicker).toHaveBeenCalledWith({ mode: 'read' });
     expect(screen.getByText('已扫描 Codex：1 个项目。')).toBeInTheDocument();
+    expect(screen.getByText('md-viewer')).toBeInTheDocument();
+    expect(screen.getByText('/Users/qiyu/Github/md-viewer')).toBeInTheDocument();
+  });
+
+  it('authorizes pending AI projects from settings', async () => {
+    const user = userEvent.setup();
+    const project = {
+      id: 'codex:/Users/qiyu/Github/md-viewer',
+      provider: 'codex' as const,
+      name: 'md-viewer',
+      expectedPath: '/Users/qiyu/Github/md-viewer',
+      discoveredAt: 123,
+    };
+    const projectHandle = {
+      kind: 'directory',
+      name: 'md-viewer',
+    } as FileSystemDirectoryHandle;
+    const showDirectoryPicker = vi.fn(async () => projectHandle);
+    Object.defineProperty(window, 'showDirectoryPicker', {
+      configurable: true,
+      value: showDirectoryPicker,
+    });
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+
+    render(<App />);
+
+    expect(await screen.findByText('md-viewer')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '授权项目：md-viewer' }));
+
+    await waitFor(() => expect(aiProjects.saveAiProjectState).toHaveBeenCalled());
+    expect(showDirectoryPicker).toHaveBeenCalledWith({ mode: 'read' });
+    expect(screen.getByText('已授权项目：md-viewer。')).toBeInTheDocument();
+    expect(screen.getByText('md-viewer · 已授权')).toBeInTheDocument();
   });
 });

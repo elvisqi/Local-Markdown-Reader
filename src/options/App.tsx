@@ -8,12 +8,15 @@ import {
   EMPTY_AI_PROJECT_STATE,
   getAiProjectProviderLabel,
   loadAiProjectState,
+  mergeAiProjectDirectory,
   rescanAiProjectSource,
   saveAiProjectState,
+  type AiProjectEntry,
   type AiProjectProvider,
   type AiProjectSourceRecord,
   type AiProjectState,
 } from '../reader/aiProjects';
+import { openDirectory } from '../reader/fileSystemAccess';
 import './App.css';
 
 export function App() {
@@ -65,6 +68,26 @@ export function App() {
     setAiProjectState(EMPTY_AI_PROJECT_STATE);
     setAiProjectStatus('已清空 AI 项目记录。');
     await clearAiProjectState();
+  }
+
+  async function authorizeAiProject(project: AiProjectEntry) {
+    setAiProjectStatus(`请选择项目目录：${project.expectedPath}`);
+
+    try {
+      const handle = await openDirectory();
+      const nextState = mergeAiProjectDirectory(aiProjectState, project, handle);
+
+      setAiProjectState(nextState);
+      await saveAiProjectState(nextState);
+      setAiProjectStatus(`已授权项目：${project.name}。`);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setAiProjectStatus(null);
+        return;
+      }
+
+      setAiProjectStatus(err instanceof Error ? err.message : `无法授权项目 ${project.name}。`);
+    }
   }
 
   return (
@@ -188,7 +211,7 @@ export function App() {
       <section>
         <h2>AI 项目</h2>
         <p className="options-note">
-          授权 Codex 或 Claude Code 的配置目录后，阅读器左侧 AI 项目工作台会列出可授权的项目。
+          授权 Codex 或 Claude Code 的配置目录后，在这里授权项目目录；阅读器左侧只显示已授权项目。
         </p>
         <AiProjectSourceSettings
           provider="codex"
@@ -208,6 +231,12 @@ export function App() {
             清空 AI 项目记录
           </button>
         </div>
+        {aiProjectState.projects.length ? (
+          <AiProjectList
+            projects={aiProjectState.projects}
+            onAuthorize={(project) => void authorizeAiProject(project)}
+          />
+        ) : null}
         {aiProjectStatus && <p className="options-status">{aiProjectStatus}</p>}
       </section>
       <section>
@@ -227,6 +256,33 @@ export function App() {
         </label>
       </section>
     </main>
+  );
+}
+
+function AiProjectList({
+  projects,
+  onAuthorize,
+}: {
+  projects: AiProjectEntry[];
+  onAuthorize: (project: AiProjectEntry) => void;
+}) {
+  return (
+    <ul className="ai-project-list">
+      {projects.map((project) => (
+        <li key={project.id}>
+          <div>
+            <strong>{project.directoryName ? `${project.name} · 已授权` : project.name}</strong>
+            <span>{project.expectedPath}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => onAuthorize(project)}
+          >
+            {project.directoryHandle ? `重新授权项目：${project.name}` : `授权项目：${project.name}`}
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 

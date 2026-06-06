@@ -1373,7 +1373,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(await screen.findByRole('treeitem', { name: 'guide.md' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0));
 
-    await user.click(screen.getByRole('button', { name: '重载项目：md-viewer' }));
+    await user.click(screen.getByRole('button', { name: '重载当前' }));
 
     await waitFor(() => expect(getDrawerFileItem('new.md')).toBeInTheDocument());
     expect(getDrawerFileItem('guide.md')).toHaveAttribute('aria-current', 'page');

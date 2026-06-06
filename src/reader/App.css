@@ -29,8 +29,6 @@ select {
 .file-drawer__tabs button:active:not(:disabled),
 .file-drawer__panel-actions button:active:not(:disabled),
 .ai-projects__toolbar button:active:not(:disabled),
-.ai-project-row__main:active:not(:disabled),
-.ai-project-row__reload:active:not(:disabled),
 .outline-panel button:active:not(:disabled),
 .raw-source__toolbar button:active:not(:disabled),
 .table-fullscreen__trigger:active:not(:disabled),
@@ -295,8 +293,8 @@ select {
 
 .file-drawer__panel {
   display: flex;
-  flex: 1 1 auto;
-  height: 100%;
+  flex: 1 1 0;
+  height: auto;
   min-height: 0;
   flex-direction: column;
 }
@@ -330,8 +328,9 @@ select {
 }
 
 .file-tree {
-  flex: 1 1 auto;
-  height: 100%;
+  --file-tree-indent-size: 18px;
+  flex: 1 1 0;
+  height: auto;
   min-height: 0;
   padding-right: 6px;
   overflow-x: hidden;
@@ -341,59 +340,179 @@ select {
 }
 
 .file-tree--arborist {
-  flex: 1 1 auto;
-  height: 100%;
+  flex: 1 1 0;
+  height: auto;
   min-height: 0;
   overflow: hidden;
 }
 
+.file-tree--arborist [role="tree"] {
+  overflow: hidden;
+}
+
+.file-tree--arborist [role="tree"] > div {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
 .file-tree__row {
   align-items: center;
-  border-radius: 3px;
+  border-radius: 2px;
   color: inherit;
   cursor: default;
   display: flex;
   font-size: 0.82rem;
-  gap: 0.25rem;
   height: 24px;
   min-width: 0;
   outline: 0;
-  padding: 0 0.35rem;
+  padding: 0 6px 0 0;
+  position: relative;
 }
 
 .file-tree__node {
   align-items: center;
   display: flex;
-  gap: 0.25rem;
+  gap: 2px;
   height: 100%;
   min-width: 0;
   overflow: hidden;
 }
 
 .file-tree__row:hover {
-  background: color-mix(in srgb, var(--reader-link) 8%, var(--reader-surface));
+  background: color-mix(in srgb, var(--reader-text) 7%, var(--reader-surface));
 }
 
 .file-tree__row.is-selected {
-  background: color-mix(in srgb, var(--reader-link) 11%, var(--reader-surface));
+  background: color-mix(in srgb, var(--reader-link) 10%, var(--reader-surface));
 }
 
 .file-tree__row.is-active,
 .file-tree__row[aria-current="page"] {
-  background: color-mix(in srgb, var(--reader-link) 15%, var(--reader-surface));
+  background: color-mix(in srgb, var(--reader-link) 13%, var(--reader-surface));
   color: var(--reader-link);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .file-tree__row:focus-visible {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--reader-link) 55%, transparent);
 }
 
+.file-tree__indent-guides {
+  display: flex;
+  height: 100%;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: calc(var(--file-tree-depth) * var(--file-tree-indent-size));
+}
+
+.file-tree__indent-guide {
+  border-left: 1px solid color-mix(in srgb, var(--reader-muted) 32%, transparent);
+  height: 100%;
+  left: calc(var(--file-tree-guide-index) * var(--file-tree-indent-size) + 8px);
+  opacity: 0;
+  position: absolute;
+  top: 0;
+}
+
+.file-tree--arborist:hover .file-tree__indent-guide {
+  opacity: 1;
+}
+
 .file-tree__disclosure {
   color: color-mix(in srgb, var(--reader-muted) 86%, var(--reader-text));
-  flex: 0 0 0.9rem;
-  font-size: 0.75rem;
+  flex: 0 0 16px;
+  height: 16px;
+  line-height: 1;
+  position: relative;
   text-align: center;
+}
+
+.file-tree__disclosure::before {
+  border-bottom: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  content: "";
+  height: 6px;
+  left: 4px;
+  position: absolute;
+  top: 5px;
+  transform: rotate(-45deg);
+  width: 6px;
+}
+
+.file-tree__row[aria-expanded="true"] .file-tree__disclosure::before {
+  left: 5px;
+  top: 4px;
+  transform: rotate(45deg);
+}
+
+.file-tree__icon {
+  --file-tree-icon-color: color-mix(in srgb, var(--reader-muted) 82%, var(--reader-text));
+  flex: 0 0 16px;
+  height: 16px;
+  position: relative;
+  width: 16px;
+}
+
+.file-tree__icon::before,
+.file-tree__icon::after {
+  box-sizing: border-box;
+  content: "";
+  position: absolute;
+}
+
+.file-tree__icon--markdown {
+  --file-tree-icon-color: #519aba;
+}
+
+.file-tree__icon--html {
+  --file-tree-icon-color: #e37933;
+}
+
+.file-tree__icon--json {
+  --file-tree-icon-color: #f2c94c;
+}
+
+.file-tree__icon--python {
+  --file-tree-icon-color: #519aba;
+}
+
+.file-tree__icon--javascript {
+  --file-tree-icon-color: #b5b531;
+}
+
+.file-tree__icon--word {
+  --file-tree-icon-color: #4b9cc2;
+}
+
+.file-tree__icon--file::before,
+.file-tree__icon--markdown::before,
+.file-tree__icon--html::before,
+.file-tree__icon--json::before,
+.file-tree__icon--python::before,
+.file-tree__icon--javascript::before,
+.file-tree__icon--word::before {
+  background: transparent;
+  border: 1px solid var(--file-tree-icon-color);
+  border-radius: 2px;
+  height: 14px;
+  left: 3px;
+  top: 1px;
+  width: 10px;
+}
+
+.file-tree__icon--file::after,
+.file-tree__icon--markdown::after,
+.file-tree__icon--html::after,
+.file-tree__icon--json::after,
+.file-tree__icon--python::after,
+.file-tree__icon--javascript::after,
+.file-tree__icon--word::after {
+  border-left: 4px solid transparent;
+  border-top: 4px solid var(--file-tree-icon-color);
+  right: 3px;
+  top: 1px;
 }
 
 .file-tree__name {
@@ -427,8 +546,7 @@ select {
 }
 
 .ai-projects__toolbar,
-.ai-projects__status,
-.ai-project-row__meta {
+.ai-projects__status {
   color: var(--reader-muted);
   font-size: 12px;
 }
@@ -458,96 +576,16 @@ select {
   margin: 0;
 }
 
-.ai-projects__list {
-  flex: 1 1 auto;
+.ai-projects__workspace {
+  display: flex;
+  flex: 1 1 0;
   min-height: 0;
-  margin: 0;
-  padding: 0 6px 0 0;
-  list-style: none;
   overflow: auto;
   scrollbar-gutter: stable;
 }
 
-.ai-projects__list li + li {
-  margin-top: 8px;
-}
-
-.ai-project-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  gap: 8px;
-  border-radius: 6px;
-  background: transparent;
-  text-align: left;
-}
-
-.ai-project-row:hover,
-.ai-project-row.is-active {
-  background: color-mix(in srgb, var(--reader-link) 5%, var(--reader-surface));
-}
-
-.ai-project-row__main {
-  display: flex;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 8px;
-  border: 0;
-  background: transparent;
-  text-align: left;
-}
-
-.ai-project-row__name {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--reader-text);
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ai-project-row__meta {
-  flex: 0 0 auto;
-}
-
-.ai-project-row__reload {
-  flex: 0 0 auto;
-  width: 28px;
-  min-width: 28px;
-  min-height: 28px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--reader-muted);
-}
-
-.ai-project-row__reload:hover,
-.ai-project-row__reload:focus-visible {
-  background: var(--reader-surface);
-  color: var(--reader-text);
-}
-
-.ai-project-tree {
-  display: flex;
-  min-height: 180px;
-  margin: 2px 0 10px 10px;
-  padding-left: 10px;
-  border-left: 1px solid var(--reader-border);
-}
-
-.ai-project-tree .file-tree {
-  height: auto;
-  max-height: none;
+.ai-projects__workspace .file-tree {
   padding-right: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
 }
 
 .outline-panel button {
