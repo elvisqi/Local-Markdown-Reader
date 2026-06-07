@@ -1611,3 +1611,132 @@ select {
     background: var(--reader-surface);
   }
 }
+
+@media print {
+  @page {
+    size: auto;
+    margin: 12mm;
+  }
+
+  html,
+  body,
+  #root,
+  .reader-app {
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: visible;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .reader-toolbar,
+  .file-drawer,
+  .outline-panel,
+  .raw-source__toolbar,
+  .table-fullscreen__actions,
+  .table-fullscreen__trigger,
+  .table-fullscreen__overlay,
+  .mermaid-actions,
+  .mermaid-zoom__button,
+  .mermaid-fullscreen__trigger,
+  .large-document-reader__notice,
+  .large-document-reader__tools,
+  .large-document-reader__search-results,
+  .empty-state__actions {
+    display: none !important;
+  }
+
+  .reader-shell,
+  .reader-shell.has-file-drawer,
+  .reader-layout,
+  .reader-layout.has-outline-panel {
+    display: block;
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .document-reader {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .document-reader > div,
+  .chunked-markdown-document,
+  .chunked-markdown-document > div,
+  .large-document-reader,
+  .raw-source,
+  .raw-source pre {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .document-reader .table-fullscreen {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: visible;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .document-reader .table-fullscreen::before,
+  .document-reader .table-fullscreen::after {
+    display: none;
+  }
+
+  .table-fullscreen__table,
+  .large-markdown-table-preview {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .document-reader table,
+  .large-markdown-table-preview table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .document-reader th,
+  .document-reader td,
+  .large-markdown-table-preview th,
+  .large-markdown-table-preview td {
+    min-width: 0;
+    padding: 4px 5px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .document-reader pre {
+    max-width: none;
+    overflow: visible;
+    white-space: pre-wrap;
+  }
+
+  .html-preview {
+    width: 100%;
+    min-height: 0;
+  }
+}

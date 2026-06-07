@@ -735,6 +735,18 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
   });
 
+  it('prints the current reader content from the toolbar', async () => {
+    const user = userEvent.setup();
+    const print = vi.fn();
+    vi.stubGlobal('print', print);
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '打印' }));
+
+    expect(print).toHaveBeenCalledOnce();
+  });
+
   it('opens relative document links inside rendered Markdown using the authorized folder', async () => {
     const user = userEvent.setup();
     const pushStateSpy = vi.spyOn(window.history, 'pushState');

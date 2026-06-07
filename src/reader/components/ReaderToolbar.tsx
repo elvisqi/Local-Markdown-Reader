@@ -9,6 +9,7 @@ type ReaderToolbarProps = {
   nextFile: DocumentFileEntry | null;
   onOpenPrevious: () => void;
   onOpenNext: () => void;
+  onPrint: () => void;
   onRawModeChange: (rawMode: boolean) => void;
 };
 
@@ -21,6 +22,7 @@ export function ReaderToolbar({
   nextFile,
   onOpenPrevious,
   onOpenNext,
+  onPrint,
   onRawModeChange,
 }: ReaderToolbarProps) {
   return (
@@ -50,6 +52,9 @@ export function ReaderToolbar({
         </button>
         <button type="button" onClick={onReload}>
           重载
+        </button>
+        <button type="button" onClick={onPrint}>
+          打印
         </button>
         <label>
           原文

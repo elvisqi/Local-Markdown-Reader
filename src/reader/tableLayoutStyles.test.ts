@@ -133,6 +133,15 @@ describe('table layout styles', () => {
     expect(getRule('.large-markdown-table-preview td')).toMatch(/overflow-wrap:\s*anywhere/);
   });
 
+  it('prints rendered tables inside the printable page instead of clipping wide content', () => {
+    expect(css).toMatch(/@media print/);
+    expect(css).toMatch(/\.reader-toolbar,[\s\S]*\.file-drawer,[\s\S]*\.outline-panel[\s\S]*display:\s*none !important/);
+    expect(css).toMatch(/\.document-reader\s*\{[\s\S]*width:\s*100%[\s\S]*overflow:\s*visible/s);
+    expect(css).toMatch(/\.table-fullscreen__table,[\s\S]*\.large-markdown-table-preview\s*\{[\s\S]*max-width:\s*100%[\s\S]*overflow:\s*visible/s);
+    expect(css).toMatch(/\.document-reader table,[\s\S]*\.large-markdown-table-preview table\s*\{[\s\S]*width:\s*100%[\s\S]*table-layout:\s*fixed/s);
+    expect(css).toMatch(/\.document-reader th,[\s\S]*\.document-reader td,[\s\S]*\.large-markdown-table-preview th,[\s\S]*\.large-markdown-table-preview td\s*\{[\s\S]*overflow-wrap:\s*anywhere[\s\S]*white-space:\s*normal/s);
+  });
+
   it('uses balanced fullscreen table columns without assuming the first column is an id column', () => {
     expect(getRule('.table-fullscreen__body table')).toMatch(/width:\s*100%/);
     expect(getRule('.table-fullscreen__body table')).toMatch(/table-layout:\s*auto/);

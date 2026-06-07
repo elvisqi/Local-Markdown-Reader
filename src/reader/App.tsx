@@ -1870,6 +1870,10 @@ export function App() {
     setOutlineWidth(nextWidths.outlineWidth);
   }
 
+  function printCurrentDocument() {
+    window.print();
+  }
+
   const readerShellStyle = {
     '--file-drawer-width': `${drawerWidth}px`,
     '--outline-panel-width': `${outlineWidth}px`,
@@ -1888,6 +1892,7 @@ export function App() {
         nextFile={fileNavigation.next}
         onOpenPrevious={() => openSiblingFile(fileNavigation.previous?.path)}
         onOpenNext={() => openSiblingFile(fileNavigation.next?.path)}
+        onPrint={printCurrentDocument}
         onRawModeChange={(rawMode) =>
           setSettings((current) => {
             const next = { ...current, reading: { ...current.reading, rawMode } };
