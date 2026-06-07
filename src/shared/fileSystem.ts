@@ -3,6 +3,7 @@ import type { DocumentFileEntry, DocumentFileKind, FileTreeNode, LazyFileTreeNod
 const MARKDOWN_EXTENSIONS = new Set(['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext']);
 const HTML_EXTENSIONS = new Set(['.html', '.htm']);
 const JSON_EXTENSIONS = new Set(['.json']);
+const YAML_EXTENSIONS = new Set(['.yaml', '.yml']);
 const IGNORED_DIRECTORIES = new Set(['.git', 'node_modules', 'dist', 'build', 'coverage', '.cache']);
 
 export type DocumentTreeAnalysis = {
@@ -23,8 +24,12 @@ export function isJsonFile(name: string): boolean {
   return hasExtension(name, JSON_EXTENSIONS);
 }
 
+export function isYamlFile(name: string): boolean {
+  return hasExtension(name, YAML_EXTENSIONS);
+}
+
 export function isReadableDocumentFile(name: string): boolean {
-  return isMarkdownFile(name) || isHtmlFile(name) || isJsonFile(name);
+  return isMarkdownFile(name) || isHtmlFile(name) || isJsonFile(name) || isYamlFile(name);
 }
 
 export function getDocumentFileKind(name: string): DocumentFileKind | null {
@@ -38,6 +43,10 @@ export function getDocumentFileKind(name: string): DocumentFileKind | null {
 
   if (isJsonFile(name)) {
     return 'json';
+  }
+
+  if (isYamlFile(name)) {
+    return 'yaml';
   }
 
   return null;
@@ -163,6 +172,8 @@ function selectDefaultDocumentFromFiles(files: DocumentFileEntry[]): string | nu
     files.find((file) => file.name.toLowerCase() === 'index.html')?.path ??
     files.find((file) => file.name.toLowerCase() === 'index.htm')?.path ??
     files.find((file) => file.name.toLowerCase() === 'index.json')?.path ??
+    files.find((file) => file.name.toLowerCase() === 'index.yaml')?.path ??
+    files.find((file) => file.name.toLowerCase() === 'index.yml')?.path ??
     files[0]?.path ??
     null
   );

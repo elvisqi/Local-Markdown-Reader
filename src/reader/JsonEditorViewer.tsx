@@ -6,9 +6,10 @@ type JsonEditorViewerProps = {
   content: Content;
   mode: 'text' | 'tree' | 'table';
   theme: 'light' | 'dark';
+  ariaLabel?: string;
 };
 
-export function JsonEditorViewer({ content, mode, theme }: JsonEditorViewerProps) {
+export function JsonEditorViewer({ content, mode, theme, ariaLabel = 'JSON 编辑器' }: JsonEditorViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<ReturnType<typeof createJSONEditor> | null>(null);
 
@@ -37,7 +38,7 @@ export function JsonEditorViewer({ content, mode, theme }: JsonEditorViewerProps
     <div
       ref={containerRef}
       className={`json-editor-viewer${theme === 'dark' ? ' jse-theme-dark' : ''}`}
-      aria-label="JSON 编辑器"
+      aria-label={ariaLabel}
     />
   );
 }

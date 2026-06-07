@@ -137,4 +137,28 @@ describe('LargeDocumentReader', () => {
     expect(screen.getByTestId('virtual-large-document-reader')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '分块预览' })).toBeDisabled();
   });
+
+  it('uses raw virtualized source when chunked preview is disabled', () => {
+    const client = {
+      readLines: vi.fn(),
+      search: vi.fn(),
+      buildIndex: vi.fn(),
+      terminate: vi.fn(),
+    };
+
+    render(
+      <LargeDocumentReader
+        file={new File([''], 'config.yaml')}
+        index={{ ...createIndex(), name: 'config.yaml', size: 3 * 1024 * 1024 }}
+        reason="大文件"
+        client={client}
+        anchorLine={1}
+        onNavigateLine={vi.fn()}
+        chunkedPreviewEnabled={false}
+      />,
+    );
+
+    expect(screen.getByTestId('virtual-large-document-reader')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '分块预览' })).not.toBeInTheDocument();
+  });
 });

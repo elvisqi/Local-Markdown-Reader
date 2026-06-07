@@ -474,6 +474,10 @@ select {
   --file-tree-icon-color: #f2c94c;
 }
 
+.file-tree__icon--yaml {
+  --file-tree-icon-color: #cb7ddc;
+}
+
 .file-tree__icon--python {
   --file-tree-icon-color: #519aba;
 }
@@ -490,6 +494,7 @@ select {
 .file-tree__icon--markdown::before,
 .file-tree__icon--html::before,
 .file-tree__icon--json::before,
+.file-tree__icon--yaml::before,
 .file-tree__icon--python::before,
 .file-tree__icon--javascript::before,
 .file-tree__icon--word::before {
@@ -506,6 +511,7 @@ select {
 .file-tree__icon--markdown::after,
 .file-tree__icon--html::after,
 .file-tree__icon--json::after,
+.file-tree__icon--yaml::after,
 .file-tree__icon--python::after,
 .file-tree__icon--javascript::after,
 .file-tree__icon--word::after {

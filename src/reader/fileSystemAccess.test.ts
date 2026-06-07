@@ -59,11 +59,13 @@ function dir(name: string, entries: Array<FakeDirectoryHandle | FakeFileHandle>)
 }
 
 describe('fileSystemAccess', () => {
-  it('recursively scans Markdown, HTML, and JSON files and ignores generated directories', async () => {
+  it('recursively scans Markdown, HTML, JSON, and YAML files and ignores generated directories', async () => {
     const root = dir('root', [
       file('README.md'),
       file('report.html'),
       file('data.json'),
+      file('config.yaml'),
+      file('compose.yml'),
       file('component.mdx'),
       dir('docs', [file('guide.md'), file('image.svg')]),
       dir('node_modules', [file('ignored.md')]),
@@ -77,6 +79,8 @@ describe('fileSystemAccess', () => {
         path: 'docs',
         children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
       },
+      { type: 'file', name: 'compose.yml', path: 'compose.yml' },
+      { type: 'file', name: 'config.yaml', path: 'config.yaml' },
       { type: 'file', name: 'data.json', path: 'data.json' },
       { type: 'file', name: 'README.md', path: 'README.md' },
       { type: 'file', name: 'report.html', path: 'report.html' },
@@ -226,11 +230,12 @@ describe('fileSystemAccess', () => {
         multiple: false,
         types: [
           {
-            description: 'Markdown、HTML 或 JSON 文件',
+            description: 'Markdown、HTML、JSON 或 YAML 文件',
             accept: {
               'application/json': ['.json'],
               'text/html': ['.html', '.htm'],
               'text/markdown': ['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext'],
+              'text/yaml': ['.yaml', '.yml'],
             },
           },
         ],

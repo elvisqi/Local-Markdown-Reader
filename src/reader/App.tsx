@@ -73,6 +73,7 @@ import {
   type LastDocumentRecord,
 } from './recentDocument';
 import { JsonDocumentReader } from './JsonDocumentReader';
+import { YamlDocumentReader } from './YamlDocumentReader';
 import {
   createEmptyLazyFileTree,
   type LazyFileTreeState,
@@ -119,12 +120,13 @@ type LargeDocumentSession = {
   kind: Exclude<LargeDocumentKind, 'normal'>;
   reason: string;
   file: File;
+  documentKind: ActiveDocumentKind;
   index: LargeDocumentIndex;
   client: LargeDocumentWorkerClient;
   rememberRecord?: LastDocumentRecord;
 };
 
-type ActiveDocumentKind = 'markdown' | 'html' | 'json';
+type ActiveDocumentKind = 'markdown' | 'html' | 'json' | 'yaml';
 type FileDrawerTab = 'folder' | 'ai-projects';
 type DocumentSource =
   | { type: 'folder'; handle: FileSystemDirectoryHandle }
@@ -466,7 +468,7 @@ export function App() {
   async function openFolder() {
     const requestId = beginOpenRequest();
     setError(null);
-    setStatus('请选择一个文件夹，读取其中的 Markdown、HTML 或 JSON 文件。');
+    setStatus('请选择一个文件夹，读取其中的 Markdown、HTML、JSON 或 YAML 文件。');
 
     try {
       const handle = await openDirectory();
@@ -534,7 +536,7 @@ export function App() {
   async function openStandaloneFile() {
     const requestId = beginOpenRequest();
     setError(null);
-    setStatus('请选择一个 Markdown、HTML 或 JSON 文件。');
+    setStatus('请选择一个 Markdown、HTML、JSON 或 YAML 文件。');
 
     try {
       const snapshot = await openDocumentFile();
@@ -546,7 +548,7 @@ export function App() {
       const source: DocumentSource = { type: 'standalone' };
       setDrawerOpen(false);
 
-      if (documentKind === 'html' || documentKind === 'json') {
+      if (isPlainStructuredDocumentKind(documentKind)) {
         await openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
         return;
       }
@@ -559,7 +561,7 @@ export function App() {
       const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
 
       if (classification.kind !== 'normal') {
-        await openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+        await openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
           anchorLine: 1,
           source,
           requestId,
@@ -567,7 +569,7 @@ export function App() {
         return;
       }
 
-      await openNormalDocumentSnapshot(snapshot, 'markdown', undefined, undefined, source, requestId);
+      await openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
         return;
@@ -603,7 +605,7 @@ export function App() {
       const source = options.source ?? activeDocumentSource ?? { type: 'folder', handle };
       const rememberRecord = remember ? createLastDocumentRecord(source, path) : undefined;
 
-      if (documentKind === 'html' || documentKind === 'json') {
+      if (isPlainStructuredDocumentKind(documentKind)) {
         return openNormalDocumentSnapshot(
           snapshot,
           documentKind,
@@ -622,7 +624,7 @@ export function App() {
       const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
 
       if (classification.kind !== 'normal') {
-        return openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+        return openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
           rememberRecord,
           anchorLine: options.anchorLine ?? 1,
           source,
@@ -632,7 +634,7 @@ export function App() {
 
       return openNormalDocumentSnapshot(
         snapshot,
-        'markdown',
+        documentKind,
         rememberRecord,
         undefined,
         source,
@@ -651,6 +653,7 @@ export function App() {
 
   async function openLargeDocument(
     snapshot: DocumentFileSnapshot,
+    documentKind: ActiveDocumentKind,
     kind: Exclude<LargeDocumentKind, 'normal'>,
     reason: string,
     options: { rememberRecord?: LastDocumentRecord; anchorLine?: number; source?: DocumentSource; requestId?: number } = {},
@@ -679,12 +682,14 @@ export function App() {
     setActivePath(snapshot.path);
     updateSourceActivePath(options.source, snapshot.path);
     setActiveDocumentSource(options.source ?? null);
-    setActiveDocumentKind('markdown');
+    setActiveDocumentKind(documentKind);
     setDocumentSourceText('');
+    const largeDocumentOutline = documentKind === 'markdown' ? index.outline : [];
+    const largeDocumentTitle = documentKind === 'markdown' ? index.title ?? snapshot.path : snapshot.path;
     setRendered({
       ...EMPTY_RENDER,
-      title: index.title ?? snapshot.path,
-      outline: index.outline,
+      title: largeDocumentTitle,
+      outline: largeDocumentOutline,
       diagnostics: index.warnings.map((message) => ({ level: 'warning', message })),
     });
     setHtmlPreviewDocument(null);
@@ -694,6 +699,7 @@ export function App() {
       kind,
       reason,
       file: snapshot.file,
+      documentKind,
       index,
       client,
       rememberRecord: options.rememberRecord,
@@ -1032,7 +1038,7 @@ export function App() {
         await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path, { source, requestId });
       } else {
         clearReaderForSource(source);
-        setStatus('上次打开的文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
+        setStatus('上次打开的文件夹里没有找到 Markdown、HTML、JSON 或 YAML 文件。');
       }
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
@@ -1955,6 +1961,7 @@ export function App() {
                   const heading = findNearestLargeHeading(largeDocument.index.outline, line);
                   setActiveHeadingId(heading?.id ?? activeHeadingId);
                 }}
+                chunkedPreviewEnabled={largeDocument.documentKind === 'markdown'}
               />
             ) : settings.reading.rawMode ? (
               <section className="raw-source">
@@ -1983,6 +1990,12 @@ export function App() {
                 fileName={activePath}
                 theme={settings.reading.theme}
               />
+            ) : activeDocumentKind === 'yaml' ? (
+              <YamlDocumentReader
+                source={documentSourceText}
+                fileName={activePath}
+                theme={settings.reading.theme}
+              />
             ) : (
               <div ref={renderedContentRef}>
                 <RenderedMarkdownContent
@@ -1994,7 +2007,7 @@ export function App() {
           ) : (
             <section className="empty-state">
               <h2>打开本地文件夹</h2>
-              <p>选择包含 Markdown、HTML 或 JSON 文件的文件夹，把它作为本地文档集阅读。</p>
+              <p>选择包含 Markdown、HTML、JSON 或 YAML 文件的文件夹，把它作为本地文档集阅读。</p>
               {lastDocument && (
                 <p>
                   上次打开：{lastDocument.directoryName}/{lastDocument.path}
@@ -2081,14 +2094,22 @@ function selectPathDepth(path: string): number {
 }
 
 function selectSourceSaveName(path: string | null, kind: ActiveDocumentKind): string {
-  const fallbackName = kind === 'html' ? 'document.html' : kind === 'json' ? 'document.json' : 'document.md';
+  const fallbackName = kind === 'html'
+    ? 'document.html'
+    : kind === 'json'
+      ? 'document.json'
+      : kind === 'yaml'
+        ? 'document.yaml'
+        : 'document.md';
   const name = path?.split('/').filter(Boolean).at(-1) ?? fallbackName;
   const extensionPattern = kind === 'html'
     ? /\.(html|htm)$/i
     : kind === 'json'
       ? /\.json$/i
-      : /\.(md|markdown)$/i;
-  const extension = kind === 'html' ? '.html' : kind === 'json' ? '.json' : '.md';
+      : kind === 'yaml'
+        ? /\.(yaml|yml)$/i
+        : /\.(md|markdown)$/i;
+  const extension = kind === 'html' ? '.html' : kind === 'json' ? '.json' : kind === 'yaml' ? '.yaml' : '.md';
 
   return extensionPattern.test(name) ? name : `${name}${extension}`;
 }
@@ -2108,6 +2129,13 @@ function getSourceSavePickerType(kind: ActiveDocumentKind): { description: strin
     };
   }
 
+  if (kind === 'yaml') {
+    return {
+      description: 'YAML 文件',
+      accept: { 'text/yaml': ['.yaml', '.yml'] },
+    };
+  }
+
   return {
     description: 'Markdown 文件',
     accept: { 'text/markdown': ['.md', '.markdown'] },
@@ -2119,7 +2147,9 @@ function downloadSource(source: string, filename: string, kind: ActiveDocumentKi
     ? 'text/html;charset=utf-8'
     : kind === 'json'
       ? 'application/json;charset=utf-8'
-      : 'text/markdown;charset=utf-8';
+      : kind === 'yaml'
+        ? 'text/yaml;charset=utf-8'
+        : 'text/markdown;charset=utf-8';
   const objectUrl = URL.createObjectURL(new Blob([source], { type }));
   const anchor = document.createElement('a');
 
@@ -2415,6 +2445,10 @@ function normalizeSidePanelWidths(
 
 function getSnapshotDocumentKind(snapshot: DocumentFileSnapshot): ActiveDocumentKind {
   return getDocumentFileKind(snapshot.path) ?? getDocumentFileKind(snapshot.name) ?? 'markdown';
+}
+
+function isPlainStructuredDocumentKind(kind: ActiveDocumentKind): boolean {
+  return kind === 'html' || kind === 'json';
 }
 
 function findLargeOutlineLine(items: LargeOutlineItem[], id: string): number | null {

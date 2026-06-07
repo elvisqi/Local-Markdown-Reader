@@ -46,6 +46,13 @@ describe('file system helpers', () => {
     expect(getDocumentFileKind('DATA.JSON')).toBe('json');
   });
 
+  it('accepts YAML as a readable document type', () => {
+    expect(isReadableDocumentFile('config.yaml')).toBe(true);
+    expect(isReadableDocumentFile('compose.yml')).toBe(true);
+    expect(getDocumentFileKind('config.yaml')).toBe('yaml');
+    expect(getDocumentFileKind('COMPOSE.YML')).toBe('yaml');
+  });
+
   it('ignores hidden and generated directories', () => {
     expect(shouldIgnoreDirectory('.git')).toBe(true);
     expect(shouldIgnoreDirectory('.notes')).toBe(true);
@@ -102,12 +109,17 @@ describe('file system helpers', () => {
       { type: 'file', name: 'config.json', path: 'config.json' },
       { type: 'file', name: 'index.json', path: 'index.json' },
     ];
+    const treeWithIndexYaml: FileTreeNode[] = [
+      { type: 'file', name: 'config.yaml', path: 'config.yaml' },
+      { type: 'file', name: 'index.yml', path: 'index.yml' },
+    ];
 
     expect(selectDefaultDocument(treeWithReadme)).toBe('README.md');
     expect(selectDefaultDocument(treeWithReadmeHtml)).toBe('README.html');
     expect(selectDefaultDocument(treeWithIndex)).toBe('index.md');
     expect(selectDefaultDocument(treeWithIndexHtml)).toBe('index.html');
     expect(selectDefaultDocument(treeWithIndexJson)).toBe('index.json');
+    expect(selectDefaultDocument(treeWithIndexYaml)).toBe('index.yml');
     expect(selectDefaultDocument(treeNested)).toBe('docs/api.html');
   });
 

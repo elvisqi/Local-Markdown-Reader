@@ -45,11 +45,12 @@ export async function openDocumentFile(): Promise<DocumentFileSnapshot> {
     multiple: false,
     types: [
       {
-        description: 'Markdown、HTML 或 JSON 文件',
+        description: 'Markdown、HTML、JSON 或 YAML 文件',
         accept: {
           'application/json': ['.json'],
           'text/markdown': ['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext'],
           'text/html': ['.html', '.htm'],
+          'text/yaml': ['.yaml', '.yml'],
         },
       },
     ],

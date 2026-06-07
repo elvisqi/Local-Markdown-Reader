@@ -3326,6 +3326,39 @@ describe('App file navigation and drawer behavior', () => {
     expect(fileSystemAccess.readMarkdownFileSlice).not.toHaveBeenCalled();
   });
 
+  it('opens YAML files with a structured YAML reader without a right outline panel', async () => {
+    const user = userEvent.setup();
+    const yamlTree: FileTreeNode[] = [
+      { type: 'file', name: 'config.yaml', path: 'config.yaml' },
+    ];
+    const yamlFile = new File(
+      ['users:\n  - id: 1\n    name: Ada\nmeta:\n  total: 1\n'],
+      'config.yaml',
+      { type: 'text/yaml' },
+    );
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(yamlTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'config.yaml',
+      name: 'config.yaml',
+      size: yamlFile.size,
+      type: yamlFile.type,
+      lastModified: yamlFile.lastModified,
+      file: yamlFile,
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'config.yaml' })).not.toHaveLength(0));
+    expect(await screen.findByLabelText('YAML 编辑器')).toBeInTheDocument();
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).not.toHaveClass('has-outline-panel');
+    expect(fileSystemAccess.readDocumentFile).not.toHaveBeenCalled();
+  });
+
   it('opens large directory documents without full markdown rendering', async () => {
     const user = userEvent.setup();
     const largeFile = new File(['# Big\n'.padEnd(2 * 1024 * 1024, 'x')], 'big.md', {
@@ -3352,6 +3385,45 @@ describe('App file navigation and drawer behavior', () => {
 
     await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
     expect(fileSystemAccess.readDocumentFile).not.toHaveBeenCalled();
+  });
+
+  it('opens large YAML documents in raw large-file mode without markdown chunk preview', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['services:\n'.padEnd(2 * 1024 * 1024, 'x')], 'config.yaml', {
+      type: 'text/yaml',
+    });
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'config.yaml', path: 'config.yaml' },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'config.yaml',
+      name: 'config.yaml',
+      size: largeFile.size,
+      type: 'text/yaml',
+      lastModified: largeFile.lastModified,
+      file: largeFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('services:\n');
+    largeDocumentClient.buildIndex.mockResolvedValue({
+      name: 'config.yaml',
+      size: largeFile.size,
+      lineCount: 2,
+      lineStarts: [0, 10],
+      title: null,
+      outline: [],
+      warnings: [],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: '分块预览' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('large-document-virtual-source')).toBeInTheDocument();
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
   });
 
   it('asks for file authorization when a temporary standalone file is too large to inline', async () => {
