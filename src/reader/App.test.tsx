@@ -747,6 +747,72 @@ describe('App file navigation and drawer behavior', () => {
     expect(print).toHaveBeenCalledOnce();
   });
 
+  it('opens a single dropped Markdown file as a standalone document', async () => {
+    const droppedFile = new File(['# Dropped document'], 'dropped.md', { type: 'text/markdown' });
+
+    render(<App />);
+
+    fireEvent.drop(screen.getByText('打开本地文件夹').closest('.reader-app')!, {
+      dataTransfer: {
+        files: [droppedFile],
+        items: [
+          {
+            kind: 'file',
+            getAsFile: () => droppedFile,
+          },
+        ],
+      },
+    });
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Dropped document' })).toBeInTheDocument());
+    expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
+  });
+
+  it('shows an error when a dropped file is not a readable document', async () => {
+    const droppedFile = new File(['not a document'], 'image.png', { type: 'image/png' });
+
+    render(<App />);
+
+    fireEvent.drop(screen.getByText('打开本地文件夹').closest('.reader-app')!, {
+      dataTransfer: {
+        files: [droppedFile],
+        items: [
+          {
+            kind: 'file',
+            getAsFile: () => droppedFile,
+          },
+        ],
+      },
+    });
+
+    await waitFor(() => expect(screen.getByText('请拖入一个 Markdown、HTML、JSON、JSONL 或 YAML 文件。')).toBeInTheDocument());
+  });
+
+  it('shows an error when multiple files are dropped together', async () => {
+    const firstFile = new File(['# One'], 'one.md', { type: 'text/markdown' });
+    const secondFile = new File(['# Two'], 'two.md', { type: 'text/markdown' });
+
+    render(<App />);
+
+    fireEvent.drop(screen.getByText('打开本地文件夹').closest('.reader-app')!, {
+      dataTransfer: {
+        files: [firstFile, secondFile],
+        items: [
+          {
+            kind: 'file',
+            getAsFile: () => firstFile,
+          },
+          {
+            kind: 'file',
+            getAsFile: () => secondFile,
+          },
+        ],
+      },
+    });
+
+    await waitFor(() => expect(screen.getByText('一次只能拖入一个文件。')).toBeInTheDocument());
+  });
+
   it('opens relative document links inside rendered Markdown using the authorized folder', async () => {
     const user = userEvent.setup();
     const pushStateSpy = vi.spyOn(window.history, 'pushState');
@@ -3338,6 +3404,40 @@ describe('App file navigation and drawer behavior', () => {
     expect(fileSystemAccess.readMarkdownFileSlice).not.toHaveBeenCalled();
   });
 
+  it('opens JSONL files with a structured JSON reader without a right outline panel', async () => {
+    const user = userEvent.setup();
+    const jsonlTree: FileTreeNode[] = [
+      { type: 'file', name: 'events.jsonl', path: 'events.jsonl' },
+    ];
+    const jsonlFile = new File(
+      ['{"id":1,"event":"open"}\n{"id":2,"event":"close"}\n'],
+      'events.jsonl',
+      { type: 'application/x-ndjson' },
+    );
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(jsonlTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'events.jsonl',
+      name: 'events.jsonl',
+      size: jsonlFile.size,
+      type: jsonlFile.type,
+      lastModified: jsonlFile.lastModified,
+      file: jsonlFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('{"id":1,"event":"open"}\n');
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'events.jsonl' })).not.toHaveLength(0));
+    expect(await screen.findByLabelText('JSON 编辑器')).toBeInTheDocument();
+    expect(screen.getByText('Array')).toBeInTheDocument();
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).not.toHaveClass('has-outline-panel');
+  });
+
   it('opens YAML files with a structured YAML reader without a right outline panel', async () => {
     const user = userEvent.setup();
     const yamlTree: FileTreeNode[] = [
@@ -3435,6 +3535,46 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
     expect(screen.queryByRole('button', { name: '分块预览' })).not.toBeInTheDocument();
     expect(screen.getByTestId('large-document-virtual-source')).toBeInTheDocument();
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
+  });
+
+  it('opens large JSONL documents in raw large-file mode without full JSONL parsing', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['{"id":1}\n'.padEnd(2 * 1024 * 1024, 'x')], 'events.jsonl', {
+      type: 'application/x-ndjson',
+    });
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'events.jsonl', path: 'events.jsonl' },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'events.jsonl',
+      name: 'events.jsonl',
+      size: largeFile.size,
+      type: 'application/x-ndjson',
+      lastModified: largeFile.lastModified,
+      file: largeFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('{"id":1}\n');
+    largeDocumentClient.buildIndex.mockResolvedValue({
+      name: 'events.jsonl',
+      size: largeFile.size,
+      lineCount: 2,
+      lineStarts: [0, 9],
+      title: null,
+      outline: [],
+      warnings: [],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: '分块预览' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('large-document-virtual-source')).toBeInTheDocument();
+    expect(screen.queryByLabelText('JSON 编辑器')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
   });
 

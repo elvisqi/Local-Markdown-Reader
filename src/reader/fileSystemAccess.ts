@@ -45,9 +45,10 @@ export async function openDocumentFile(): Promise<DocumentFileSnapshot> {
     multiple: false,
     types: [
       {
-        description: 'Markdown、HTML、JSON 或 YAML 文件',
+        description: 'Markdown、HTML、JSON、JSONL 或 YAML 文件',
         accept: {
           'application/json': ['.json'],
+          'application/x-ndjson': ['.jsonl'],
           'text/markdown': ['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext'],
           'text/html': ['.html', '.htm'],
           'text/yaml': ['.yaml', '.yml'],
@@ -201,7 +202,7 @@ export async function readAssetFile(handle: DirectoryLike, path: string): Promis
   return fileHandle.getFile();
 }
 
-function createDocumentFileSnapshot(path: string, file: File): DocumentFileSnapshot {
+export function createDocumentFileSnapshot(path: string, file: File): DocumentFileSnapshot {
   return {
     path,
     name: file.name,

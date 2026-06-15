@@ -230,9 +230,10 @@ describe('fileSystemAccess', () => {
         multiple: false,
         types: [
           {
-            description: 'Markdown、HTML、JSON 或 YAML 文件',
+            description: 'Markdown、HTML、JSON、JSONL 或 YAML 文件',
             accept: {
               'application/json': ['.json'],
+              'application/x-ndjson': ['.jsonl'],
               'text/html': ['.html', '.htm'],
               'text/markdown': ['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext'],
               'text/yaml': ['.yaml', '.yml'],

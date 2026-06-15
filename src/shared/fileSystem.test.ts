@@ -46,6 +46,12 @@ describe('file system helpers', () => {
     expect(getDocumentFileKind('DATA.JSON')).toBe('json');
   });
 
+  it('accepts JSONL as a readable document type', () => {
+    expect(isReadableDocumentFile('events.jsonl')).toBe(true);
+    expect(getDocumentFileKind('events.jsonl')).toBe('jsonl');
+    expect(getDocumentFileKind('EVENTS.JSONL')).toBe('jsonl');
+  });
+
   it('accepts YAML as a readable document type', () => {
     expect(isReadableDocumentFile('config.yaml')).toBe(true);
     expect(isReadableDocumentFile('compose.yml')).toBe(true);
@@ -109,6 +115,10 @@ describe('file system helpers', () => {
       { type: 'file', name: 'config.json', path: 'config.json' },
       { type: 'file', name: 'index.json', path: 'index.json' },
     ];
+    const treeWithIndexJsonl: FileTreeNode[] = [
+      { type: 'file', name: 'events.jsonl', path: 'events.jsonl' },
+      { type: 'file', name: 'index.jsonl', path: 'index.jsonl' },
+    ];
     const treeWithIndexYaml: FileTreeNode[] = [
       { type: 'file', name: 'config.yaml', path: 'config.yaml' },
       { type: 'file', name: 'index.yml', path: 'index.yml' },
@@ -119,6 +129,7 @@ describe('file system helpers', () => {
     expect(selectDefaultDocument(treeWithIndex)).toBe('index.md');
     expect(selectDefaultDocument(treeWithIndexHtml)).toBe('index.html');
     expect(selectDefaultDocument(treeWithIndexJson)).toBe('index.json');
+    expect(selectDefaultDocument(treeWithIndexJsonl)).toBe('index.jsonl');
     expect(selectDefaultDocument(treeWithIndexYaml)).toBe('index.yml');
     expect(selectDefaultDocument(treeNested)).toBe('docs/api.html');
   });
@@ -180,6 +191,7 @@ describe('file system helpers', () => {
         children: [
           { type: 'file', name: 'api.html', path: 'docs/api.html' },
           { type: 'file', name: 'data.json', path: 'docs/data.json' },
+          { type: 'file', name: 'events.jsonl', path: 'docs/events.jsonl' },
           { type: 'file', name: 'image.svg', path: 'docs/image.svg' },
         ],
       },
@@ -189,6 +201,7 @@ describe('file system helpers', () => {
       { name: 'README.md', path: 'README.md' },
       { name: 'api.html', path: 'docs/api.html' },
       { name: 'data.json', path: 'docs/data.json' },
+      { name: 'events.jsonl', path: 'docs/events.jsonl' },
     ]);
   });
 });

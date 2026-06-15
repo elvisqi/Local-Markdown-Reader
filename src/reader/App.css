@@ -824,9 +824,27 @@ select {
 
 .table-fullscreen__actions {
   display: grid;
+  gap: 6px;
   place-items: end;
   align-self: end;
   padding-bottom: 1px;
+}
+
+.table-fullscreen__row-count {
+  visibility: hidden;
+  padding: 3px 7px;
+  border: 1px solid color-mix(in srgb, var(--reader-link) 22%, var(--reader-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--reader-surface) 92%, transparent);
+  box-shadow: 0 2px 8px rgba(18, 26, 36, 0.12);
+  color: var(--reader-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: nowrap;
+  opacity: 0;
+  transition:
+    opacity 120ms ease,
+    visibility 120ms ease;
 }
 
 .table-fullscreen__trigger {
@@ -851,7 +869,9 @@ select {
 }
 
 .table-fullscreen:hover .table-fullscreen__trigger,
-.table-fullscreen:focus-within .table-fullscreen__trigger {
+.table-fullscreen:focus-within .table-fullscreen__trigger,
+.table-fullscreen:hover .table-fullscreen__row-count,
+.table-fullscreen:focus-within .table-fullscreen__row-count {
   visibility: visible;
   opacity: 1;
 }

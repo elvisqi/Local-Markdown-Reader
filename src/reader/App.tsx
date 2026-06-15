@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   CSSProperties,
+  DragEvent as ReactDragEvent,
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
 } from 'react';
 
 import {
   getDocumentFileKind,
+  isReadableDocumentFile,
   selectDefaultLoadedDocument,
   selectRememberedLoadedDocument,
 } from '../shared/fileSystem';
@@ -33,6 +35,7 @@ import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
 import { selectSiblingDocumentNavigationFromLazyTree } from './fileNavigation';
 import {
+  createDocumentFileSnapshot,
   createDirectoryScanSession,
   hydrateDirectoryPath,
   isStaleLoadedDirectoryError,
@@ -126,7 +129,7 @@ type LargeDocumentSession = {
   rememberRecord?: LastDocumentRecord;
 };
 
-type ActiveDocumentKind = 'markdown' | 'html' | 'json' | 'yaml';
+type ActiveDocumentKind = 'markdown' | 'html' | 'json' | 'jsonl' | 'yaml';
 type FileDrawerTab = 'folder' | 'ai-projects';
 type DocumentSource =
   | { type: 'folder'; handle: FileSystemDirectoryHandle }
@@ -468,7 +471,7 @@ export function App() {
   async function openFolder() {
     const requestId = beginOpenRequest();
     setError(null);
-    setStatus('请选择一个文件夹，读取其中的 Markdown、HTML、JSON 或 YAML 文件。');
+    setStatus('请选择一个文件夹，读取其中的 Markdown、HTML、JSON、JSONL 或 YAML 文件。');
 
     try {
       const handle = await openDirectory();
@@ -536,7 +539,7 @@ export function App() {
   async function openStandaloneFile() {
     const requestId = beginOpenRequest();
     setError(null);
-    setStatus('请选择一个 Markdown、HTML、JSON 或 YAML 文件。');
+    setStatus('请选择一个 Markdown、HTML、JSON、JSONL 或 YAML 文件。');
 
     try {
       const snapshot = await openDocumentFile();
@@ -544,32 +547,7 @@ export function App() {
         return;
       }
 
-      const documentKind = getSnapshotDocumentKind(snapshot);
-      const source: DocumentSource = { type: 'standalone' };
-      setDrawerOpen(false);
-
-      if (isPlainStructuredDocumentKind(documentKind)) {
-        await openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
-        return;
-      }
-
-      const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
-      if (!isCurrentOpenRequest(requestId)) {
-        return;
-      }
-
-      const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
-
-      if (classification.kind !== 'normal') {
-        await openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
-          anchorLine: 1,
-          source,
-          requestId,
-        });
-        return;
-      }
-
-      await openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
+      await openStandaloneSnapshot(snapshot, requestId);
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
         return;
@@ -583,6 +561,37 @@ export function App() {
       setStatus(null);
       setError(err instanceof Error ? err.message : '无法打开文件。');
     }
+  }
+
+  async function openStandaloneSnapshot(snapshot: DocumentFileSnapshot, requestId: number): Promise<boolean> {
+    if (!isCurrentOpenRequest(requestId)) {
+      return false;
+    }
+
+    const documentKind = getSnapshotDocumentKind(snapshot);
+    const source: DocumentSource = { type: 'standalone' };
+    setDrawerOpen(false);
+
+    if (isAlwaysNormalDocumentKind(documentKind)) {
+      return openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
+    }
+
+    const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
+    if (!isCurrentOpenRequest(requestId)) {
+      return false;
+    }
+
+    const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
+
+    if (classification.kind !== 'normal') {
+      return openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+        anchorLine: 1,
+        source,
+        requestId,
+      });
+    }
+
+    return openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
   }
 
   async function openFile(
@@ -605,7 +614,7 @@ export function App() {
       const source = options.source ?? activeDocumentSource ?? { type: 'folder', handle };
       const rememberRecord = remember ? createLastDocumentRecord(source, path) : undefined;
 
-      if (isPlainStructuredDocumentKind(documentKind)) {
+      if (isAlwaysNormalDocumentKind(documentKind)) {
         return openNormalDocumentSnapshot(
           snapshot,
           documentKind,
@@ -1038,7 +1047,7 @@ export function App() {
         await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path, { source, requestId });
       } else {
         clearReaderForSource(source);
-        setStatus('上次打开的文件夹里没有找到 Markdown、HTML、JSON 或 YAML 文件。');
+        setStatus('上次打开的文件夹里没有找到 Markdown、HTML、JSON、JSONL 或 YAML 文件。');
       }
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
@@ -1874,6 +1883,57 @@ export function App() {
     window.print();
   }
 
+  function handleReaderDragOver(event: ReactDragEvent<HTMLDivElement>) {
+    const fileCount = countDraggedFiles(event.dataTransfer);
+    if (fileCount === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = fileCount === 1 ? 'copy' : 'none';
+  }
+
+  function handleReaderDrop(event: ReactDragEvent<HTMLDivElement>) {
+    const fileCount = countDraggedFiles(event.dataTransfer);
+    if (fileCount === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    const file = selectSingleDroppedFile(event.dataTransfer);
+    if (!file) {
+      setStatus(null);
+      setError('一次只能拖入一个文件。');
+      return;
+    }
+
+    void openDroppedFile(file);
+  }
+
+  async function openDroppedFile(file: File) {
+    const requestId = beginOpenRequest();
+    setError(null);
+
+    if (!isReadableDocumentFile(file.name)) {
+      setStatus(null);
+      setError('请拖入一个 Markdown、HTML、JSON、JSONL 或 YAML 文件。');
+      return;
+    }
+
+    setStatus(`正在打开 ${file.name}`);
+
+    try {
+      await openStandaloneSnapshot(createDocumentFileSnapshot(file.name, file), requestId);
+    } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
+      setStatus(null);
+      setError(err instanceof Error ? err.message : `无法打开 ${file.name}。`);
+    }
+  }
+
   const readerShellStyle = {
     '--file-drawer-width': `${drawerWidth}px`,
     '--outline-panel-width': `${outlineWidth}px`,
@@ -1882,6 +1942,8 @@ export function App() {
   return (
     <div
       className={`reader-app theme-${settings.reading.theme} width-${settings.reading.width} style-${settings.reading.style}`}
+      onDragOver={handleReaderDragOver}
+      onDrop={handleReaderDrop}
     >
       <ReaderToolbar
         title={title}
@@ -1989,11 +2051,12 @@ export function App() {
                 title={activePath}
                 onLoad={() => setHtmlPreviewLoadCount((count) => count + 1)}
               />
-            ) : activeDocumentKind === 'json' ? (
+            ) : activeDocumentKind === 'json' || activeDocumentKind === 'jsonl' ? (
               <JsonDocumentReader
                 source={documentSourceText}
                 fileName={activePath}
                 theme={settings.reading.theme}
+                format={activeDocumentKind === 'jsonl' ? 'jsonl' : 'json'}
               />
             ) : activeDocumentKind === 'yaml' ? (
               <YamlDocumentReader
@@ -2012,7 +2075,7 @@ export function App() {
           ) : (
             <section className="empty-state">
               <h2>打开本地文件夹</h2>
-              <p>选择包含 Markdown、HTML、JSON 或 YAML 文件的文件夹，把它作为本地文档集阅读。</p>
+              <p>选择包含 Markdown、HTML、JSON、JSONL 或 YAML 文件的文件夹，把它作为本地文档集阅读。</p>
               {lastDocument && (
                 <p>
                   上次打开：{lastDocument.directoryName}/{lastDocument.path}
@@ -2103,18 +2166,30 @@ function selectSourceSaveName(path: string | null, kind: ActiveDocumentKind): st
     ? 'document.html'
     : kind === 'json'
       ? 'document.json'
-      : kind === 'yaml'
-        ? 'document.yaml'
-        : 'document.md';
+      : kind === 'jsonl'
+        ? 'document.jsonl'
+        : kind === 'yaml'
+          ? 'document.yaml'
+          : 'document.md';
   const name = path?.split('/').filter(Boolean).at(-1) ?? fallbackName;
   const extensionPattern = kind === 'html'
     ? /\.(html|htm)$/i
     : kind === 'json'
       ? /\.json$/i
-      : kind === 'yaml'
-        ? /\.(yaml|yml)$/i
-        : /\.(md|markdown)$/i;
-  const extension = kind === 'html' ? '.html' : kind === 'json' ? '.json' : kind === 'yaml' ? '.yaml' : '.md';
+      : kind === 'jsonl'
+        ? /\.jsonl$/i
+        : kind === 'yaml'
+          ? /\.(yaml|yml)$/i
+          : /\.(md|markdown)$/i;
+  const extension = kind === 'html'
+    ? '.html'
+    : kind === 'json'
+      ? '.json'
+      : kind === 'jsonl'
+        ? '.jsonl'
+        : kind === 'yaml'
+          ? '.yaml'
+          : '.md';
 
   return extensionPattern.test(name) ? name : `${name}${extension}`;
 }
@@ -2131,6 +2206,13 @@ function getSourceSavePickerType(kind: ActiveDocumentKind): { description: strin
     return {
       description: 'JSON 文件',
       accept: { 'application/json': ['.json'] },
+    };
+  }
+
+  if (kind === 'jsonl') {
+    return {
+      description: 'JSONL 文件',
+      accept: { 'application/x-ndjson': ['.jsonl'] },
     };
   }
 
@@ -2152,9 +2234,11 @@ function downloadSource(source: string, filename: string, kind: ActiveDocumentKi
     ? 'text/html;charset=utf-8'
     : kind === 'json'
       ? 'application/json;charset=utf-8'
-      : kind === 'yaml'
-        ? 'text/yaml;charset=utf-8'
-        : 'text/markdown;charset=utf-8';
+      : kind === 'jsonl'
+        ? 'application/x-ndjson;charset=utf-8'
+        : kind === 'yaml'
+          ? 'text/yaml;charset=utf-8'
+          : 'text/markdown;charset=utf-8';
   const objectUrl = URL.createObjectURL(new Blob([source], { type }));
   const anchor = document.createElement('a');
 
@@ -2452,7 +2536,22 @@ function getSnapshotDocumentKind(snapshot: DocumentFileSnapshot): ActiveDocument
   return getDocumentFileKind(snapshot.path) ?? getDocumentFileKind(snapshot.name) ?? 'markdown';
 }
 
-function isPlainStructuredDocumentKind(kind: ActiveDocumentKind): boolean {
+function selectSingleDroppedFile(dataTransfer: DataTransfer): File | null {
+  const itemFiles = Array.from(dataTransfer.items ?? [])
+    .filter((item) => item.kind === 'file')
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => Boolean(file));
+
+  const files = itemFiles.length > 0 ? itemFiles : Array.from(dataTransfer.files ?? []);
+  return files.length === 1 ? files[0] : null;
+}
+
+function countDraggedFiles(dataTransfer: DataTransfer): number {
+  const itemCount = Array.from(dataTransfer.items ?? []).filter((item) => item.kind === 'file').length;
+  return itemCount || dataTransfer.files?.length || 0;
+}
+
+function isAlwaysNormalDocumentKind(kind: ActiveDocumentKind): boolean {
   return kind === 'html' || kind === 'json';
 }
 

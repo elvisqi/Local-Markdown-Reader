@@ -427,6 +427,7 @@ function selectFileTreeIcon(node: LazyFileTreeNode): string {
     case 'htm':
       return 'html';
     case 'json':
+    case 'jsonl':
       return 'json';
     case 'yaml':
     case 'yml':

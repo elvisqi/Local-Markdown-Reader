@@ -38,6 +38,33 @@ export function parseJsonDocument(source: string): JsonParseResult {
   }
 }
 
+export function parseJsonLinesDocument(source: string): JsonParseResult {
+  const rows: unknown[] = [];
+  const lines = source.split(/\r?\n/);
+
+  for (const [index, line] of lines.entries()) {
+    if (!line.trim()) {
+      continue;
+    }
+
+    try {
+      rows.push(JSON.parse(line) as unknown);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'JSONL 解析失败。';
+      return {
+        ok: false,
+        error: `第 ${index + 1} 行 JSON 解析失败：${message}`,
+      };
+    }
+  }
+
+  return {
+    ok: true,
+    data: rows,
+    summary: summarizeJsonValue(rows),
+  };
+}
+
 export function summarizeJsonValue(data: unknown): JsonDocumentSummary {
   let nodeCount = 0;
   let maxDepth = 0;

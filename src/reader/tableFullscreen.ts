@@ -3,6 +3,7 @@ const TRIGGER_CLASS = 'table-fullscreen__trigger';
 const OVERLAY_CLASS = 'table-fullscreen__overlay';
 const ACTIONS_CLASS = 'table-fullscreen__actions';
 const TABLE_REGION_CLASS = 'table-fullscreen__table';
+const ROW_COUNT_CLASS = 'table-fullscreen__row-count';
 const OVERFLOWING_CLASS = 'is-overflowing';
 const CAN_SCROLL_LEFT_CLASS = 'can-scroll-left';
 const CAN_SCROLL_RIGHT_CLASS = 'can-scroll-right';
@@ -69,7 +70,7 @@ function wrapBareTables(root: ParentNode): Array<() => void> {
 
     const actions = document.createElement('div');
     actions.className = ACTIONS_CLASS;
-    actions.append(trigger);
+    actions.append(createTableRowCountElement(table), trigger);
     wrapper.append(actions);
 
     cleanups.push(() => {
@@ -79,6 +80,22 @@ function wrapBareTables(root: ParentNode): Array<() => void> {
   }
 
   return cleanups;
+}
+
+function createTableRowCountElement(table: HTMLTableElement): HTMLElement {
+  const rowCount = countTableBodyRows(table);
+  const element = document.createElement('span');
+  element.className = ROW_COUNT_CLASS;
+  element.title = `表格共有 ${rowCount} 行`;
+  element.textContent = `${rowCount} 行`;
+
+  return element;
+}
+
+function countTableBodyRows(table: HTMLTableElement): number {
+  const bodyRows = Array.from(table.tBodies).reduce((count, body) => count + body.rows.length, 0);
+
+  return bodyRows || table.rows.length;
 }
 
 function installTableScrollHints(root: ParentNode): Array<() => void> {

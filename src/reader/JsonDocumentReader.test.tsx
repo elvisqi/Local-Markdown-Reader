@@ -63,4 +63,20 @@ describe('JsonDocumentReader', () => {
     expect(within(editor).getByText('table')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '高级视图' })).not.toBeInTheDocument();
   });
+
+  it('renders JSONL as a parsed JSON array', async () => {
+    render(
+      <JsonDocumentReader
+        source={'{"id":1,"event":"open"}\n{"id":2,"event":"close"}'}
+        fileName="events.jsonl"
+        theme="light"
+        format="jsonl"
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'events.jsonl' })).toBeInTheDocument();
+    expect(screen.getByText('Array')).toBeInTheDocument();
+    expect(within(screen.getByText('顶层').closest('div')!).getByText('2')).toBeInTheDocument();
+    expect(await screen.findByLabelText('JSON 编辑器')).toBeInTheDocument();
+  });
 });

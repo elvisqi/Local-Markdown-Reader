@@ -21,7 +21,10 @@ describe('installTableFullscreen', () => {
     expect(buttons[0].textContent).toBe('');
     expect(root.querySelectorAll('.table-fullscreen__table')).toHaveLength(2);
     expect(buttons[0].closest('.table-fullscreen')?.querySelector('.table-fullscreen__table table')).not.toBeNull();
-    expect(buttons[0].closest('.table-fullscreen__actions')).not.toBeNull();
+    const firstActions = buttons[0].closest('.table-fullscreen__actions');
+    expect(firstActions).not.toBeNull();
+    expect(firstActions?.querySelector('.table-fullscreen__row-count')).toHaveTextContent('1 行');
+    expect(firstActions?.firstElementChild).toHaveClass('table-fullscreen__row-count');
 
     buttons[1].click();
 

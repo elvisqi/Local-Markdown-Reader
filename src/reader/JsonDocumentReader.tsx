@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo } from 'react';
 import type { ThemePreference } from '../shared/types';
 import {
   parseJsonDocument,
+  parseJsonLinesDocument,
   type JsonDocumentSummary,
 } from './jsonDocument';
 
@@ -13,17 +14,22 @@ type JsonDocumentReaderProps = {
   source: string;
   fileName: string | null;
   theme: ThemePreference;
+  format?: 'json' | 'jsonl';
 };
 
-export function JsonDocumentReader({ source, fileName, theme }: JsonDocumentReaderProps) {
-  const parsed = useMemo(() => parseJsonDocument(source), [source]);
+export function JsonDocumentReader({ source, fileName, theme, format = 'json' }: JsonDocumentReaderProps) {
+  const parsed = useMemo(
+    () => format === 'jsonl' ? parseJsonLinesDocument(source) : parseJsonDocument(source),
+    [format, source],
+  );
   const editorContent = parsed.ok ? { json: parsed.data } : { text: source };
   const editorMode = parsed.ok ? 'tree' : 'text';
+  const formatLabel = format === 'jsonl' ? 'JSONL' : 'JSON';
 
   return (
     <section className="json-reader">
       <JsonReaderHeader fileName={fileName} summary={parsed.ok ? parsed.summary : undefined} />
-      {!parsed.ok && <p className="error-note">JSON 解析失败：{parsed.error}</p>}
+      {!parsed.ok && <p className="error-note">{formatLabel} 解析失败：{parsed.error}</p>}
       <Suspense fallback={<div className="json-reader__editor-loading">正在加载 JSON 编辑器...</div>}>
         <JsonEditorViewer
           content={editorContent}

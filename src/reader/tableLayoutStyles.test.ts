@@ -30,6 +30,13 @@ describe('table layout styles', () => {
     expect(getRule('.table-fullscreen.can-scroll-right::after')).toMatch(/opacity:\s*1/);
   });
 
+  it('shows markdown table row counts in the hover action stack', () => {
+    expect(getRule('.table-fullscreen__actions')).toMatch(/gap:\s*6px/);
+    expect(getRule('.table-fullscreen__row-count')).toMatch(/visibility:\s*hidden/);
+    expect(getRule('.table-fullscreen__row-count')).toMatch(/opacity:\s*0/);
+    expect(css).toMatch(/\.table-fullscreen:hover \.table-fullscreen__row-count,\s*\.table-fullscreen:focus-within \.table-fullscreen__row-count\s*\{[\s\S]*visibility:\s*visible[\s\S]*opacity:\s*1/s);
+  });
+
   it('makes disabled reader toolbar buttons visually unavailable', () => {
     const rule = getRule('.reader-toolbar button:disabled');
 

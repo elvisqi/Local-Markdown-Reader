@@ -139,6 +139,7 @@ describe('ArboristFileTree', () => {
       { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
       { id: 'index.html', type: 'file', name: 'index.html', path: 'index.html' },
       { id: 'settings.json', type: 'file', name: 'settings.json', path: 'settings.json' },
+      { id: 'events.jsonl', type: 'file', name: 'events.jsonl', path: 'events.jsonl' },
       { id: 'config.yaml', type: 'file', name: 'config.yaml', path: 'config.yaml' },
       { id: 'script.py', type: 'file', name: 'script.py', path: 'script.py' },
       { id: 'build.mjs', type: 'file', name: 'build.mjs', path: 'build.mjs' },
@@ -171,6 +172,10 @@ describe('ArboristFileTree', () => {
       'html',
     );
     expect(screen.getByRole('treeitem', { name: 'settings.json' }).querySelector('.file-tree__icon')).toHaveAttribute(
+      'data-file-icon',
+      'json',
+    );
+    expect(screen.getByRole('treeitem', { name: 'events.jsonl' }).querySelector('.file-tree__icon')).toHaveAttribute(
       'data-file-icon',
       'json',
     );

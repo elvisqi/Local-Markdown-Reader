@@ -2,11 +2,14 @@ import { renderMarkdown } from './markdown';
 
 describe('renderMarkdown', () => {
   it('renders GFM tables', async () => {
-    const result = await renderMarkdown('| A | B |\n| - | - |\n| 1 | 2 |');
+    const result = await renderMarkdown('| A | B |\n| - | - |\n| 1 | 2 |\n| 3 | 4 |');
 
     expect(result.html).toContain('<table>');
     expect(result.html).toContain('class="table-fullscreen"');
     expect(result.html).toContain('class="table-fullscreen__table"');
+    expect(result.html).toContain('class="table-fullscreen__row-count"');
+    expect(result.html).toContain('2 行');
+    expect(result.html.indexOf('table-fullscreen__row-count')).toBeLessThan(result.html.indexOf('table-fullscreen__trigger'));
     expect(result.html).toContain('class="table-fullscreen__trigger"');
     expect(result.html).toContain('aria-label="最大化表格"');
   });
