@@ -11,6 +11,7 @@ const CAN_SCROLL_RIGHT_CLASS = 'can-scroll-right';
 export function installTableFullscreen(root: ParentNode): () => void {
   const cleanups: Array<() => void> = [
     ...wrapBareTables(root),
+    ...installTableStats(root),
     ...installTableScrollHints(root),
   ];
 
@@ -70,7 +71,7 @@ function wrapBareTables(root: ParentNode): Array<() => void> {
 
     const actions = document.createElement('div');
     actions.className = ACTIONS_CLASS;
-    actions.append(createTableRowCountElement(table), trigger);
+    actions.append(createTableRowCountElement(), trigger);
     wrapper.append(actions);
 
     cleanups.push(() => {
@@ -82,20 +83,72 @@ function wrapBareTables(root: ParentNode): Array<() => void> {
   return cleanups;
 }
 
-function createTableRowCountElement(table: HTMLTableElement): HTMLElement {
-  const rowCount = countTableBodyRows(table);
+function installTableStats(root: ParentNode): Array<() => void> {
+  const cleanups: Array<() => void> = [];
+
+  for (const wrapper of Array.from(root.querySelectorAll<HTMLElement>(`.${WRAPPER_CLASS}`))) {
+    const table = wrapper.querySelector<HTMLTableElement>('table');
+    const actions = wrapper.querySelector<HTMLElement>(`.${ACTIONS_CLASS}`);
+    if (!table || !actions) {
+      continue;
+    }
+
+    const rowCount = actions.querySelector<HTMLElement>(`.${ROW_COUNT_CLASS}`) ?? createTableRowCountElement();
+    updateTableRowCountElement(rowCount, table);
+    if (!rowCount.isConnected) {
+      actions.prepend(rowCount);
+      cleanups.push(() => rowCount.remove());
+    }
+  }
+
+  return cleanups;
+}
+
+function createTableRowCountElement(): HTMLElement {
   const element = document.createElement('span');
   element.className = ROW_COUNT_CLASS;
-  element.title = `表格共有 ${rowCount} 行`;
-  element.textContent = `${rowCount} 行`;
 
   return element;
+}
+
+function updateTableRowCountElement(element: HTMLElement, table: HTMLTableElement) {
+  const stats = getTableStats(table);
+  element.title = `表格共有 ${stats.rows} 行，${stats.columns} 列`;
+  element.replaceChildren(createStatLine(`${stats.rows} 行`), createStatLine(`${stats.columns} 列`));
+}
+
+function getTableStats(table: HTMLTableElement): { rows: number; columns: number } {
+  return {
+    rows: countTableBodyRows(table),
+    columns: countTableColumns(table),
+  };
+}
+
+function formatTableStats(stats: { rows: number; columns: number }): string {
+  return `${stats.rows} 行 · ${stats.columns} 列`;
+}
+
+function createStatLine(text: string): HTMLElement {
+  const line = document.createElement('span');
+  line.className = 'table-fullscreen__stat-line';
+  line.textContent = text;
+
+  return line;
 }
 
 function countTableBodyRows(table: HTMLTableElement): number {
   const bodyRows = Array.from(table.tBodies).reduce((count, body) => count + body.rows.length, 0);
 
   return bodyRows || table.rows.length;
+}
+
+function countTableColumns(table: HTMLTableElement): number {
+  const referenceRow = table.tHead?.rows[0] ?? table.rows[0];
+  if (!referenceRow) {
+    return 0;
+  }
+
+  return Array.from(referenceRow.cells).reduce((count, cell) => count + cell.colSpan, 0);
 }
 
 function installTableScrollHints(root: ParentNode): Array<() => void> {
@@ -152,7 +205,7 @@ function openTableOverlay(table: HTMLTableElement) {
   toolbar.className = 'table-fullscreen__toolbar';
 
   const title = document.createElement('span');
-  title.textContent = '表格';
+  title.textContent = `表格（${formatTableStats(getTableStats(table))}）`;
 
   const closeButton = document.createElement('button');
   closeButton.type = 'button';

@@ -32,9 +32,22 @@ describe('table layout styles', () => {
 
   it('shows markdown table row counts in the hover action stack', () => {
     expect(getRule('.table-fullscreen__actions')).toMatch(/gap:\s*6px/);
+    expect(getRule('.table-fullscreen__actions')).toMatch(/justify-items:\s*center/);
+    expect(getRule('.table-fullscreen__row-count')).toMatch(/display:\s*grid/);
+    expect(getRule('.table-fullscreen__row-count')).toMatch(/justify-items:\s*center/);
+    expect(getRule('.table-fullscreen__row-count')).toMatch(/text-align:\s*center/);
+    expect(getRule('.table-fullscreen__row-count')).not.toMatch(/white-space:\s*nowrap/);
+    expect(getRule('.table-fullscreen__stat-line')).toMatch(/white-space:\s*nowrap/);
     expect(getRule('.table-fullscreen__row-count')).toMatch(/visibility:\s*hidden/);
     expect(getRule('.table-fullscreen__row-count')).toMatch(/opacity:\s*0/);
     expect(css).toMatch(/\.table-fullscreen:hover \.table-fullscreen__row-count,\s*\.table-fullscreen:focus-within \.table-fullscreen__row-count\s*\{[\s\S]*visibility:\s*visible[\s\S]*opacity:\s*1/s);
+  });
+
+  it('keeps markdown table actions visible while scrolling tall tables', () => {
+    expect(getRule('.table-fullscreen__actions')).toMatch(/position:\s*sticky/);
+    expect(getRule('.table-fullscreen__actions')).toMatch(/bottom:\s*12px/);
+    expect(getRule('.table-fullscreen__actions')).toMatch(/align-self:\s*end/);
+    expect(getRule('.table-fullscreen__actions')).toMatch(/z-index:\s*4/);
   });
 
   it('makes disabled reader toolbar buttons visually unavailable', () => {
@@ -140,6 +153,12 @@ describe('table layout styles', () => {
     expect(getRule('.large-markdown-table-preview td')).toMatch(/overflow-wrap:\s*anywhere/);
   });
 
+  it('keeps markdown table headers visible while scrolling table content', () => {
+    expect(css).toMatch(/\.document-reader thead th,[\s\S]*\.table-fullscreen__body thead th,[\s\S]*\.large-markdown-table-preview thead th\s*\{[\s\S]*position:\s*sticky[\s\S]*top:\s*0[\s\S]*z-index:\s*3/s);
+    expect(css).toMatch(/\.document-reader thead th,[\s\S]*\.table-fullscreen__body thead th,[\s\S]*\.large-markdown-table-preview thead th\s*\{[\s\S]*background:\s*var\(--reader-table-head\)[\s\S]*box-shadow:\s*0 1px 0 var\(--reader-border\)/s);
+    expect(css).toMatch(/@media print[\s\S]*\.document-reader thead th,[\s\S]*\.table-fullscreen__body thead th,[\s\S]*\.large-markdown-table-preview thead th\s*\{[\s\S]*position:\s*static/s);
+  });
+
   it('prints rendered tables inside the printable page instead of clipping wide content', () => {
     expect(css).toMatch(/@media print/);
     expect(css).toMatch(/\.reader-toolbar,[\s\S]*\.file-drawer,[\s\S]*\.outline-panel[\s\S]*display:\s*none !important/);
@@ -150,7 +169,9 @@ describe('table layout styles', () => {
   });
 
   it('uses balanced fullscreen table columns without assuming the first column is an id column', () => {
-    expect(getRule('.table-fullscreen__body table')).toMatch(/width:\s*100%/);
+    expect(getRule('.table-fullscreen__body')).not.toMatch(/padding:\s*14px/);
+    expect(getRule('.table-fullscreen__body table')).toMatch(/margin:\s*14px/);
+    expect(getRule('.table-fullscreen__body table')).toMatch(/width:\s*calc\(100% - 28px\)/);
     expect(getRule('.table-fullscreen__body table')).toMatch(/table-layout:\s*auto/);
     expect(getRule('.table-fullscreen__body :is(th, td):first-child')).toBe('');
     expect(getRules('.table-fullscreen__body th').some((rule) => /max-width:\s*42ch/.test(rule))).toBe(true);

@@ -823,15 +823,21 @@ select {
 }
 
 .table-fullscreen__actions {
+  position: sticky;
+  z-index: 4;
+  bottom: 12px;
   display: grid;
   gap: 6px;
-  place-items: end;
+  align-items: end;
+  justify-items: center;
   align-self: end;
   padding-bottom: 1px;
 }
 
 .table-fullscreen__row-count {
+  display: grid;
   visibility: hidden;
+  justify-items: center;
   padding: 3px 7px;
   border: 1px solid color-mix(in srgb, var(--reader-link) 22%, var(--reader-border));
   border-radius: 999px;
@@ -840,11 +846,15 @@ select {
   color: var(--reader-muted);
   font-size: 12px;
   line-height: 1.35;
-  white-space: nowrap;
+  text-align: center;
   opacity: 0;
   transition:
     opacity 120ms ease,
     visibility 120ms ease;
+}
+
+.table-fullscreen__stat-line {
+  white-space: nowrap;
 }
 
 .table-fullscreen__trigger {
@@ -943,15 +953,14 @@ select {
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  padding: 14px;
   color: var(--reader-text);
   font-size: var(--markdown-font-size, 16px);
   line-height: var(--markdown-line-height, 1.72);
 }
 
 .table-fullscreen__body table {
-  width: 100%;
-  margin: 0;
+  width: calc(100% - 28px);
+  margin: 14px;
   border-spacing: 0;
   border-collapse: collapse;
   table-layout: auto;
@@ -983,6 +992,16 @@ select {
 .table-fullscreen__body th {
   background: var(--reader-table-head);
   font-weight: 700;
+}
+
+.document-reader thead th,
+.table-fullscreen__body thead th,
+.large-markdown-table-preview thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--reader-table-head);
+  box-shadow: 0 1px 0 var(--reader-border);
 }
 
 .document-reader tr:nth-child(even) td,
@@ -1747,6 +1766,13 @@ select {
     overflow-wrap: anywhere;
     white-space: normal;
     word-break: break-word;
+  }
+
+  .document-reader thead th,
+  .table-fullscreen__body thead th,
+  .large-markdown-table-preview thead th {
+    position: static;
+    box-shadow: none;
   }
 
   .document-reader pre {

@@ -4,8 +4,8 @@ describe('installTableFullscreen', () => {
   it('adds an outside fullscreen button to each table and opens a full-viewport overlay', async () => {
     document.body.innerHTML = `
       <div id="root" class="reader-app theme-dark style-paper width-wide">
-        <table><tbody><tr><td>Wide value</td></tr></tbody></table>
-        <table><tbody><tr><td>Second value</td></tr></tbody></table>
+        <table><tbody><tr><td colspan="2">Wide value</td></tr></tbody></table>
+        <table><tbody><tr><td>Second value</td><td>Second note</td></tr></tbody></table>
       </div>
     `;
     const root = document.getElementById('root')!;
@@ -23,7 +23,11 @@ describe('installTableFullscreen', () => {
     expect(buttons[0].closest('.table-fullscreen')?.querySelector('.table-fullscreen__table table')).not.toBeNull();
     const firstActions = buttons[0].closest('.table-fullscreen__actions');
     expect(firstActions).not.toBeNull();
-    expect(firstActions?.querySelector('.table-fullscreen__row-count')).toHaveTextContent('1 行');
+    const firstStats = firstActions?.querySelectorAll('.table-fullscreen__stat-line');
+    expect(firstStats?.[0]).toHaveTextContent('1 行');
+    expect(firstStats?.[1]).toHaveTextContent('2 列');
+    expect(firstActions?.querySelector('.table-fullscreen__row-count')).toHaveAttribute('title', '表格共有 1 行，2 列');
+    expect(firstStats).toHaveLength(2);
     expect(firstActions?.firstElementChild).toHaveClass('table-fullscreen__row-count');
 
     buttons[1].click();
@@ -35,7 +39,9 @@ describe('installTableFullscreen', () => {
     expect(dialog).toHaveClass('theme-dark');
     expect(dialog).toHaveClass('style-paper');
     expect(dialog).toHaveClass('width-wide');
+    expect(dialog).toHaveTextContent('表格（1 行 · 2 列）');
     expect(dialog).toHaveTextContent('Second value');
+    expect(dialog).toHaveTextContent('Second note');
     expect(dialog).not.toHaveTextContent('Wide value');
 
     document.querySelector<HTMLButtonElement>('.table-fullscreen__close')!.click();
@@ -104,7 +110,7 @@ describe('installTableFullscreen', () => {
       <div id="root">
         <div class="table-fullscreen">
           <div class="table-fullscreen__table">
-            <table><tbody><tr><td>Wide value</td></tr></tbody></table>
+            <table><tbody><tr><td>Wide value</td><td>Wide note</td></tr></tbody></table>
           </div>
           <div class="table-fullscreen__actions">
             <button type="button" class="table-fullscreen__trigger" aria-label="最大化表格"></button>
@@ -117,6 +123,15 @@ describe('installTableFullscreen', () => {
     const cleanup = installTableFullscreen(root);
     const wrapper = root.querySelector<HTMLElement>('.table-fullscreen')!;
     const tableRegion = root.querySelector<HTMLElement>('.table-fullscreen__table')!;
+    const actions = root.querySelector<HTMLElement>('.table-fullscreen__actions')!;
+    const rowCount = actions.querySelector<HTMLElement>('.table-fullscreen__row-count');
+
+    const stats = rowCount?.querySelectorAll('.table-fullscreen__stat-line');
+    expect(stats?.[0]).toHaveTextContent('1 行');
+    expect(stats?.[1]).toHaveTextContent('2 列');
+    expect(rowCount).toHaveAttribute('title', '表格共有 1 行，2 列');
+    expect(stats).toHaveLength(2);
+    expect(actions.firstElementChild).toBe(rowCount);
 
     Object.defineProperty(tableRegion, 'clientWidth', { value: 100, configurable: true });
     Object.defineProperty(tableRegion, 'scrollWidth', { value: 300, configurable: true });
@@ -126,6 +141,34 @@ describe('installTableFullscreen', () => {
 
     expect(wrapper).toHaveClass('is-overflowing');
     expect(wrapper).toHaveClass('can-scroll-right');
+
+    cleanup();
+  });
+
+  it('updates existing table action stats to include column counts', () => {
+    document.body.innerHTML = `
+      <div id="root">
+        <div class="table-fullscreen">
+          <div class="table-fullscreen__table">
+            <table><tbody><tr><td>Value</td><td>Note</td></tr></tbody></table>
+          </div>
+          <div class="table-fullscreen__actions">
+            <span class="table-fullscreen__row-count" title="表格共有 1 行">1 行</span>
+            <button type="button" class="table-fullscreen__trigger" aria-label="最大化表格"></button>
+          </div>
+        </div>
+      </div>
+    `;
+    const root = document.getElementById('root')!;
+
+    const cleanup = installTableFullscreen(root);
+    const rowCount = root.querySelector<HTMLElement>('.table-fullscreen__row-count');
+
+    const stats = rowCount?.querySelectorAll('.table-fullscreen__stat-line');
+    expect(stats?.[0]).toHaveTextContent('1 行');
+    expect(stats?.[1]).toHaveTextContent('2 列');
+    expect(rowCount).toHaveAttribute('title', '表格共有 1 行，2 列');
+    expect(stats).toHaveLength(2);
 
     cleanup();
   });
