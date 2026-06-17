@@ -122,8 +122,18 @@ describe('table layout styles', () => {
     expect(getRule('.mermaid-fullscreen__panel')).toMatch(/height:\s*100%/);
     expect(getRule('.mermaid-fullscreen__body')).toMatch(/height:\s*100%/);
     expect(getRule('.mermaid-fullscreen__body')).toMatch(/box-sizing:\s*border-box/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-fullscreen')).toMatch(/position:\s*relative/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-fullscreen')).toMatch(/display:\s*block/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-fullscreen')).not.toMatch(/grid-template-columns/);
     expect(getRule('.mermaid-fullscreen__body .mermaid-fullscreen')).toMatch(/min-height:\s*0/);
     expect(getRule('.mermaid-fullscreen__body .mermaid-diagram')).toMatch(/height:\s*100%/);
+  });
+
+  it('places fullscreen Mermaid controls inside the diagram area', () => {
+    expect(getRule('.mermaid-fullscreen__body .mermaid-fullscreen__actions')).toMatch(/position:\s*absolute/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-fullscreen__actions')).toMatch(/right:\s*16px/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-fullscreen__actions')).toMatch(/bottom:\s*16px/);
+    expect(getRule('.mermaid-fullscreen__body .mermaid-fullscreen__actions')).toMatch(/z-index:\s*4/);
   });
 
   it('centers fullscreen Mermaid diagrams in the available space', () => {
