@@ -978,7 +978,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(linkTree);
     vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
       const source = path === 'intro.md'
-        ? '# Intro\n\n## Details\n\n[Next](next.md)'
+        ? '# Intro\n\n[Details](#details)\n\n## Details\n\n[Next](next.md)'
         : '# Next';
       const file = new File([source], path, { type: 'text/markdown' });
       return {

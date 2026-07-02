@@ -1,6 +1,5 @@
 import GithubSlugger from 'github-slugger';
 import { toString } from 'mdast-util-to-string';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import rehypeSlug from 'rehype-slug';
 import rehypeStringify from 'rehype-stringify';
@@ -91,12 +90,6 @@ export async function renderMarkdown(
     .use(remarkMath)
     .use(remarkRehype, { allowDangerousHtml: options.allowHtml ?? false })
     .use(rehypeSlug);
-
-  if (!options.chunkMode) {
-    processor.use(rehypeAutolinkHeadings, {
-      behavior: 'wrap',
-    });
-  }
 
   const file = await processor
     .use(wrapTablesForFullscreen)

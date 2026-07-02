@@ -30,22 +30,27 @@ describe('table layout styles', () => {
     expect(getRule('.table-fullscreen.can-scroll-right::after')).toMatch(/opacity:\s*1/);
   });
 
-  it('shows markdown table row counts in the hover action stack', () => {
+  it('shows markdown table row counts in a persistent side summary without taking table height', () => {
     expect(getRule('.table-fullscreen__actions')).toMatch(/gap:\s*6px/);
     expect(getRule('.table-fullscreen__actions')).toMatch(/justify-items:\s*center/);
+    expect(getRule('.table-fullscreen__row-count')).toMatch(/position:\s*absolute/);
+    expect(getRule('.table-fullscreen__row-count')).toMatch(/z-index:\s*3/);
+    expect(getRule('.table-fullscreen__row-count')).toMatch(/right:\s*0/);
+    expect(getRule('.table-fullscreen__row-count')).toMatch(/top:\s*0/);
+    expect(getRule('.table-fullscreen__row-count')).not.toMatch(/bottom:\s*42px/);
     expect(getRule('.table-fullscreen__row-count')).toMatch(/display:\s*grid/);
     expect(getRule('.table-fullscreen__row-count')).toMatch(/justify-items:\s*center/);
-    expect(getRule('.table-fullscreen__row-count')).toMatch(/text-align:\s*center/);
-    expect(getRule('.table-fullscreen__row-count')).not.toMatch(/white-space:\s*nowrap/);
+    expect(getRule('.table-fullscreen__row-count')).not.toMatch(/grid-column/);
+    expect(getRule('.table-fullscreen__row-count')).not.toMatch(/justify-self/);
+    expect(getRule('.table-fullscreen__row-count')).not.toMatch(/visibility:\s*hidden/);
+    expect(getRule('.table-fullscreen__row-count')).not.toMatch(/opacity:\s*0/);
     expect(getRule('.table-fullscreen__stat-line')).toMatch(/white-space:\s*nowrap/);
-    expect(getRule('.table-fullscreen__row-count')).toMatch(/visibility:\s*hidden/);
-    expect(getRule('.table-fullscreen__row-count')).toMatch(/opacity:\s*0/);
-    expect(css).toMatch(/\.table-fullscreen:hover \.table-fullscreen__row-count,\s*\.table-fullscreen:focus-within \.table-fullscreen__row-count\s*\{[\s\S]*visibility:\s*visible[\s\S]*opacity:\s*1/s);
+    expect(css).not.toMatch(/\.table-fullscreen:hover \.table-fullscreen__row-count/);
   });
 
-  it('keeps markdown table actions visible while scrolling tall tables', () => {
-    expect(getRule('.table-fullscreen__actions')).toMatch(/position:\s*sticky/);
-    expect(getRule('.table-fullscreen__actions')).toMatch(/bottom:\s*12px/);
+  it('keeps markdown table actions aligned beside the table after moving stats to the top', () => {
+    expect(getRule('.table-fullscreen__actions')).not.toMatch(/position:\s*sticky/);
+    expect(getRule('.table-fullscreen__actions')).not.toMatch(/bottom:\s*12px/);
     expect(getRule('.table-fullscreen__actions')).toMatch(/align-self:\s*end/);
     expect(getRule('.table-fullscreen__actions')).toMatch(/z-index:\s*4/);
   });

@@ -763,6 +763,7 @@ select {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 34px;
+  row-gap: 6px;
   align-items: end;
   column-gap: 8px;
   margin: 16px 0 22px;
@@ -823,9 +824,7 @@ select {
 }
 
 .table-fullscreen__actions {
-  position: sticky;
   z-index: 4;
-  bottom: 12px;
   display: grid;
   gap: 6px;
   align-items: end;
@@ -835,22 +834,20 @@ select {
 }
 
 .table-fullscreen__row-count {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  top: 0;
   display: grid;
-  visibility: hidden;
   justify-items: center;
-  padding: 3px 7px;
+  gap: 1px;
+  padding: 3px 8px;
   border: 1px solid color-mix(in srgb, var(--reader-link) 22%, var(--reader-border));
   border-radius: 999px;
   background: color-mix(in srgb, var(--reader-surface) 92%, transparent);
-  box-shadow: 0 2px 8px rgba(18, 26, 36, 0.12);
   color: var(--reader-muted);
   font-size: 12px;
   line-height: 1.35;
-  text-align: center;
-  opacity: 0;
-  transition:
-    opacity 120ms ease,
-    visibility 120ms ease;
 }
 
 .table-fullscreen__stat-line {
@@ -879,9 +876,7 @@ select {
 }
 
 .table-fullscreen:hover .table-fullscreen__trigger,
-.table-fullscreen:focus-within .table-fullscreen__trigger,
-.table-fullscreen:hover .table-fullscreen__row-count,
-.table-fullscreen:focus-within .table-fullscreen__row-count {
+.table-fullscreen:focus-within .table-fullscreen__trigger {
   visibility: visible;
   opacity: 1;
 }

@@ -63,6 +63,13 @@ describe('renderMarkdown', () => {
     expect(result.html).toContain('id="intro"');
   });
 
+  it('keeps rendered heading text from becoming a same-page link', async () => {
+    const result = await renderMarkdown('# Intro');
+
+    expect(result.html).toContain('<h1 id="intro">Intro</h1>');
+    expect(result.html).not.toContain('href="#intro"');
+  });
+
   it('creates unique slugs for duplicate headings', async () => {
     const result = await renderMarkdown('# API\n\n# API');
 

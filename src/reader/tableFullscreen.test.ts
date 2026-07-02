@@ -22,13 +22,17 @@ describe('installTableFullscreen', () => {
     expect(root.querySelectorAll('.table-fullscreen__table')).toHaveLength(2);
     expect(buttons[0].closest('.table-fullscreen')?.querySelector('.table-fullscreen__table table')).not.toBeNull();
     const firstActions = buttons[0].closest('.table-fullscreen__actions');
+    const firstWrapper = wrappers[0];
+    const firstRowCount = firstWrapper.querySelector<HTMLElement>('.table-fullscreen__row-count');
     expect(firstActions).not.toBeNull();
-    const firstStats = firstActions?.querySelectorAll('.table-fullscreen__stat-line');
+    expect(firstWrapper.firstElementChild).toBe(firstRowCount);
+    expect(firstActions?.querySelector('.table-fullscreen__row-count')).toBeNull();
+    const firstStats = firstRowCount?.querySelectorAll('.table-fullscreen__stat-line');
     expect(firstStats?.[0]).toHaveTextContent('1 行');
     expect(firstStats?.[1]).toHaveTextContent('2 列');
-    expect(firstActions?.querySelector('.table-fullscreen__row-count')).toHaveAttribute('title', '表格共有 1 行，2 列');
+    expect(firstRowCount).toHaveAttribute('title', '表格共有 1 行，2 列');
     expect(firstStats).toHaveLength(2);
-    expect(firstActions?.firstElementChild).toHaveClass('table-fullscreen__row-count');
+    expect(firstActions?.firstElementChild).toBe(buttons[0]);
 
     buttons[1].click();
 
@@ -124,14 +128,16 @@ describe('installTableFullscreen', () => {
     const wrapper = root.querySelector<HTMLElement>('.table-fullscreen')!;
     const tableRegion = root.querySelector<HTMLElement>('.table-fullscreen__table')!;
     const actions = root.querySelector<HTMLElement>('.table-fullscreen__actions')!;
-    const rowCount = actions.querySelector<HTMLElement>('.table-fullscreen__row-count');
+    const rowCount = wrapper.querySelector<HTMLElement>('.table-fullscreen__row-count');
 
+    expect(wrapper.firstElementChild).toBe(rowCount);
+    expect(actions.querySelector('.table-fullscreen__row-count')).toBeNull();
     const stats = rowCount?.querySelectorAll('.table-fullscreen__stat-line');
     expect(stats?.[0]).toHaveTextContent('1 行');
     expect(stats?.[1]).toHaveTextContent('2 列');
     expect(rowCount).toHaveAttribute('title', '表格共有 1 行，2 列');
     expect(stats).toHaveLength(2);
-    expect(actions.firstElementChild).toBe(rowCount);
+    expect(actions.firstElementChild).toHaveClass('table-fullscreen__trigger');
 
     Object.defineProperty(tableRegion, 'clientWidth', { value: 100, configurable: true });
     Object.defineProperty(tableRegion, 'scrollWidth', { value: 300, configurable: true });
@@ -162,8 +168,12 @@ describe('installTableFullscreen', () => {
     const root = document.getElementById('root')!;
 
     const cleanup = installTableFullscreen(root);
+    const wrapper = root.querySelector<HTMLElement>('.table-fullscreen')!;
+    const actions = root.querySelector<HTMLElement>('.table-fullscreen__actions')!;
     const rowCount = root.querySelector<HTMLElement>('.table-fullscreen__row-count');
 
+    expect(wrapper.firstElementChild).toBe(rowCount);
+    expect(actions.querySelector('.table-fullscreen__row-count')).toBeNull();
     const stats = rowCount?.querySelectorAll('.table-fullscreen__stat-line');
     expect(stats?.[0]).toHaveTextContent('1 行');
     expect(stats?.[1]).toHaveTextContent('2 列');

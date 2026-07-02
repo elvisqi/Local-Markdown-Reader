@@ -71,8 +71,8 @@ function wrapBareTables(root: ParentNode): Array<() => void> {
 
     const actions = document.createElement('div');
     actions.className = ACTIONS_CLASS;
-    actions.append(createTableRowCountElement(), trigger);
-    wrapper.append(actions);
+    wrapper.append(createTableRowCountElement(), actions);
+    actions.append(trigger);
 
     cleanups.push(() => {
       wrapper.before(table);
@@ -93,10 +93,16 @@ function installTableStats(root: ParentNode): Array<() => void> {
       continue;
     }
 
-    const rowCount = actions.querySelector<HTMLElement>(`.${ROW_COUNT_CLASS}`) ?? createTableRowCountElement();
+    let rowCount = wrapper.querySelector<HTMLElement>(`.${ROW_COUNT_CLASS}`);
+    const shouldRemoveRowCount = !rowCount;
+    rowCount ??= createTableRowCountElement();
     updateTableRowCountElement(rowCount, table);
-    if (!rowCount.isConnected) {
-      actions.prepend(rowCount);
+
+    if (wrapper.firstElementChild !== rowCount) {
+      wrapper.prepend(rowCount);
+    }
+
+    if (shouldRemoveRowCount) {
       cleanups.push(() => rowCount.remove());
     }
   }
