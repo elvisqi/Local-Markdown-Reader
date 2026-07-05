@@ -3,7 +3,7 @@ import { installTableFullscreen } from './tableFullscreen';
 describe('installTableFullscreen', () => {
   it('adds an outside fullscreen button to each table and opens a full-viewport overlay', async () => {
     document.body.innerHTML = `
-      <div id="root" class="reader-app theme-dark style-paper width-wide">
+      <div id="root" class="reader-app theme-dark reader-theme-paper width-wide">
         <table><tbody><tr><td colspan="2">Wide value</td></tr></tbody></table>
         <table><tbody><tr><td>Second value</td><td>Second note</td></tr></tbody></table>
       </div>
@@ -41,7 +41,7 @@ describe('installTableFullscreen', () => {
     expect(dialog).toHaveAttribute('role', 'dialog');
     expect(dialog).toHaveClass('reader-app');
     expect(dialog).toHaveClass('theme-dark');
-    expect(dialog).toHaveClass('style-paper');
+    expect(dialog).toHaveClass('reader-theme-paper');
     expect(dialog).toHaveClass('width-wide');
     expect(dialog).toHaveTextContent('表格（1 行 · 2 列）');
     expect(dialog).toHaveTextContent('Second value');

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react';
-import type { ThemePreference } from '../shared/types';
+import type { ColorModePreference } from '../shared/types';
 import {
   parseJsonDocument,
   parseJsonLinesDocument,
@@ -13,7 +13,7 @@ const JsonEditorViewer = lazy(() =>
 type JsonDocumentReaderProps = {
   source: string;
   fileName: string | null;
-  theme: ThemePreference;
+  theme: ColorModePreference;
   format?: 'json' | 'jsonl';
 };
 
@@ -79,7 +79,7 @@ function formatRootType(type: JsonDocumentSummary['rootType']): string {
   return type[0].toUpperCase() + type.slice(1);
 }
 
-function resolveEditorTheme(theme: ThemePreference): 'light' | 'dark' {
+function resolveEditorTheme(theme: ColorModePreference): 'light' | 'dark' {
   if (theme === 'dark') {
     return 'dark';
   }

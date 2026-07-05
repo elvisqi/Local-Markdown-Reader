@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
-import type { ReaderSettings, ReadingStyle, ReadingWidth, ThemePreference } from '../shared/types';
+import type { ReaderSettings } from '../shared/types';
 import {
   authorizeAiProjectSource,
   clearAiProjectState,
@@ -17,6 +17,7 @@ import {
   type AiProjectState,
 } from '../reader/aiProjects';
 import { openDirectory } from '../reader/fileSystemAccess';
+import { ThemeSettings } from './ThemeSettings';
 import './App.css';
 
 export function App() {
@@ -96,75 +97,7 @@ export function App() {
         <h1>Markdown 阅读器设置</h1>
         {saved && <span>已保存</span>}
       </header>
-      <section>
-        <h2>阅读</h2>
-        <label>
-          阅读器主题
-          <select
-            value={settings.reading.theme}
-            onChange={(event) =>
-              void updateSettings({
-                ...settings,
-                reading: { ...settings.reading, theme: event.target.value as ThemePreference },
-              })
-            }
-          >
-            <option value="system">跟随系统</option>
-            <option value="light">浅色</option>
-            <option value="dark">深色</option>
-          </select>
-        </label>
-        <label>
-          阅读宽度
-          <select
-            value={settings.reading.width}
-            onChange={(event) =>
-              void updateSettings({
-                ...settings,
-                reading: { ...settings.reading, width: event.target.value as ReadingWidth },
-              })
-            }
-          >
-            <option value="narrow">窄</option>
-            <option value="comfortable">舒适</option>
-            <option value="wide">宽</option>
-            <option value="full">全宽</option>
-          </select>
-        </label>
-        <label>
-          阅读样式
-          <select
-            value={settings.reading.style}
-            onChange={(event) =>
-              void updateSettings({
-                ...settings,
-                reading: { ...settings.reading, style: event.target.value as ReadingStyle },
-              })
-            }
-          >
-            <option value="paper">纸张</option>
-            <option value="clean">清爽文档</option>
-            <option value="github">GitHub</option>
-            <option value="classic">经典</option>
-          </select>
-        </label>
-        <label>
-          弹窗主题
-          <select
-            value={settings.ui.popupTheme}
-            onChange={(event) =>
-              void updateSettings({
-                ...settings,
-                ui: { ...settings.ui, popupTheme: event.target.value as ThemePreference },
-              })
-            }
-          >
-            <option value="system">跟随系统</option>
-            <option value="light">浅色</option>
-            <option value="dark">深色</option>
-          </select>
-        </label>
-      </section>
+      <ThemeSettings settings={settings} onSettingsChange={updateSettings} />
       <section>
         <h2>渲染</h2>
         <Toggle

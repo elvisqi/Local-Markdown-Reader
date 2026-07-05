@@ -16,8 +16,17 @@ import { renderHtmlDocument } from '../shared/render/html';
 import { resolveMarkdownHref } from '../shared/render/links';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, subscribeSettings } from '../shared/settings';
+import {
+  buildBuiltinThemeStylesheet,
+  buildInstalledThemeStylesheet,
+  getBuiltinReaderTheme,
+  getInstalledThemePackageId,
+  loadInstalledThemes,
+  scopeCss,
+  subscribeInstalledThemes,
+} from '../shared/themes';
 import { consumeTemporaryMarkdownDocument, type TemporaryMarkdownDocument } from '../shared/temporaryDocument';
-import type { LazyFileTreeNode, OutlineItem, RenderResult } from '../shared/types';
+import type { LazyFileTreeNode, OutlineItem, ReaderThemePackage, RenderResult } from '../shared/types';
 import { selectActiveHeadingId } from './activeHeading';
 import {
   clearAiProjectState,
@@ -147,6 +156,7 @@ type ReaderHistoryState = {
 
 export function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [installedThemes, setInstalledThemes] = useState<ReaderThemePackage[]>([]);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const initialLayoutPreferences = useMemo(loadReaderLayoutPreferences, []);
   const initialPersistedOutlineWidth = useMemo(loadPersistedOutlinePanelWidth, []);
@@ -188,6 +198,20 @@ export function App() {
   const persistedOutlineWidthRef = useRef(initialPersistedOutlineWidth);
   const [htmlPreviewLoadCount, setHtmlPreviewLoadCount] = useState(0);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
+  const activeInstalledThemeId = getInstalledThemePackageId(settings.reading.themeId);
+  const activeBuiltinTheme = getBuiltinReaderTheme(settings.reading.themeId);
+  const activeThemePackage = useMemo(
+    () => installedThemes.find((theme) => theme.id === activeInstalledThemeId) ?? null,
+    [activeInstalledThemeId, installedThemes],
+  );
+  const activeThemeStylesheet = useMemo(
+    () => buildSafeReaderThemeStylesheet(activeThemePackage, activeBuiltinTheme),
+    [activeBuiltinTheme, activeThemePackage],
+  );
+  const customCssStylesheet = useMemo(
+    () => buildSafeCustomCssStylesheet(settings.rendering.customCss),
+    [settings.rendering.customCss],
+  );
   const htmlPreviewActive = activeDocumentKind === 'html' && !largeDocument && !settings.reading.rawMode;
   const outlineVisible = settings.reading.showOutline && activeDocumentKind === 'markdown';
   const activeNavigationTree = useMemo(() => {
@@ -240,6 +264,11 @@ export function App() {
 
   useEffect(() => {
     return subscribeSettings(setSettings);
+  }, []);
+
+  useEffect(() => {
+    void loadInstalledThemes().then(setInstalledThemes);
+    return subscribeInstalledThemes(setInstalledThemes);
   }, []);
 
   useEffect(() => {
@@ -1941,10 +1970,18 @@ export function App() {
 
   return (
     <div
-      className={`reader-app theme-${settings.reading.theme} width-${settings.reading.width} style-${settings.reading.style}`}
+      className={[
+        'reader-app',
+        `theme-${settings.reading.colorMode}`,
+        `width-${settings.reading.width}`,
+        activeBuiltinTheme?.cssClass,
+      ].filter(Boolean).join(' ')}
+      data-reader-theme-id={settings.reading.themeId}
       onDragOver={handleReaderDragOver}
       onDrop={handleReaderDrop}
     >
+      {activeThemeStylesheet && <style data-reader-theme-stylesheet>{activeThemeStylesheet}</style>}
+      {customCssStylesheet && <style data-reader-custom-css>{customCssStylesheet}</style>}
       <ReaderToolbar
         title={title}
         rawMode={settings.reading.rawMode}
@@ -2055,14 +2092,14 @@ export function App() {
               <JsonDocumentReader
                 source={documentSourceText}
                 fileName={activePath}
-                theme={settings.reading.theme}
+                theme={settings.reading.colorMode}
                 format={activeDocumentKind === 'jsonl' ? 'jsonl' : 'json'}
               />
             ) : activeDocumentKind === 'yaml' ? (
               <YamlDocumentReader
                 source={documentSourceText}
                 fileName={activePath}
-                theme={settings.reading.theme}
+                theme={settings.reading.colorMode}
               />
             ) : (
               <div ref={renderedContentRef}>
@@ -2534,6 +2571,29 @@ function normalizeSidePanelWidths(
 
 function getSnapshotDocumentKind(snapshot: DocumentFileSnapshot): ActiveDocumentKind {
   return getDocumentFileKind(snapshot.path) ?? getDocumentFileKind(snapshot.name) ?? 'markdown';
+}
+
+function buildSafeReaderThemeStylesheet(
+  installedTheme: ReaderThemePackage | null,
+  builtinTheme: ReturnType<typeof getBuiltinReaderTheme>,
+): string {
+  try {
+    return installedTheme ? buildInstalledThemeStylesheet(installedTheme) : buildBuiltinThemeStylesheet(builtinTheme);
+  } catch {
+    return '';
+  }
+}
+
+function buildSafeCustomCssStylesheet(css: string): string {
+  if (!css.trim()) {
+    return '';
+  }
+
+  try {
+    return scopeCss(css, '.reader-app');
+  } catch {
+    return '';
+  }
 }
 
 function selectSingleDroppedFile(dataTransfer: DataTransfer): File | null {

@@ -17,13 +17,17 @@ describe('popup App', () => {
         sendMessage: vi.fn(async () => undefined),
       },
       storage: {
+        local: {
+          get: vi.fn(async () => ({})),
+          set: vi.fn(async () => undefined),
+        },
         sync: {
           get: vi.fn(async () => ({})),
           set: vi.fn(async () => undefined),
-          onChanged: {
-            addListener: vi.fn(),
-            removeListener: vi.fn(),
-          },
+        },
+        onChanged: {
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
         },
       },
     });

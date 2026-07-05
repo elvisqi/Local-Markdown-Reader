@@ -1,13 +1,30 @@
-export type ThemePreference = 'light' | 'dark' | 'system';
+export type ColorModePreference = 'light' | 'dark' | 'system';
 export type ReadingWidth = 'narrow' | 'comfortable' | 'wide' | 'full';
 export type ReadingStyle = 'clean' | 'github' | 'paper' | 'classic';
+export type BuiltinReaderThemeId = `builtin:${ReadingStyle}`;
+export type InstalledReaderThemeId = `installed:${string}`;
+export type ReaderThemeId = BuiltinReaderThemeId | InstalledReaderThemeId;
 export type DocumentFileKind = 'markdown' | 'html' | 'json' | 'jsonl' | 'yaml';
+export type ThemeColorScheme = ColorModePreference;
+
+export type ReaderThemePackage = {
+  id: string;
+  name: string;
+  version: string;
+  author?: string;
+  description?: string;
+  minAppVersion?: string;
+  colorScheme: ThemeColorScheme;
+  tokens: Record<string, string>;
+  css: string;
+  installedAt: number;
+};
 
 export type ReaderSettings = {
   reading: {
-    theme: ThemePreference;
+    colorMode: ColorModePreference;
+    themeId: ReaderThemeId;
     width: ReadingWidth;
-    style: ReadingStyle;
     rawMode: boolean;
     showOutline: boolean;
     autoReload: boolean;
@@ -20,7 +37,7 @@ export type ReaderSettings = {
     customCss: string;
   };
   ui: {
-    popupTheme: ThemePreference;
+    popupColorMode: ColorModePreference;
     iconTheme: 'default' | 'light' | 'dark';
   };
 };

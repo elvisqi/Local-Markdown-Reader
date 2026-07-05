@@ -2,42 +2,68 @@ import { DEFAULT_SETTINGS, loadSettings, mergeSettings, saveSettings, subscribeS
 
 describe('settings', () => {
   it('defines reading, rendering, and UI defaults', () => {
-    expect(DEFAULT_SETTINGS.reading.theme).toBe('system');
+    expect(DEFAULT_SETTINGS.reading.colorMode).toBe('system');
+    expect(DEFAULT_SETTINGS.reading.themeId).toBe('builtin:paper');
     expect(DEFAULT_SETTINGS.reading.width).toBe('comfortable');
-    expect(DEFAULT_SETTINGS.reading.style).toBe('paper');
     expect(DEFAULT_SETTINGS.reading.rawMode).toBe(false);
     expect(DEFAULT_SETTINGS.rendering.syntaxHighlighting).toBe(true);
     expect(DEFAULT_SETTINGS.rendering.mermaid).toBe(true);
     expect(DEFAULT_SETTINGS.rendering.mathJax).toBe(true);
-    expect(DEFAULT_SETTINGS.ui.popupTheme).toBe('system');
+    expect(DEFAULT_SETTINGS.ui.popupColorMode).toBe('system');
   });
 
   it('merges partial settings without dropping new defaults', () => {
     const merged = mergeSettings({
       reading: {
-        theme: 'dark',
+        colorMode: 'dark',
       },
       rendering: {
         mermaid: false,
       },
     });
 
-    expect(merged.reading.theme).toBe('dark');
+    expect(merged.reading.colorMode).toBe('dark');
+    expect(merged.reading.themeId).toBe(DEFAULT_SETTINGS.reading.themeId);
     expect(merged.reading.width).toBe(DEFAULT_SETTINGS.reading.width);
-    expect(merged.reading.style).toBe(DEFAULT_SETTINGS.reading.style);
     expect(merged.rendering.mermaid).toBe(false);
     expect(merged.rendering.syntaxHighlighting).toBe(true);
-    expect(merged.ui.popupTheme).toBe('system');
+    expect(merged.ui.popupColorMode).toBe('system');
   });
 
-  it('preserves a selected reading style template', () => {
+  it('preserves a selected reader theme', () => {
     const merged = mergeSettings({
       reading: {
-        style: 'paper',
+        themeId: 'builtin:github',
       },
     });
 
-    expect(merged.reading.style).toBe('paper');
+    expect(merged.reading.themeId).toBe('builtin:github');
+  });
+
+  it('migrates legacy theme fields to color mode and reader theme ids', () => {
+    const merged = mergeSettings({
+      reading: {
+        theme: 'dark',
+        style: 'classic',
+      },
+      ui: {
+        popupTheme: 'light',
+      },
+    });
+
+    expect(merged.reading.colorMode).toBe('dark');
+    expect(merged.reading.themeId).toBe('builtin:classic');
+    expect(merged.ui.popupColorMode).toBe('light');
+  });
+
+  it('migrates legacy installed theme package selections', () => {
+    const merged = mergeSettings({
+      reading: {
+        themePackageId: 'paper-pro',
+      },
+    });
+
+    expect(merged.reading.themeId).toBe('installed:paper-pro');
   });
 
   it('loads defaults and saves as a no-op when chrome storage is unavailable', async () => {
@@ -80,7 +106,7 @@ describe('settings', () => {
       ...DEFAULT_SETTINGS,
       reading: {
         ...DEFAULT_SETTINGS.reading,
-        style: 'github',
+        themeId: 'builtin:github',
       },
     });
 

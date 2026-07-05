@@ -157,3 +157,9 @@ body {
   gap: 8px;
   min-height: 32px;
 }
+
+@media (max-width: 760px) {
+  .options-app {
+    padding: 18px;
+  }
+}

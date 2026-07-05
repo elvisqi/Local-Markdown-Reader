@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react';
 
-import type { ThemePreference } from '../shared/types';
+import type { ColorModePreference } from '../shared/types';
 import { type JsonDocumentSummary } from './jsonDocument';
 import { parseYamlDocument } from './yamlDocument';
 
@@ -11,7 +11,7 @@ const JsonEditorViewer = lazy(() =>
 type YamlDocumentReaderProps = {
   source: string;
   fileName: string | null;
-  theme: ThemePreference;
+  theme: ColorModePreference;
 };
 
 export function YamlDocumentReader({ source, fileName, theme }: YamlDocumentReaderProps) {
@@ -73,7 +73,7 @@ function formatRootType(type: JsonDocumentSummary['rootType']): string {
   return type[0].toUpperCase() + type.slice(1);
 }
 
-function resolveEditorTheme(theme: ThemePreference): 'light' | 'dark' {
+function resolveEditorTheme(theme: ColorModePreference): 'light' | 'dark' {
   if (theme === 'dark') {
     return 'dark';
   }

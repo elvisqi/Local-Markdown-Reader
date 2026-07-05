@@ -1,0 +1,29 @@
+{
+  "id": "paper-pro",
+  "name": "Paper Pro",
+  "version": "1.0.0",
+  "author": "Local Markdown Reader",
+  "description": "A warm paper-like reading theme for long Markdown documents.",
+  "minAppVersion": "2.2.3",
+  "colorScheme": "light",
+  "tokens": {
+    "--reader-page-bg": "#f3f0e8",
+    "--reader-surface": "#fffdf7",
+    "--reader-border": "#d8cfbd",
+    "--reader-text": "#282a27",
+    "--reader-muted": "#6b7169",
+    "--reader-link": "#4b6f91",
+    "--reader-code-bg": "#eee9dc",
+    "--reader-code-text": "#313833",
+    "--reader-table-head": "#f2eadc",
+    "--reader-table-stripe": "#faf5ea",
+    "--reader-rule": "#d8cfbd",
+    "--reader-quote-bg": "#faf5ea",
+    "--reader-quote-border": "#b9ad92",
+    "--reader-quote-text": "#5f655f",
+    "--reader-shadow": "0 12px 32px rgba(80, 76, 68, 0.10)",
+    "--markdown-font-size": "17px",
+    "--markdown-line-height": "1.82"
+  },
+  "css": ".document-reader h1, .document-reader h2, .document-reader h3 { font-family: Georgia, \"Times New Roman\", serif; } .document-reader table { font-variant-numeric: tabular-nums; }"
+}
