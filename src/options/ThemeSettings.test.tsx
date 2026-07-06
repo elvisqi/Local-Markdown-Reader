@@ -174,6 +174,31 @@ describe('ThemeSettings sections', () => {
     expect(within(nightStudyRow).getByRole('button', { name: '已安装' })).toBeDisabled();
   });
 
+  it('renders remote theme preview images from the remote index', () => {
+    const remoteIndex = createRemoteThemeIndex();
+    remoteIndex.themes[1] = {
+      ...remoteIndex.themes[1],
+      previewUrl: 'https://example.com/previews/night-study.svg',
+    };
+
+    render(
+      <RemoteThemeList
+        index={remoteIndex}
+        installedThemes={[]}
+        onRefresh={vi.fn()}
+        onPreview={vi.fn()}
+        onInstall={vi.fn()}
+      />,
+    );
+
+    const remoteList = screen.getByRole('list', { name: '远程主题' });
+    const nightStudyRow = within(remoteList).getByText('Night Study').closest('li')!;
+    const previewImage = within(nightStudyRow).getByRole('img', { name: 'Night Study 预览图' });
+
+    expect(previewImage).toHaveAttribute('src', 'https://example.com/previews/night-study.svg');
+    expect(previewImage).toHaveAttribute('loading', 'lazy');
+  });
+
   it('renders installed theme package actions with the active theme disabled', async () => {
     const user = userEvent.setup();
     const applyTheme = vi.fn();

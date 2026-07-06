@@ -1,5 +1,6 @@
 import {
   BUILTIN_READER_THEMES,
+  DEFAULT_REMOTE_THEME_INDEX_URL,
   buildBuiltinThemeStylesheet,
   buildInstalledThemeStylesheet,
   deleteInstalledTheme,
@@ -15,6 +16,12 @@ import {
 } from './themes';
 
 describe('themes', () => {
+  it('uses the raw GitHub remote theme index by default', () => {
+    expect(DEFAULT_REMOTE_THEME_INDEX_URL).toBe(
+      'https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/index.json',
+    );
+  });
+
   it('parses a local theme package with tokens and css', () => {
     const theme = parseThemePackageText(JSON.stringify({
       id: 'paper-pro',

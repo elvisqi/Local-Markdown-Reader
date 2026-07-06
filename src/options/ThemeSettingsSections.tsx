@@ -269,6 +269,15 @@ export function RemoteThemeList({
             return (
               <li key={theme.id}>
                 <div>
+                  {theme.previewUrl && (
+                    <img
+                      className="theme-remote-preview"
+                      src={theme.previewUrl}
+                      alt={`${theme.name} 预览图`}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  )}
                   <div className="theme-package-title">
                     <strong>{theme.name}</strong>
                     {installedState && <span className="theme-package-state">{installedState}</span>}

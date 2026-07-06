@@ -87,6 +87,18 @@
   color: #18202a;
 }
 
+.theme-remote-preview {
+  display: block;
+  box-sizing: border-box;
+  width: min(100%, 280px);
+  height: auto;
+  margin-bottom: 8px;
+  border: 1px solid #d7dde5;
+  border-radius: 8px;
+  background: #eef2f6;
+  object-fit: contain;
+}
+
 .theme-package-title {
   display: flex;
   align-items: center;
