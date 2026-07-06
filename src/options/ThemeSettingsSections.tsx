@@ -421,8 +421,12 @@ export function ThemePreview({
       <article className="document-reader theme-preview__document" aria-label="阅读主题预览">
         <h1>主题预览</h1>
         <p>
-          这是一段用于检查正文、<a href="#preview-link">链接</a>、强调文本和行高的示例内容。
+          这是一段用于检查正文、<a href="#preview-link">链接</a>、<code>inline</code>、<mark>高亮</mark>和行高的示例内容。
         </p>
+        <ul>
+          <li><input type="checkbox" checked readOnly /> 已完成事项</li>
+          <li><input type="checkbox" readOnly /> 待处理事项</li>
+        </ul>
         <blockquote>
           <p>引用块用于观察边框、背景和弱化文本的层次。</p>
         </blockquote>

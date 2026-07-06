@@ -16,6 +16,44 @@ function getRules(selector: string): string[] {
 }
 
 describe('table layout styles', () => {
+  it('exposes expanded reader theme tokens on the root reader app', () => {
+    const rule = getRule('.reader-app');
+
+    expect(rule).toMatch(/--reader-radius:\s*8px/);
+    expect(rule).toMatch(/--reader-panel-bg:\s*#ffffff/);
+    expect(rule).toMatch(/--reader-panel-border:\s*#dfe4ea/);
+    expect(rule).toMatch(/--reader-accent:\s*#175ddc/);
+    expect(rule).toMatch(/--reader-accent-muted:\s*#e8f0ff/);
+    expect(rule).toMatch(/--reader-selection-bg:\s*#dbeafe/);
+    expect(rule).toMatch(/--reader-heading-text:\s*#18202a/);
+    expect(rule).toMatch(/--reader-heading-font:\s*inherit/);
+    expect(rule).toMatch(/--reader-heading-border:\s*#d1d9e2/);
+    expect(rule).toMatch(/--reader-inline-code-bg:\s*#eef2f5/);
+    expect(rule).toMatch(/--reader-inline-code-text:\s*#243141/);
+    expect(rule).toMatch(/--reader-mark-bg:\s*#fff4b8/);
+    expect(rule).toMatch(/--reader-tag-bg:\s*#e8f0ff/);
+  });
+
+  it('applies expanded reader theme tokens to the markdown document surface', () => {
+    expect(getRule('.document-reader')).toMatch(/border-radius:\s*var\(--reader-radius,\s*8px\)/);
+    expect(getRule('.document-reader > div')).toMatch(/color:\s*var\(--reader-text\)/);
+    expect(getRule('.document-reader ::selection')).toMatch(/background:\s*var\(--reader-selection-bg\)/);
+
+    const headingRule = getRule('.document-reader h1,\n.document-reader h2,\n.document-reader h3,\n.document-reader h4,\n.document-reader h5,\n.document-reader h6');
+    expect(headingRule).toMatch(/color:\s*var\(--reader-heading-text\)/);
+    expect(headingRule).toMatch(/font-family:\s*var\(--reader-heading-font,\s*inherit\)/);
+
+    expect(getRule('.document-reader h1')).toMatch(/border-bottom:\s*1px solid var\(--reader-heading-border\)/);
+    expect(getRule('.document-reader h2')).toMatch(/border-bottom:\s*1px solid var\(--reader-heading-border\)/);
+    expect(getRule('.document-reader code')).toMatch(/background:\s*var\(--reader-inline-code-bg\)/);
+    expect(getRule('.document-reader code')).toMatch(/color:\s*var\(--reader-inline-code-text\)/);
+    expect(getRule('.document-reader pre')).toMatch(/background:\s*var\(--reader-code-bg\)/);
+    expect(getRule('.document-reader mark')).toMatch(/background:\s*var\(--reader-mark-bg\)/);
+    expect(getRule('.document-reader mark')).toMatch(/color:\s*var\(--reader-mark-text\)/);
+    expect(getRule('.document-reader input[type="checkbox"]')).toMatch(/accent-color:\s*var\(--reader-accent\)/);
+    expect(getRule('.document-reader li:has(> input[type="checkbox"]:checked)')).toMatch(/color:\s*var\(--reader-task-done\)/);
+  });
+
   it('keeps one horizontal scroll container around rendered markdown tables', () => {
     expect(getRule('.table-fullscreen__table')).toMatch(/overflow-x:\s*auto/);
     expect(getRule('.document-reader table')).not.toMatch(/display:\s*block/);

@@ -8,9 +8,10 @@ body {
 
 .options-app {
   box-sizing: border-box;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 28px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 28px clamp(20px, 3vw, 44px);
 }
 
 .options-app header {

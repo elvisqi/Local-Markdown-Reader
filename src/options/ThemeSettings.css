@@ -60,10 +60,20 @@
 }
 
 .theme-catalog-list {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   margin-top: 0;
 }
 
-.theme-catalog-list li,
+.theme-catalog-list li {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e5e9ef;
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+
 .theme-package-list li {
   display: flex;
   align-items: flex-start;
@@ -90,7 +100,8 @@
 .theme-remote-preview {
   display: block;
   box-sizing: border-box;
-  width: min(100%, 280px);
+  width: 100%;
+  aspect-ratio: 16 / 9;
   height: auto;
   margin-bottom: 8px;
   border: 1px solid #d7dde5;
@@ -170,14 +181,30 @@
   --reader-text: #18202a;
   --reader-muted: #647282;
   --reader-link: #175ddc;
+  --reader-radius: 8px;
+  --reader-panel-bg: #ffffff;
+  --reader-panel-border: #dfe4ea;
+  --reader-accent: #175ddc;
+  --reader-accent-muted: #e8f0ff;
+  --reader-selection-bg: #dbeafe;
+  --reader-heading-text: #18202a;
+  --reader-heading-font: inherit;
+  --reader-heading-border: #d1d9e2;
   --reader-code-bg: #eef2f5;
   --reader-code-text: #243141;
+  --reader-inline-code-bg: #eef2f5;
+  --reader-inline-code-text: #243141;
   --reader-table-head: #f8fafc;
   --reader-table-stripe: #f6f8fa;
   --reader-rule: #d1d9e2;
   --reader-quote-bg: transparent;
   --reader-quote-border: #cfd8e3;
   --reader-quote-text: #52606d;
+  --reader-task-done: #7b8794;
+  --reader-mark-bg: #fff4b8;
+  --reader-mark-text: #28251f;
+  --reader-tag-bg: #e8f0ff;
+  --reader-tag-text: #175ddc;
   --reader-shadow: none;
   padding: 12px;
   border: 1px solid var(--reader-border);
@@ -193,14 +220,28 @@
   --reader-text: #e8eef6;
   --reader-muted: #9aa8b7;
   --reader-link: #8ab4ff;
+  --reader-panel-bg: #141d28;
+  --reader-panel-border: #334254;
+  --reader-accent: #8ab4ff;
+  --reader-accent-muted: #172b45;
+  --reader-selection-bg: #25476f;
+  --reader-heading-text: #f2f6fb;
+  --reader-heading-border: #35465a;
   --reader-code-bg: #243140;
   --reader-code-text: #e6edf5;
+  --reader-inline-code-bg: #202b38;
+  --reader-inline-code-text: #dbe7f5;
   --reader-table-head: #202b38;
   --reader-table-stripe: #1d2733;
   --reader-rule: #35465a;
   --reader-quote-bg: #192432;
   --reader-quote-border: #52657d;
   --reader-quote-text: #c2ccd8;
+  --reader-task-done: #7f8d9d;
+  --reader-mark-bg: #5f4f1f;
+  --reader-mark-text: #fff1b8;
+  --reader-tag-bg: #18314f;
+  --reader-tag-text: #aad0ff;
 }
 
 .theme-preview__document {
@@ -208,7 +249,7 @@
   min-width: 0;
   padding: 18px;
   border: 1px solid var(--reader-border);
-  border-radius: 8px;
+  border-radius: var(--reader-radius, 8px);
   background: var(--reader-surface);
   box-shadow: var(--reader-shadow);
   color: var(--reader-text);
@@ -219,7 +260,9 @@
 .theme-preview__document h1 {
   margin: 0 0 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--reader-rule);
+  border-bottom: 1px solid var(--reader-heading-border);
+  color: var(--reader-heading-text);
+  font-family: var(--reader-heading-font, inherit);
   font-size: 22px;
   line-height: 1.2;
 }
@@ -230,6 +273,30 @@
 
 .theme-preview__document a {
   color: var(--reader-link);
+}
+
+.theme-preview__document code {
+  padding: 0.12em 0.34em;
+  border-radius: 4px;
+  background: var(--reader-inline-code-bg);
+  color: var(--reader-inline-code-text);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
+  font-size: 0.88em;
+}
+
+.theme-preview__document mark {
+  padding: 0.05em 0.18em;
+  border-radius: 3px;
+  background: var(--reader-mark-bg);
+  color: var(--reader-mark-text);
+}
+
+.theme-preview__document input[type="checkbox"] {
+  accent-color: var(--reader-accent);
+}
+
+.theme-preview__document li:has(> input[type="checkbox"]:checked) {
+  color: var(--reader-task-done);
 }
 
 .theme-preview__document blockquote {
@@ -249,6 +316,12 @@
   color: var(--reader-code-text);
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
   font-size: 13px;
+}
+
+.theme-preview__document pre code {
+  padding: 0;
+  background: transparent;
+  color: var(--reader-code-text);
 }
 
 .theme-preview__document table {
@@ -281,14 +354,28 @@
     --reader-text: #e8eef6;
     --reader-muted: #9aa8b7;
     --reader-link: #8ab4ff;
+    --reader-panel-bg: #141d28;
+    --reader-panel-border: #334254;
+    --reader-accent: #8ab4ff;
+    --reader-accent-muted: #172b45;
+    --reader-selection-bg: #25476f;
+    --reader-heading-text: #f2f6fb;
+    --reader-heading-border: #35465a;
     --reader-code-bg: #243140;
     --reader-code-text: #e6edf5;
+    --reader-inline-code-bg: #202b38;
+    --reader-inline-code-text: #dbe7f5;
     --reader-table-head: #202b38;
     --reader-table-stripe: #1d2733;
     --reader-rule: #35465a;
     --reader-quote-bg: #192432;
     --reader-quote-border: #52657d;
     --reader-quote-text: #c2ccd8;
+    --reader-task-done: #7f8d9d;
+    --reader-mark-bg: #5f4f1f;
+    --reader-mark-text: #fff1b8;
+    --reader-tag-bg: #18314f;
+    --reader-tag-text: #aad0ff;
   }
 }
 

@@ -51,6 +51,48 @@ describe('themes', () => {
     });
   });
 
+  it('accepts expanded reader theme tokens for richer markdown styling', () => {
+    const theme = parseThemePackageText(JSON.stringify({
+      id: 'rich-paper',
+      name: 'Rich Paper',
+      version: '1.0.0',
+      tokens: {
+        '--reader-radius': '10px',
+        '--reader-panel-bg': '#fffdf8',
+        '--reader-panel-border': '#d8d1c4',
+        '--reader-accent': '#3b6f8f',
+        '--reader-accent-muted': '#e5eef5',
+        '--reader-selection-bg': '#d7e7f3',
+        '--reader-heading-text': '#1f2933',
+        '--reader-heading-font': 'Georgia, serif',
+        '--reader-heading-border': '#cfd8e3',
+        '--reader-inline-code-bg': '#f0ece4',
+        '--reader-inline-code-text': '#2d3033',
+        '--reader-task-done': '#7b8794',
+        '--reader-mark-bg': '#fff4b8',
+        '--reader-mark-text': '#28251f',
+        '--reader-tag-bg': '#e5eef5',
+        '--reader-tag-text': '#2f5f7d',
+      },
+    }), 123);
+
+    expect(theme.tokens['--reader-radius']).toBe('10px');
+    expect(theme.tokens['--reader-heading-font']).toBe('Georgia, serif');
+    expect(theme.tokens['--reader-tag-text']).toBe('#2f5f7d');
+  });
+
+  it('ships built-in themes with the expanded token set', () => {
+    for (const theme of BUILTIN_READER_THEMES) {
+      const tokens = theme.tokens;
+
+      expect(tokens['--reader-radius']).toBeTruthy();
+      expect(tokens['--reader-accent']).toBeTruthy();
+      expect(tokens['--reader-heading-text']).toBeTruthy();
+      expect(tokens['--reader-inline-code-bg']).toBeTruthy();
+      expect(tokens['--reader-mark-bg']).toBeTruthy();
+    }
+  });
+
   it('builds a scoped stylesheet for installed themes', () => {
     const theme = parseThemePackageText(JSON.stringify({
       id: 'paper-pro',

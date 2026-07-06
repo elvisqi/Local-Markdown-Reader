@@ -2,84 +2,84 @@
 
 ![Local Markdown Reader 2.3.1 theme showcase](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/theme-showcase-2.3.1.svg)
 
-本次发布包含 10 个原创远程主题包，下面的预览图由仓库内主题 token 自动生成，可直接用于 GitHub Release 描述。
+本次发布包含 10 个参考 Obsidian 流行风格方向制作的原创远程主题包，下面的预览图由仓库内主题 token 自动生成，可直接用于 GitHub Release 描述。
 
-### Classic Journal
+### Minimal Focus
 
-![Classic Journal preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/classic-journal.svg)
+![Minimal Focus preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/minimal-focus.svg)
 
-Traditional document rhythm with calm contrast for mixed notes.
+Minimal inspired neutral theme with very quiet chrome.
 
-主题包：[`classic-journal.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/classic-journal.mdv-theme.json)
+主题包：[`minimal-focus.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/minimal-focus.mdv-theme.json)
 
-### Graphite Doc
+### Things Flow
 
-![Graphite Doc preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/graphite-doc.svg)
+![Things Flow preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/things-flow.svg)
 
-Neutral grayscale for API notes, specs, and engineering documents.
+Things inspired light theme for task lists and clean daily notes.
 
-主题包：[`graphite-doc.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/graphite-doc.mdv-theme.json)
+主题包：[`things-flow.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/things-flow.mdv-theme.json)
 
-### Midnight Prose
+### Pastel Puccin
 
-![Midnight Prose preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/midnight-prose.svg)
+![Pastel Puccin preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/pastel-puccin.svg)
 
-Low-fatigue dark theme tuned for long-form reading.
+AnuPpuccin inspired pastel dark theme with soft lavender accents.
 
-主题包：[`midnight-prose.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/midnight-prose.mdv-theme.json)
+主题包：[`pastel-puccin.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/pastel-puccin.mdv-theme.json)
 
-### Mint Brief
+### Topaz Blue
 
-![Mint Brief preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mint-brief.svg)
+![Topaz Blue preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/topaz-blue.svg)
 
-Fresh light theme for summaries, meeting notes, and brief reports.
+Blue Topaz inspired airy theme with saturated blue headings.
 
-主题包：[`mint-brief.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/mint-brief.mdv-theme.json)
+主题包：[`topaz-blue.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/topaz-blue.mdv-theme.json)
 
-### Mono Grid
+### Nord Notes
 
-![Mono Grid preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mono-grid.svg)
+![Nord Notes preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/nord-notes.svg)
 
-System-aware compact style for dense tables and code-heavy documents.
+Nord inspired cool dark theme for calm technical reading.
 
-主题包：[`mono-grid.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/mono-grid.mdv-theme.json)
+主题包：[`nord-notes.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/nord-notes.mdv-theme.json)
 
-### Oceanic Code
+### Atom One Reader
 
-![Oceanic Code preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/oceanic-code.svg)
+![Atom One Reader preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/atom-one-reader.svg)
 
-Dark blue-green reading surface for technical notes and code blocks.
+Atom One inspired dark theme for code-heavy Markdown notes.
 
-主题包：[`oceanic-code.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/oceanic-code.mdv-theme.json)
+主题包：[`atom-one-reader.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/atom-one-reader.mdv-theme.json)
 
-### Paper Note
+### Obsidianite Dark
 
-![Paper Note preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/paper-note.svg)
+![Obsidianite Dark preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/obsidianite-dark.svg)
 
-Warm light paper style for essays, notes, and knowledge bases.
+Obsidianite inspired dark theme with crisp contrast and vivid links.
 
-主题包：[`paper-note.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/paper-note.mdv-theme.json)
+主题包：[`obsidianite-dark.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/obsidianite-dark.mdv-theme.json)
 
-### Plum Note
+### Wasp Highlight
 
-![Plum Note preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/plum-note.svg)
+![Wasp Highlight preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/wasp-highlight.svg)
 
-Restrained dark note theme with muted plum accents.
+Wasp inspired high-energy dark theme with sharp amber accents.
 
-主题包：[`plum-note.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/plum-note.mdv-theme.json)
+主题包：[`wasp-highlight.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/wasp-highlight.mdv-theme.json)
 
-### Solar Desk
+### Typewriter Desk
 
-![Solar Desk preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/solar-desk.svg)
+![Typewriter Desk preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/typewriter-desk.svg)
 
-Low-saturation daylight theme for focused daytime reading.
+Typewriter inspired warm writing theme with serif document rhythm.
 
-主题包：[`solar-desk.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/solar-desk.mdv-theme.json)
+主题包：[`typewriter-desk.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/typewriter-desk.mdv-theme.json)
 
-### Terminal Ink
+### ITS Readable
 
-![Terminal Ink preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/terminal-ink.svg)
+![ITS Readable preview](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/its-readable.svg)
 
-Dark terminal-inspired document theme with practical contrast.
+Readable system theme for long reference documents and dense tables.
 
-主题包：[`terminal-ink.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/terminal-ink.mdv-theme.json)
+主题包：[`its-readable.mdv-theme.json`](https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/its-readable.mdv-theme.json)

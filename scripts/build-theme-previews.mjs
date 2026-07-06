@@ -5,16 +5,16 @@ const RELEASE_VERSION = '2.3.1';
 const PREVIEW_DIR = 'themes/previews';
 const PREVIEW_BASE_URL = 'https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/';
 const THEME_IDS = [
-  'classic-journal',
-  'graphite-doc',
-  'midnight-prose',
-  'mint-brief',
-  'mono-grid',
-  'oceanic-code',
-  'paper-note',
-  'plum-note',
-  'solar-desk',
-  'terminal-ink',
+  'minimal-focus',
+  'things-flow',
+  'pastel-puccin',
+  'topaz-blue',
+  'nord-notes',
+  'atom-one-reader',
+  'obsidianite-dark',
+  'wasp-highlight',
+  'typewriter-desk',
+  'its-readable',
 ];
 
 export async function buildThemePreviews({ rootDir = process.cwd() } = {}) {
@@ -83,7 +83,7 @@ function renderShowcaseSvg(themes) {
     body: `
       <rect width="${width}" height="${height}" fill="#f3f4f6"/>
       <text x="${padding}" y="70" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="700" fill="#111827">Local Markdown Reader ${RELEASE_VERSION} Themes</text>
-      <text x="${padding}" y="108" font-family="Inter, Arial, sans-serif" font-size="18" fill="#4b5563">10 original theme previews generated from checked-in theme packages.</text>
+      <text x="${padding}" y="108" font-family="Inter, Arial, sans-serif" font-size="18" fill="#4b5563">10 Obsidian-inspired original theme previews generated from checked-in theme packages.</text>
       ${cards.join('\n')}
     `,
   });
@@ -98,14 +98,24 @@ function renderThemeCard(theme, frame) {
   const text = token(tokens, '--reader-text', '#111827');
   const muted = token(tokens, '--reader-muted', '#6b7280');
   const link = token(tokens, '--reader-link', '#2563eb');
+  const accent = token(tokens, '--reader-accent', link);
+  const accentMuted = token(tokens, '--reader-accent-muted', '#dbeafe');
+  const headingText = token(tokens, '--reader-heading-text', text);
+  const headingFont = token(tokens, '--reader-heading-font', 'Inter, Arial, sans-serif');
+  const headingBorder = token(tokens, '--reader-heading-border', border);
   const codeBg = token(tokens, '--reader-code-bg', '#f3f4f6');
   const codeText = token(tokens, '--reader-code-text', text);
+  const inlineCodeBg = token(tokens, '--reader-inline-code-bg', codeBg);
+  const inlineCodeText = token(tokens, '--reader-inline-code-text', codeText);
   const tableHead = token(tokens, '--reader-table-head', '#f3f4f6');
   const tableStripe = token(tokens, '--reader-table-stripe', '#f9fafb');
   const rule = token(tokens, '--reader-rule', border);
   const quoteBg = token(tokens, '--reader-quote-bg', '#f9fafb');
   const quoteBorder = token(tokens, '--reader-quote-border', link);
   const quoteText = token(tokens, '--reader-quote-text', muted);
+  const markBg = token(tokens, '--reader-mark-bg', '#fff4b8');
+  const markText = token(tokens, '--reader-mark-text', text);
+  const radius = scaledRadius(token(tokens, '--reader-radius', '8px'), large ? 3.1 : 2.1, large ? 8 : 6);
 
   const scale = width / 1280;
   const padding = large ? 54 : 30;
@@ -118,17 +128,16 @@ function renderThemeCard(theme, frame) {
   const headingSize = large ? 46 : 26;
   const bodySize = large ? 23 : 14;
   const smallSize = large ? 18 : 11;
-  const radius = large ? 34 : 22;
-  const chipText = contrastText(link);
+  const chipText = contrastText(accent);
   const descriptionLines = wrapText(theme.description ?? '', large ? 76 : 58).slice(0, large ? 2 : 1);
 
   return `
     <g transform="translate(${x} ${y})">
-      <rect width="${width}" height="${height}" rx="${radius}" fill="${escapeXml(pageBg)}"/>
-      <rect x="${surfaceX - x}" y="${surfaceY - y}" width="${surfaceWidth}" height="${surfaceHeight}" rx="${large ? 30 : 18}" fill="${escapeXml(surface)}" stroke="${escapeXml(border)}" stroke-width="${large ? 2 : 1.4}"/>
-      <rect x="${contentX - x}" y="${contentY - y}" width="${large ? 184 : 112}" height="${large ? 40 : 26}" rx="${large ? 20 : 13}" fill="${escapeXml(link)}"/>
+      <rect width="${width}" height="${height}" rx="${radius + (large ? 10 : 7)}" fill="${escapeXml(pageBg)}"/>
+      <rect x="${surfaceX - x}" y="${surfaceY - y}" width="${surfaceWidth}" height="${surfaceHeight}" rx="${radius}" fill="${escapeXml(surface)}" stroke="${escapeXml(border)}" stroke-width="${large ? 2 : 1.4}"/>
+      <rect x="${contentX - x}" y="${contentY - y}" width="${large ? 184 : 112}" height="${large ? 40 : 26}" rx="${large ? 20 : 13}" fill="${escapeXml(accent)}"/>
       <text x="${contentX - x + (large ? 24 : 14)}" y="${contentY - y + (large ? 27 : 18)}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" font-weight="700" fill="${chipText}">${escapeXml(theme.colorScheme.toUpperCase())}</text>
-      <text x="${contentX - x}" y="${contentY - y + (large ? 116 : 72)}" font-family="Inter, Arial, sans-serif" font-size="${headingSize}" font-weight="750" fill="${escapeXml(text)}">${escapeXml(theme.name)}</text>
+      <text x="${contentX - x}" y="${contentY - y + (large ? 116 : 72)}" font-family="${escapeXml(headingFont)}" font-size="${headingSize}" font-weight="750" fill="${escapeXml(headingText)}">${escapeXml(theme.name)}</text>
       ${renderTextLines(descriptionLines, {
         x: contentX - x,
         y: contentY - y + (large ? 158 : 100),
@@ -136,8 +145,8 @@ function renderThemeCard(theme, frame) {
         lineHeight: large ? 32 : 19,
         fill: muted,
       })}
-      <line x1="${contentX - x}" y1="${contentY - y + (large ? 224 : 142)}" x2="${contentX - x + surfaceWidth - padding * 0.5}" y2="${contentY - y + (large ? 224 : 142)}" stroke="${escapeXml(rule)}" stroke-width="${large ? 2 : 1}"/>
-      <text x="${contentX - x}" y="${contentY - y + (large ? 282 : 178)}" font-family="Inter, Arial, sans-serif" font-size="${large ? 28 : 17}" font-weight="700" fill="${escapeXml(text)}">Project Notes</text>
+      <line x1="${contentX - x}" y1="${contentY - y + (large ? 224 : 142)}" x2="${contentX - x + surfaceWidth - padding * 0.5}" y2="${contentY - y + (large ? 224 : 142)}" stroke="${escapeXml(headingBorder || rule)}" stroke-width="${large ? 2 : 1}"/>
+      <text x="${contentX - x}" y="${contentY - y + (large ? 282 : 178)}" font-family="${escapeXml(headingFont)}" font-size="${large ? 28 : 17}" font-weight="700" fill="${escapeXml(headingText)}">Project Notes</text>
       <text x="${contentX - x}" y="${contentY - y + (large ? 323 : 204)}" font-family="Inter, Arial, sans-serif" font-size="${bodySize}" fill="${escapeXml(text)}">Readable prose, tables, code, and callouts in one preview.</text>
       <text x="${contentX - x}" y="${contentY - y + (large ? 363 : 230)}" font-family="Inter, Arial, sans-serif" font-size="${bodySize}" fill="${escapeXml(link)}">https://local-markdown-reader/themes/${escapeXml(theme.id)}</text>
 
@@ -154,7 +163,16 @@ function renderThemeCard(theme, frame) {
         <text x="${large ? 26 : 17}" y="${large ? 80 : 51}" font-family="SFMono-Regular, Consolas, monospace" font-size="${smallSize}" fill="${escapeXml(codeText)}">renderMarkdown(theme);</text>
       </g>
 
-      <g transform="translate(${contentX - x} ${contentY - y + (large ? 560 : 350)})">
+      <g transform="translate(${contentX - x} ${contentY - y + (large ? 530 : 330)})">
+        <rect width="${large ? 170 : 104}" height="${large ? 34 : 22}" rx="${large ? 8 : 5}" fill="${escapeXml(inlineCodeBg)}"/>
+        <text x="${large ? 18 : 12}" y="${large ? 23 : 15}" font-family="SFMono-Regular, Consolas, monospace" font-size="${smallSize}" fill="${escapeXml(inlineCodeText)}">inline code</text>
+        <rect x="${large ? 196 : 122}" width="${large ? 142 : 88}" height="${large ? 34 : 22}" rx="${large ? 8 : 5}" fill="${escapeXml(markBg)}"/>
+        <text x="${large ? 214 : 134}" y="${large ? 23 : 15}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" font-weight="700" fill="${escapeXml(markText)}">highlight</text>
+        <rect x="${large ? 366 : 230}" width="${large ? 154 : 94}" height="${large ? 34 : 22}" rx="${large ? 17 : 11}" fill="${escapeXml(accentMuted)}"/>
+        <text x="${large ? 384 : 242}" y="${large ? 23 : 15}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" font-weight="700" fill="${escapeXml(accent)}">#theme</text>
+      </g>
+
+      <g transform="translate(${contentX - x} ${contentY - y + (large ? 584 : 366)})">
         <rect width="${surfaceWidth * 0.88}" height="${large ? 106 : 68}" rx="${large ? 16 : 10}" fill="${escapeXml(surface)}" stroke="${escapeXml(border)}" stroke-width="${large ? 1.6 : 1}"/>
         <rect width="${surfaceWidth * 0.88}" height="${large ? 38 : 24}" rx="${large ? 16 : 10}" fill="${escapeXml(tableHead)}"/>
         <rect y="${large ? 38 : 24}" width="${surfaceWidth * 0.88}" height="${large ? 34 : 22}" fill="${escapeXml(tableStripe)}"/>
@@ -165,15 +183,15 @@ function renderThemeCard(theme, frame) {
         <text x="${surfaceWidth * 0.62 + (large ? 24 : 15)}" y="${large ? 26 : 17}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" font-weight="700" fill="${escapeXml(text)}">State</text>
         <text x="${large ? 24 : 15}" y="${large ? 62 : 40}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" fill="${escapeXml(text)}">Tables</text>
         <text x="${surfaceWidth * 0.32 + (large ? 24 : 15)}" y="${large ? 62 : 40}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" fill="${escapeXml(text)}">Dense</text>
-        <text x="${surfaceWidth * 0.62 + (large ? 24 : 15)}" y="${large ? 62 : 40}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" fill="${escapeXml(link)}">Clear</text>
+        <text x="${surfaceWidth * 0.62 + (large ? 24 : 15)}" y="${large ? 62 : 40}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" fill="${escapeXml(accent)}">Clear</text>
         <text x="${large ? 24 : 15}" y="${large ? 96 : 62}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" fill="${escapeXml(text)}">Code</text>
         <text x="${surfaceWidth * 0.32 + (large ? 24 : 15)}" y="${large ? 96 : 62}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" fill="${escapeXml(text)}">Readable</text>
-        <text x="${surfaceWidth * 0.62 + (large ? 24 : 15)}" y="${large ? 96 : 62}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" fill="${escapeXml(link)}">Ready</text>
+        <text x="${surfaceWidth * 0.62 + (large ? 24 : 15)}" y="${large ? 96 : 62}" font-family="Inter, Arial, sans-serif" font-size="${smallSize}" fill="${escapeXml(accent)}">Ready</text>
       </g>
 
       <g transform="translate(${width - (large ? 254 : 154)} ${height - (large ? 92 : 58)}) scale(${scale})">
         <circle cx="0" cy="0" r="22" fill="${escapeXml(text)}" fill-opacity="0.18"/>
-        <circle cx="54" cy="0" r="22" fill="${escapeXml(link)}"/>
+        <circle cx="54" cy="0" r="22" fill="${escapeXml(accent)}"/>
         <circle cx="108" cy="0" r="22" fill="${escapeXml(quoteBorder)}"/>
       </g>
     </g>
@@ -214,7 +232,7 @@ function renderGalleryHtml(themes) {
   <body>
     <main>
       <h1>Local Markdown Reader ${RELEASE_VERSION} Theme Previews</h1>
-      <p class="intro">Generated previews for the 10 original remote theme packages introduced in ${RELEASE_VERSION}.</p>
+      <p class="intro">Generated previews for 10 Obsidian-inspired original remote theme packages.</p>
       <img class="showcase" src="./theme-showcase-${RELEASE_VERSION}.svg" alt="Theme showcase">
       <section class="grid">
 ${cards}
@@ -241,7 +259,7 @@ function renderReleaseMarkdown(themes) {
 
 ![Local Markdown Reader ${RELEASE_VERSION} theme showcase](${PREVIEW_BASE_URL}theme-showcase-${RELEASE_VERSION}.svg)
 
-本次发布包含 10 个原创远程主题包，下面的预览图由仓库内主题 token 自动生成，可直接用于 GitHub Release 描述。
+本次发布包含 10 个参考 Obsidian 流行风格方向制作的原创远程主题包，下面的预览图由仓库内主题 token 自动生成，可直接用于 GitHub Release 描述。
 
 ${rows}`;
 }
@@ -307,6 +325,14 @@ function wrapText(text, maxLength) {
 
 function token(tokens, name, fallback) {
   return tokens[name] ?? fallback;
+}
+
+function scaledRadius(value, multiplier, fallback) {
+  const match = String(value).trim().match(/^([0-9]+(?:\.[0-9]+)?)(?:px)?$/i);
+  if (!match) {
+    return fallback;
+  }
+  return Math.max(0, Math.round(Number.parseFloat(match[1]) * multiplier));
 }
 
 function contrastText(hex) {

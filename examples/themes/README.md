@@ -22,6 +22,8 @@ See [SCHEMA.md](./SCHEMA.md) for the full package schema and validation rules.
     "--reader-surface": "#fffdf7",
     "--reader-text": "#282a27",
     "--reader-link": "#4b6f91",
+    "--reader-heading-text": "#282a27",
+    "--reader-inline-code-bg": "#f0ece4",
     "--markdown-font-size": "17px"
   },
   "css": ".document-reader h1 { font-family: Georgia, \"Times New Roman\", serif; }"
@@ -57,14 +59,30 @@ Common reader tokens:
 - `--reader-text`
 - `--reader-muted`
 - `--reader-link`
+- `--reader-radius`
+- `--reader-panel-bg`
+- `--reader-panel-border`
+- `--reader-accent`
+- `--reader-accent-muted`
+- `--reader-selection-bg`
+- `--reader-heading-text`
+- `--reader-heading-font`
+- `--reader-heading-border`
 - `--reader-code-bg`
 - `--reader-code-text`
+- `--reader-inline-code-bg`
+- `--reader-inline-code-text`
 - `--reader-table-head`
 - `--reader-table-stripe`
 - `--reader-rule`
 - `--reader-quote-bg`
 - `--reader-quote-border`
 - `--reader-quote-text`
+- `--reader-task-done`
+- `--reader-mark-bg`
+- `--reader-mark-text`
+- `--reader-tag-bg`
+- `--reader-tag-text`
 - `--reader-shadow`
 
 Common Markdown tokens:

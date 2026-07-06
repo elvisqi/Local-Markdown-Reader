@@ -3,37 +3,21 @@
   "updatedAt": "2026-07-06T00:00:00.000Z",
   "themes": [
     {
-      "id": "classic-journal",
-      "name": "Classic Journal",
+      "id": "atom-one-reader",
+      "name": "Atom One Reader",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Traditional document rhythm with calm contrast for mixed notes.",
+      "description": "Atom One inspired dark theme for code-heavy Markdown notes.",
       "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/classic-journal.mdv-theme.json",
-      "sha256": "aa2a63d5c25a313a9c12f0f618f3050ef6f784b3320fcb4092ddaf8e861329c4",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/classic-journal.svg",
+      "colorScheme": "dark",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/atom-one-reader.mdv-theme.json",
+      "sha256": "3b9a3e92f850ece254ddc5e35395ceb0865186cdaac653062e4b8da971023dad",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/atom-one-reader.svg",
       "tags": [
-        "journal",
-        "classic",
-        "system"
-      ]
-    },
-    {
-      "id": "graphite-doc",
-      "name": "Graphite Doc",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Neutral grayscale for API notes, specs, and engineering documents.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "light",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/graphite-doc.mdv-theme.json",
-      "sha256": "b3cb8b0fc652c50de66d30c31f55a22f9ae9e7a75255a32352a1dfba3868ac0c",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/graphite-doc.svg",
-      "tags": [
-        "technical",
-        "neutral",
-        "light"
+        "obsidian-inspired",
+        "atom-one",
+        "dark",
+        "code"
       ]
     },
     {
@@ -42,10 +26,10 @@
       "version": "1.0.0",
       "author": "Local Markdown Reader",
       "description": "Neutral contrast for long technical documents.",
-      "minAppVersion": "2.3.0",
+      "minAppVersion": "2.3.1",
       "colorScheme": "light",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/ink-focus.mdv-theme.json",
-      "sha256": "18b1bd357e5f7f7834e065ffe6a9fa9b052c90a65d832b1f8ccb090ff38da413",
+      "sha256": "aad55d6c9bd7a6c0506488b58c3b159dd3f0b8da7d9f870bec2e239234d27850",
       "tags": [
         "technical",
         "light",
@@ -53,54 +37,39 @@
       ]
     },
     {
-      "id": "midnight-prose",
-      "name": "Midnight Prose",
+      "id": "its-readable",
+      "name": "ITS Readable",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Low-fatigue dark theme tuned for long-form reading.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "dark",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/midnight-prose.mdv-theme.json",
-      "sha256": "eb839d9ff34aeac11c413cc58773e04818c4b234df3268c524e399105cdcf7ab",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/midnight-prose.svg",
-      "tags": [
-        "dark",
-        "longform",
-        "low-fatigue"
-      ]
-    },
-    {
-      "id": "mint-brief",
-      "name": "Mint Brief",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Fresh light theme for summaries, meeting notes, and brief reports.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "light",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/mint-brief.mdv-theme.json",
-      "sha256": "3e06436180d5cc3433f94e61b0b1509f49488eda7d3a170b69604579a8536e86",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mint-brief.svg",
-      "tags": [
-        "brief",
-        "light",
-        "fresh"
-      ]
-    },
-    {
-      "id": "mono-grid",
-      "name": "Mono Grid",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "System-aware compact style for dense tables and code-heavy documents.",
+      "description": "Readable system theme for long reference documents and dense tables.",
       "minAppVersion": "2.3.1",
       "colorScheme": "system",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/mono-grid.mdv-theme.json",
-      "sha256": "603ce7740b87e381edf997cf21a52c09d99852e52e6d698b1ee8e059c185fa4d",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mono-grid.svg",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/its-readable.mdv-theme.json",
+      "sha256": "235bd1deb43856a65fecbf17ebf13475a2e9e829f01e03d0ff1977c8263859ea",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/its-readable.svg",
       "tags": [
-        "tables",
-        "code",
-        "system"
+        "obsidian-inspired",
+        "its",
+        "system",
+        "readable"
+      ]
+    },
+    {
+      "id": "minimal-focus",
+      "name": "Minimal Focus",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Minimal inspired neutral theme with very quiet chrome.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "system",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/minimal-focus.mdv-theme.json",
+      "sha256": "4c4f9deebac234ef0fe7bf3957b91f445140504768da01098777a578d51cc7f0",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/minimal-focus.svg",
+      "tags": [
+        "obsidian-inspired",
+        "minimal",
+        "system",
+        "neutral"
       ]
     },
     {
@@ -109,10 +78,10 @@
       "version": "1.0.0",
       "author": "Local Markdown Reader",
       "description": "Dark reading theme with restrained contrast.",
-      "minAppVersion": "2.3.0",
+      "minAppVersion": "2.3.1",
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/night-study.mdv-theme.json",
-      "sha256": "f304ed5f80fb753e534e413eab40c24e5739f053b2aa91c3515290e33c02e192",
+      "sha256": "9e129cbd76599821aacafdfcd54911de1090deb20c9dfc7ed2448529ec5260ca",
       "tags": [
         "dark",
         "longform",
@@ -120,54 +89,57 @@
       ]
     },
     {
-      "id": "oceanic-code",
-      "name": "Oceanic Code",
+      "id": "nord-notes",
+      "name": "Nord Notes",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Dark blue-green reading surface for technical notes and code blocks.",
+      "description": "Nord inspired cool dark theme for calm technical reading.",
       "minAppVersion": "2.3.1",
       "colorScheme": "dark",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/oceanic-code.mdv-theme.json",
-      "sha256": "8d1c5f8c4c0bae7d011497c4cf307421d911ac2857b18221dfc5bdf1ce879c13",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/oceanic-code.svg",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/nord-notes.mdv-theme.json",
+      "sha256": "8940c945d39a5e8c25a1449ead93714f5437d08726be2c9648b63475b4ff14e3",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/nord-notes.svg",
       "tags": [
+        "obsidian-inspired",
+        "nord",
         "dark",
-        "code",
-        "blue-green"
+        "cool"
       ]
     },
     {
-      "id": "paper-note",
-      "name": "Paper Note",
+      "id": "obsidianite-dark",
+      "name": "Obsidianite Dark",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Warm light paper style for essays, notes, and knowledge bases.",
+      "description": "Obsidianite inspired dark theme with crisp contrast and vivid links.",
       "minAppVersion": "2.3.1",
-      "colorScheme": "light",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/paper-note.mdv-theme.json",
-      "sha256": "f3f270002574da093dd44b8a78156d53474a8994dc60a56c2d43c02309db4307",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/paper-note.svg",
+      "colorScheme": "dark",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/obsidianite-dark.mdv-theme.json",
+      "sha256": "dd86368aa46c025964335777d071b6e3bda1e28bce8de77ad7bdcf1759cc943a",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/obsidianite-dark.svg",
       "tags": [
-        "notes",
-        "light",
-        "warm"
+        "obsidian-inspired",
+        "obsidianite",
+        "dark",
+        "contrast"
       ]
     },
     {
-      "id": "plum-note",
-      "name": "Plum Note",
+      "id": "pastel-puccin",
+      "name": "Pastel Puccin",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Restrained dark note theme with muted plum accents.",
+      "description": "AnuPpuccin inspired pastel dark theme with soft lavender accents.",
       "minAppVersion": "2.3.1",
       "colorScheme": "dark",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/plum-note.mdv-theme.json",
-      "sha256": "8a6a6ef293d14c4dceb250457cebe50c4eca748b40db858b2b8a5e5fc42b9e13",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/plum-note.svg",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/pastel-puccin.mdv-theme.json",
+      "sha256": "16f545e6030664a889b22b29c26f9f1b199855d406a583d2d5b8fe00905a48c9",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/pastel-puccin.svg",
       "tags": [
+        "obsidian-inspired",
+        "anup-puccin",
         "dark",
-        "notes",
-        "muted"
+        "pastel"
       ]
     },
     {
@@ -176,10 +148,10 @@
       "version": "1.0.0",
       "author": "Local Markdown Reader",
       "description": "Compact report style for tables and structured notes.",
-      "minAppVersion": "2.3.0",
+      "minAppVersion": "2.3.1",
       "colorScheme": "system",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/report-grid.mdv-theme.json",
-      "sha256": "b8b9fc14e1e924ccf3e277482d5e4f08faa6a0369390516cddb8419f37ff7c1b",
+      "sha256": "27e58c1c8381da0455c50e0246fad2ff6c7ec58c6cbc7a34cd476ecac9257816",
       "tags": [
         "tables",
         "compact",
@@ -187,37 +159,75 @@
       ]
     },
     {
-      "id": "solar-desk",
-      "name": "Solar Desk",
+      "id": "things-flow",
+      "name": "Things Flow",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Low-saturation daylight theme for focused daytime reading.",
+      "description": "Things inspired light theme for task lists and clean daily notes.",
       "minAppVersion": "2.3.1",
       "colorScheme": "light",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/solar-desk.mdv-theme.json",
-      "sha256": "0fe796a80aee3eb3f34f06f247397c145339945a5544b768e4da78a436d49601",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/solar-desk.svg",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/things-flow.mdv-theme.json",
+      "sha256": "4a76a0dea47949545db4a4b6d3e106cdb2400e3bd5ca75e48627c168db33a0ac",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/things-flow.svg",
       "tags": [
-        "daylight",
+        "obsidian-inspired",
+        "things",
         "light",
-        "low-saturation"
+        "tasks"
       ]
     },
     {
-      "id": "terminal-ink",
-      "name": "Terminal Ink",
+      "id": "topaz-blue",
+      "name": "Topaz Blue",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Dark terminal-inspired document theme with practical contrast.",
+      "description": "Blue Topaz inspired airy theme with saturated blue headings.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "light",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/topaz-blue.mdv-theme.json",
+      "sha256": "951987a32fded09d0190779daea349feb38dd1195212447f6862c85d03c49577",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/topaz-blue.svg",
+      "tags": [
+        "obsidian-inspired",
+        "blue-topaz",
+        "light",
+        "blue"
+      ]
+    },
+    {
+      "id": "typewriter-desk",
+      "name": "Typewriter Desk",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Typewriter inspired warm writing theme with serif document rhythm.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "light",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/typewriter-desk.mdv-theme.json",
+      "sha256": "dd6755bd121fa48743570e62bb85263d3753cccc75c130ef7114b64a39198765",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/typewriter-desk.svg",
+      "tags": [
+        "obsidian-inspired",
+        "typewriter",
+        "light",
+        "writing"
+      ]
+    },
+    {
+      "id": "wasp-highlight",
+      "name": "Wasp Highlight",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Wasp inspired high-energy dark theme with sharp amber accents.",
       "minAppVersion": "2.3.1",
       "colorScheme": "dark",
-      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/terminal-ink.mdv-theme.json",
-      "sha256": "197036e029c73cf64b19831d6e41ebde4d9e0ff4cb423b7f71f1225d8c214517",
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/terminal-ink.svg",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/wasp-highlight.mdv-theme.json",
+      "sha256": "5d891e12cd0de4030bd4bcf7194f44af23fdfebd5fd3d7354548fa0d593a23fb",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/wasp-highlight.svg",
       "tags": [
-        "terminal",
+        "obsidian-inspired",
+        "wasp",
         "dark",
-        "code"
+        "amber"
       ]
     }
   ]

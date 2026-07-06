@@ -16,13 +16,13 @@ Generated assets:
 
 Themes:
 
-- [Classic Journal](./classic-journal.svg)
-- [Graphite Doc](./graphite-doc.svg)
-- [Midnight Prose](./midnight-prose.svg)
-- [Mint Brief](./mint-brief.svg)
-- [Mono Grid](./mono-grid.svg)
-- [Oceanic Code](./oceanic-code.svg)
-- [Paper Note](./paper-note.svg)
-- [Plum Note](./plum-note.svg)
-- [Solar Desk](./solar-desk.svg)
-- [Terminal Ink](./terminal-ink.svg)
+- [Minimal Focus](./minimal-focus.svg)
+- [Things Flow](./things-flow.svg)
+- [Pastel Puccin](./pastel-puccin.svg)
+- [Topaz Blue](./topaz-blue.svg)
+- [Nord Notes](./nord-notes.svg)
+- [Atom One Reader](./atom-one-reader.svg)
+- [Obsidianite Dark](./obsidianite-dark.svg)
+- [Wasp Highlight](./wasp-highlight.svg)
+- [Typewriter Desk](./typewriter-desk.svg)
+- [ITS Readable](./its-readable.svg)

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img">
+
+    <g transform="translate(0 0)">
+      <rect width="1280" height="760" rx="32" fill="#f3f5f7"/>
+      <rect x="41.04" y="82.08" width="1197.92" height="652" rx="22" fill="#ffffff" stroke="#d7dee7" stroke-width="2"/>
+      <rect x="54" y="54" width="184" height="40" rx="20" fill="#27658f"/>
+      <text x="78" y="81" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">SYSTEM</text>
+      <text x="54" y="170" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="46" font-weight="750" fill="#15202b">ITS Readable</text>
+      <text x="54" y="212" font-family="Inter, Arial, sans-serif" font-size="23" fill="#657282">Readable system theme for long reference documents and dense tables.</text>
+      <line x1="54" y1="278" x2="1224.92" y2="278" stroke="#ccd6e0" stroke-width="2"/>
+      <text x="54" y="336" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="28" font-weight="700" fill="#15202b">Project Notes</text>
+      <text x="54" y="377" font-family="Inter, Arial, sans-serif" font-size="23" fill="#202832">Readable prose, tables, code, and callouts in one preview.</text>
+      <text x="54" y="417" font-family="Inter, Arial, sans-serif" font-size="23" fill="#27658f">https://local-markdown-reader/themes/its-readable</text>
+
+      <g transform="translate(54 456)">
+        <rect width="527.0848000000001" height="118" rx="18" fill="#f2f7f8" stroke="#d7dee7" stroke-width="1.6"/>
+        <rect width="8" height="118" rx="4" fill="#78a6b7"/>
+        <text x="28" y="43" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650" fill="#50606d">Callout</text>
+        <text x="28" y="78" font-family="Inter, Arial, sans-serif" font-size="18" fill="#50606d">Great for reviewing structured Markdown.</text>
+      </g>
+
+      <g transform="translate(652.96 456)">
+        <rect width="455.2096" height="118" rx="18" fill="#eef3f6" stroke="#d7dee7" stroke-width="1.6"/>
+        <text x="26" y="45" font-family="SFMono-Regular, Consolas, monospace" font-size="18" fill="#243342">const reader = "focused";</text>
+        <text x="26" y="80" font-family="SFMono-Regular, Consolas, monospace" font-size="18" fill="#243342">renderMarkdown(theme);</text>
+      </g>
+
+      <g transform="translate(54 584)">
+        <rect width="170" height="34" rx="8" fill="#eaf1f4"/>
+        <text x="18" y="23" font-family="SFMono-Regular, Consolas, monospace" font-size="18" fill="#204860">inline code</text>
+        <rect x="196" width="142" height="34" rx="8" fill="#fff2a8"/>
+        <text x="214" y="23" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#202832">highlight</text>
+        <rect x="366" width="154" height="34" rx="17" fill="#e4f0f4"/>
+        <text x="384" y="23" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#27658f">#theme</text>
+      </g>
+
+      <g transform="translate(54 638)">
+        <rect width="1054.1696000000002" height="106" rx="16" fill="#ffffff" stroke="#d7dee7" stroke-width="1.6"/>
+        <rect width="1054.1696000000002" height="38" rx="16" fill="#e9eef3"/>
+        <rect y="38" width="1054.1696000000002" height="34" fill="#f7f9fb"/>
+        <line x1="383.3344" y1="0" x2="383.3344" y2="106" stroke="#d7dee7" stroke-width="1.2"/>
+        <line x1="742.7104" y1="0" x2="742.7104" y2="106" stroke="#d7dee7" stroke-width="1.2"/>
+        <text x="24" y="26" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#202832">Metric</text>
+        <text x="407.3344" y="26" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#202832">Value</text>
+        <text x="766.7104" y="26" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#202832">State</text>
+        <text x="24" y="62" font-family="Inter, Arial, sans-serif" font-size="18" fill="#202832">Tables</text>
+        <text x="407.3344" y="62" font-family="Inter, Arial, sans-serif" font-size="18" fill="#202832">Dense</text>
+        <text x="766.7104" y="62" font-family="Inter, Arial, sans-serif" font-size="18" fill="#27658f">Clear</text>
+        <text x="24" y="96" font-family="Inter, Arial, sans-serif" font-size="18" fill="#202832">Code</text>
+        <text x="407.3344" y="96" font-family="Inter, Arial, sans-serif" font-size="18" fill="#202832">Readable</text>
+        <text x="766.7104" y="96" font-family="Inter, Arial, sans-serif" font-size="18" fill="#27658f">Ready</text>
+      </g>
+
+      <g transform="translate(1026 668) scale(1)">
+        <circle cx="0" cy="0" r="22" fill="#202832" fill-opacity="0.18"/>
+        <circle cx="54" cy="0" r="22" fill="#27658f"/>
+        <circle cx="108" cy="0" r="22" fill="#78a6b7"/>
+      </g>
+    </g>
+  
+</svg>

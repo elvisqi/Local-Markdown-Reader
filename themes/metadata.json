@@ -3,54 +3,54 @@
   "updatedAt": "2026-07-06T00:00:00.000Z",
   "packageBaseUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/",
   "themes": {
-    "classic-journal": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/classic-journal.svg",
-      "tags": ["journal", "classic", "system"]
-    },
-    "graphite-doc": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/graphite-doc.svg",
-      "tags": ["technical", "neutral", "light"]
+    "atom-one-reader": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/atom-one-reader.svg",
+      "tags": ["obsidian-inspired", "atom-one", "dark", "code"]
     },
     "ink-focus": {
       "tags": ["technical", "light", "neutral"]
     },
-    "midnight-prose": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/midnight-prose.svg",
-      "tags": ["dark", "longform", "low-fatigue"]
+    "its-readable": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/its-readable.svg",
+      "tags": ["obsidian-inspired", "its", "system", "readable"]
     },
-    "mint-brief": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mint-brief.svg",
-      "tags": ["brief", "light", "fresh"]
+    "minimal-focus": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/minimal-focus.svg",
+      "tags": ["obsidian-inspired", "minimal", "system", "neutral"]
     },
-    "mono-grid": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mono-grid.svg",
-      "tags": ["tables", "code", "system"]
+    "nord-notes": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/nord-notes.svg",
+      "tags": ["obsidian-inspired", "nord", "dark", "cool"]
     },
     "night-study": {
       "tags": ["dark", "longform", "low-contrast"]
     },
-    "oceanic-code": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/oceanic-code.svg",
-      "tags": ["dark", "code", "blue-green"]
+    "obsidianite-dark": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/obsidianite-dark.svg",
+      "tags": ["obsidian-inspired", "obsidianite", "dark", "contrast"]
     },
-    "paper-note": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/paper-note.svg",
-      "tags": ["notes", "light", "warm"]
+    "pastel-puccin": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/pastel-puccin.svg",
+      "tags": ["obsidian-inspired", "anup-puccin", "dark", "pastel"]
     },
-    "plum-note": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/plum-note.svg",
-      "tags": ["dark", "notes", "muted"]
+    "things-flow": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/things-flow.svg",
+      "tags": ["obsidian-inspired", "things", "light", "tasks"]
     },
     "report-grid": {
       "tags": ["tables", "compact", "report"]
     },
-    "solar-desk": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/solar-desk.svg",
-      "tags": ["daylight", "light", "low-saturation"]
+    "topaz-blue": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/topaz-blue.svg",
+      "tags": ["obsidian-inspired", "blue-topaz", "light", "blue"]
     },
-    "terminal-ink": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/terminal-ink.svg",
-      "tags": ["terminal", "dark", "code"]
+    "typewriter-desk": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/typewriter-desk.svg",
+      "tags": ["obsidian-inspired", "typewriter", "light", "writing"]
+    },
+    "wasp-highlight": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/wasp-highlight.svg",
+      "tags": ["obsidian-inspired", "wasp", "dark", "amber"]
     }
   }
 }
