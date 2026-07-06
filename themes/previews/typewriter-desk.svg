@@ -4,58 +4,81 @@
       <rect width="1280" height="760" rx="29" fill="#f3efe6"/>
       <rect x="41.04" y="82.08" width="1197.92" height="652" rx="19" fill="#fffdf7" stroke="#d8d0c3" stroke-width="2"/>
       <rect x="54" y="54" width="184" height="40" rx="20" fill="#6a624f"/>
-      <text x="78" y="81" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">LIGHT</text>
-      <text x="54" y="170" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="46" font-weight="750" fill="#24221e">Typewriter Desk</text>
-      <text x="54" y="212" font-family="Inter, Arial, sans-serif" font-size="23" fill="#756d61">Typewriter inspired warm writing theme with serif document rhythm.</text>
-      <line x1="54" y1="278" x2="1224.92" y2="278" stroke="#d8d0c3" stroke-width="2"/>
-      <text x="54" y="336" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="28" font-weight="700" fill="#24221e">Project Notes</text>
-      <text x="54" y="377" font-family="Inter, Arial, sans-serif" font-size="23" fill="#2b2925">Readable prose, tables, code, and callouts in one preview.</text>
-      <text x="54" y="417" font-family="Inter, Arial, sans-serif" font-size="23" fill="#6a624f">https://local-markdown-reader/themes/typewriter-desk</text>
+      <text x="78" y="81" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">LIGHT</text>
+      <text x="54" y="152" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="40" font-weight="750" fill="#24221e">Typewriter Desk</text>
 
-      <g transform="translate(54 456)">
-        <rect width="527.0848000000001" height="118" rx="18" fill="#f8f1e5" stroke="#d8d0c3" stroke-width="1.6"/>
-        <rect width="8" height="118" rx="4" fill="#aa9b7f"/>
-        <text x="28" y="43" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650" fill="#665d51">Callout</text>
-        <text x="28" y="78" font-family="Inter, Arial, sans-serif" font-size="18" fill="#665d51">Great for reviewing structured Markdown.</text>
+      <line x1="54" y1="178" x2="1224.92" y2="178" stroke="#d8d0c3" stroke-width="2"/>
+
+      <text x="54" y="206" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="34" font-weight="700" fill="#24221e">Heading System</text>
+      <text x="54" y="254" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="24" font-weight="680" fill="#3d382f">Planning Notes</text>
+      <text x="54" y="294" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="20" fill="#2b2925">Readable prose with linked references, inline code,</text>
+      <text x="54" y="322" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="20" fill="#2b2925">and highlighted terms in the same document.</text>
+
+      <g transform="translate(54 358)">
+        <text x="0" y="0" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="19" font-weight="650" fill="#4f4638">Task List</text>
+        <rect x="0" y="26" width="20" height="20" rx="6.3" fill="#6a624f" stroke="#6a624f" stroke-width="2"/>
+        <path d="M4 36 L9 42 L17 30" fill="none" stroke="#fffdf7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="34" y="43" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="20" fill="#8f877b" text-decoration="line-through">Map heading levels</text>
+        <rect x="0" y="62" width="20" height="20" rx="6.3" fill="#fffdf7" stroke="#aa9b7f" stroke-width="2"/>
+        <text x="34" y="79" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="20" fill="#2b2925">Review callouts and tables</text>
       </g>
 
-      <g transform="translate(652.96 456)">
-        <rect width="455.2096" height="118" rx="18" fill="#efe9dc" stroke="#d8d0c3" stroke-width="1.6"/>
-        <text x="26" y="45" font-family="SFMono-Regular, Consolas, monospace" font-size="18" fill="#2f2d28">const reader = "focused";</text>
-        <text x="26" y="80" font-family="SFMono-Regular, Consolas, monospace" font-size="18" fill="#2f2d28">renderMarkdown(theme);</text>
+      <g transform="translate(54 460)">
+        <rect width="126" height="30" rx="14" fill="#efe9dc"/>
+        <text x="13" y="21" font-family="&quot;SFMono-Regular&quot;, Consolas, &quot;Liberation Mono&quot;, Menlo, monospace" font-size="16" fill="#2f2d28">inline code</text>
+        <rect x="146" width="96" height="30" rx="14" fill="#fff0a3"/>
+        <text x="160" y="21" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" font-weight="700" fill="#2b2925">highlight</text>
+        <rect x="262" width="92" height="30" rx="14" fill="#eee8dc"/>
+        <text x="278" y="21" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" font-weight="700" fill="#6a624f">#theme</text>
+        <rect x="370" width="92" height="30" rx="14" fill="#eee8dc"/>
+        <text x="386" y="21" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" font-weight="700" fill="#6a624f">#reader</text>
       </g>
 
-      <g transform="translate(54 584)">
-        <rect width="170" height="34" rx="8" fill="#efe9dc"/>
-        <text x="18" y="23" font-family="SFMono-Regular, Consolas, monospace" font-size="18" fill="#2f2d28">inline code</text>
-        <rect x="196" width="142" height="34" rx="8" fill="#fff0a3"/>
-        <text x="214" y="23" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#2b2925">highlight</text>
-        <rect x="366" width="154" height="34" rx="17" fill="#eee8dc"/>
-        <text x="384" y="23" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#6a624f">#theme</text>
+      <g transform="translate(54 494)">
+        <rect width="667.4244" height="74" rx="13" fill="#f8f1e5" stroke="#d8d0c3" stroke-width="1.6"/>
+        <rect width="8" height="74" rx="4" fill="#aa9b7f"/>
+        <text x="26" y="29" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="20" font-weight="700" fill="#3d382f">Callout</text>
+        <text x="26" y="55" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#665d51">Tokens shape notes, warnings, and references.</text>
       </g>
 
-      <g transform="translate(54 638)">
-        <rect width="1054.1696000000002" height="106" rx="16" fill="#fffdf7" stroke="#d8d0c3" stroke-width="1.6"/>
-        <rect width="1054.1696000000002" height="38" rx="16" fill="#f2ecdf"/>
-        <rect y="38" width="1054.1696000000002" height="34" fill="#fbf7ef"/>
-        <line x1="383.3344" y1="0" x2="383.3344" y2="106" stroke="#d8d0c3" stroke-width="1.2"/>
-        <line x1="742.7104" y1="0" x2="742.7104" y2="106" stroke="#d8d0c3" stroke-width="1.2"/>
-        <text x="24" y="26" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#2b2925">Metric</text>
-        <text x="407.3344" y="26" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#2b2925">Value</text>
-        <text x="766.7104" y="26" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#2b2925">State</text>
-        <text x="24" y="62" font-family="Inter, Arial, sans-serif" font-size="18" fill="#2b2925">Tables</text>
-        <text x="407.3344" y="62" font-family="Inter, Arial, sans-serif" font-size="18" fill="#2b2925">Dense</text>
-        <text x="766.7104" y="62" font-family="Inter, Arial, sans-serif" font-size="18" fill="#6a624f">Clear</text>
-        <text x="24" y="96" font-family="Inter, Arial, sans-serif" font-size="18" fill="#2b2925">Code</text>
-        <text x="407.3344" y="96" font-family="Inter, Arial, sans-serif" font-size="18" fill="#2b2925">Readable</text>
-        <text x="766.7104" y="96" font-family="Inter, Arial, sans-serif" font-size="18" fill="#6a624f">Ready</text>
+      <g transform="translate(755.4244 206)">
+        <text x="0" y="0" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="19" font-weight="650" fill="#4f4638">Code Block</text>
+        <rect x="0" y="24" width="469.4956000000001" height="114" rx="13" fill="#efe9dc" stroke="#d8d0c3" stroke-width="1.5"/>
+        <text x="22" y="70" font-family="&quot;SFMono-Regular&quot;, Consolas, &quot;Liberation Mono&quot;, Menlo, monospace" font-size="16" fill="#7c6f95">const reader = &quot;focused&quot;;</text>
+        <text x="22" y="100" font-family="&quot;SFMono-Regular&quot;, Consolas, &quot;Liberation Mono&quot;, Menlo, monospace" font-size="16" fill="#2f2d28">renderMarkdown(theme);</text>
+        <text x="0" y="174" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="19" font-weight="650" fill="#4f4638">Quote</text>
+        <rect x="0" y="196" width="469.4956000000001" height="74" rx="13" fill="#f8f1e5" stroke="#d8d0c3" stroke-width="1.4"/>
+        <rect x="0" y="196" width="8" height="74" rx="4" fill="#aa9b7f"/>
+        <text x="24" y="226" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="20" fill="#665d51">Preview the real document rhythm.</text>
+        <text x="24" y="254" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#665d51">Spacing, borders, and contrast matter.</text>
       </g>
 
-      <g transform="translate(1026 668) scale(1)">
-        <circle cx="0" cy="0" r="22" fill="#2b2925" fill-opacity="0.18"/>
-        <circle cx="54" cy="0" r="22" fill="#6a624f"/>
-        <circle cx="108" cy="0" r="22" fill="#aa9b7f"/>
+      <g transform="translate(54 596)">
+        <text x="0" y="0" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="19" font-weight="650" fill="#4f4638">Status Table</text>
+        <rect x="0" y="22" width="1170.92" height="138" rx="13" fill="#fffdf7" stroke="#d8d0c3" stroke-width="1.5"/>
+        <rect x="0" y="22" width="1170.92" height="36" rx="13" fill="#f2ecdf"/>
+        <rect x="0" y="92" width="1170.92" height="34" fill="#fbf7ef"/>
+        <line x1="398.11280000000005" y1="22" x2="398.11280000000005" y2="160" stroke="#d8d0c3" stroke-width="1.2"/>
+        <line x1="749.3888000000001" y1="22" x2="749.3888000000001" y2="160" stroke="#d8d0c3" stroke-width="1.2"/>
+        <text x="20" y="46" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" font-weight="700" fill="#2b2925">Block</text>
+        <text x="418.11280000000005" y="46" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" font-weight="700" fill="#2b2925">Signal</text>
+        <text x="769.3888000000001" y="46" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" font-weight="700" fill="#2b2925">State</text>
+        <text x="20" y="80" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#2b2925">Headings</text>
+        <text x="418.11280000000005" y="80" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#2b2925">H1/H2/H3</text>
+        <text x="769.3888000000001" y="80" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#6a624f">Visible</text>
+        <text x="20" y="114" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#2b2925">Tasks</text>
+        <text x="418.11280000000005" y="114" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#2b2925">Checked rows</text>
+        <text x="769.3888000000001" y="114" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#6a624f">Styled</text>
+        <text x="20" y="148" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#2b2925">Code</text>
+        <text x="418.11280000000005" y="148" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#2b2925">Syntax colors</text>
+        <text x="769.3888000000001" y="148" font-family="ui-serif, Georgia, &quot;Times New Roman&quot;, serif" font-size="16" fill="#6a624f">Ready</text>
+      </g>
+
+      <g transform="translate(1056 98)">
+        <circle cx="0" cy="0" r="18" fill="#2b2925" fill-opacity="0.18"/>
+        <circle cx="46" cy="0" r="18" fill="#6a624f"/>
+        <circle cx="92" cy="0" r="18" fill="#aa9b7f"/>
       </g>
     </g>
-  
+
 </svg>

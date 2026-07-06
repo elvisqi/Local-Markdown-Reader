@@ -4,58 +4,81 @@
       <rect width="1280" height="760" rx="35" fill="#151922"/>
       <rect x="41.04" y="82.08" width="1197.92" height="652" rx="25" fill="#1e2430" stroke="#303847" stroke-width="2"/>
       <rect x="54" y="54" width="184" height="40" rx="20" fill="#74adea"/>
-      <text x="78" y="81" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">DARK</text>
-      <text x="54" y="170" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="46" font-weight="750" fill="#f0f3f8">Atom One Reader</text>
-      <text x="54" y="212" font-family="Inter, Arial, sans-serif" font-size="23" fill="#9ba6b6">Atom One inspired dark theme for code-heavy Markdown notes.</text>
-      <line x1="54" y1="278" x2="1224.92" y2="278" stroke="#363f50" stroke-width="2"/>
-      <text x="54" y="336" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="28" font-weight="700" fill="#f0f3f8">Project Notes</text>
-      <text x="54" y="377" font-family="Inter, Arial, sans-serif" font-size="23" fill="#d9dee8">Readable prose, tables, code, and callouts in one preview.</text>
-      <text x="54" y="417" font-family="Inter, Arial, sans-serif" font-size="23" fill="#74adea">https://local-markdown-reader/themes/atom-one-reader</text>
+      <text x="78" y="81" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">DARK</text>
+      <text x="54" y="152" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="40" font-weight="750" fill="#f0f3f8">Atom One Reader</text>
 
-      <g transform="translate(54 456)">
-        <rect width="527.0848000000001" height="118" rx="18" fill="#1d2633" stroke="#303847" stroke-width="1.6"/>
-        <rect width="8" height="118" rx="4" fill="#74adea"/>
-        <text x="28" y="43" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650" fill="#c3cdda">Callout</text>
-        <text x="28" y="78" font-family="Inter, Arial, sans-serif" font-size="18" fill="#c3cdda">Great for reviewing structured Markdown.</text>
+      <line x1="54" y1="178" x2="1224.92" y2="178" stroke="#363f50" stroke-width="2"/>
+
+      <text x="54" y="206" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="32" font-weight="720" fill="#f0f3f8">Heading System</text>
+      <text x="54" y="254" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="700" fill="#dfe6f3">Planning Notes</text>
+      <text x="54" y="294" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="20" fill="#d9dee8">Readable prose with linked references, inline code,</text>
+      <text x="54" y="322" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="20" fill="#d9dee8">and highlighted terms in the same document.</text>
+
+      <g transform="translate(54 358)">
+        <text x="0" y="0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="19" font-weight="680" fill="#74adea">Task List</text>
+        <rect x="0" y="26" width="20" height="20" rx="8.55" fill="#74adea" stroke="#74adea" stroke-width="2"/>
+        <path d="M4 36 L9 42 L17 30" fill="none" stroke="#151922" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="34" y="43" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="20" fill="#7f8a99" text-decoration="line-through">Map heading levels</text>
+        <rect x="0" y="62" width="20" height="20" rx="8.55" fill="#1e2430" stroke="#4d5970" stroke-width="2"/>
+        <text x="34" y="79" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="20" fill="#d9dee8">Review callouts and tables</text>
       </g>
 
-      <g transform="translate(652.96 456)">
-        <rect width="455.2096" height="118" rx="18" fill="#252b37" stroke="#303847" stroke-width="1.6"/>
-        <text x="26" y="45" font-family="SFMono-Regular, Consolas, monospace" font-size="18" fill="#dfe6f3">const reader = "focused";</text>
-        <text x="26" y="80" font-family="SFMono-Regular, Consolas, monospace" font-size="18" fill="#dfe6f3">renderMarkdown(theme);</text>
+      <g transform="translate(54 460)">
+        <rect width="126" height="30" rx="19" fill="#262d3a"/>
+        <text x="13" y="21" font-family="&quot;SFMono-Regular&quot;, Consolas, &quot;Liberation Mono&quot;, Menlo, monospace" font-size="16" fill="#d6e7ff">inline code</text>
+        <rect x="146" width="96" height="30" rx="19" fill="#51451f"/>
+        <text x="160" y="21" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" font-weight="700" fill="#ffe9a8">highlight</text>
+        <rect x="262" width="92" height="30" rx="19" fill="#1d344e"/>
+        <text x="278" y="21" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" font-weight="700" fill="#a9d4ff">#theme</text>
+        <rect x="370" width="92" height="30" rx="19" fill="#1d344e"/>
+        <text x="386" y="21" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" font-weight="700" fill="#74adea">#reader</text>
       </g>
 
-      <g transform="translate(54 584)">
-        <rect width="170" height="34" rx="8" fill="#262d3a"/>
-        <text x="18" y="23" font-family="SFMono-Regular, Consolas, monospace" font-size="18" fill="#d6e7ff">inline code</text>
-        <rect x="196" width="142" height="34" rx="8" fill="#51451f"/>
-        <text x="214" y="23" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffe9a8">highlight</text>
-        <rect x="366" width="154" height="34" rx="17" fill="#1d344e"/>
-        <text x="384" y="23" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#74adea">#theme</text>
+      <g transform="translate(54 494)">
+        <rect width="667.4244" height="74" rx="17" fill="#1d2633" stroke="#303847" stroke-width="1.6"/>
+        <rect width="8" height="74" rx="4" fill="#74adea"/>
+        <text x="26" y="29" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="20" font-weight="700" fill="#74adea">Callout</text>
+        <text x="26" y="55" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#c3cdda">Tokens shape notes, warnings, and references.</text>
       </g>
 
-      <g transform="translate(54 638)">
-        <rect width="1054.1696000000002" height="106" rx="16" fill="#1e2430" stroke="#303847" stroke-width="1.6"/>
-        <rect width="1054.1696000000002" height="38" rx="16" fill="#252d3b"/>
-        <rect y="38" width="1054.1696000000002" height="34" fill="#202734"/>
-        <line x1="383.3344" y1="0" x2="383.3344" y2="106" stroke="#303847" stroke-width="1.2"/>
-        <line x1="742.7104" y1="0" x2="742.7104" y2="106" stroke="#303847" stroke-width="1.2"/>
-        <text x="24" y="26" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#d9dee8">Metric</text>
-        <text x="407.3344" y="26" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#d9dee8">Value</text>
-        <text x="766.7104" y="26" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#d9dee8">State</text>
-        <text x="24" y="62" font-family="Inter, Arial, sans-serif" font-size="18" fill="#d9dee8">Tables</text>
-        <text x="407.3344" y="62" font-family="Inter, Arial, sans-serif" font-size="18" fill="#d9dee8">Dense</text>
-        <text x="766.7104" y="62" font-family="Inter, Arial, sans-serif" font-size="18" fill="#74adea">Clear</text>
-        <text x="24" y="96" font-family="Inter, Arial, sans-serif" font-size="18" fill="#d9dee8">Code</text>
-        <text x="407.3344" y="96" font-family="Inter, Arial, sans-serif" font-size="18" fill="#d9dee8">Readable</text>
-        <text x="766.7104" y="96" font-family="Inter, Arial, sans-serif" font-size="18" fill="#74adea">Ready</text>
+      <g transform="translate(755.4244 206)">
+        <text x="0" y="0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="19" font-weight="680" fill="#74adea">Code Block</text>
+        <rect x="0" y="24" width="469.4956000000001" height="114" rx="18" fill="#252b37" stroke="#303847" stroke-width="1.5"/>
+        <text x="22" y="70" font-family="&quot;SFMono-Regular&quot;, Consolas, &quot;Liberation Mono&quot;, Menlo, monospace" font-size="16" fill="#c678dd">const reader = &quot;focused&quot;;</text>
+        <text x="22" y="100" font-family="&quot;SFMono-Regular&quot;, Consolas, &quot;Liberation Mono&quot;, Menlo, monospace" font-size="16" fill="#dfe6f3">renderMarkdown(theme);</text>
+        <text x="0" y="174" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="19" font-weight="680" fill="#74adea">Quote</text>
+        <rect x="0" y="196" width="469.4956000000001" height="74" rx="17" fill="#1d2633" stroke="#303847" stroke-width="1.4"/>
+        <rect x="0" y="196" width="8" height="74" rx="4" fill="#74adea"/>
+        <text x="24" y="226" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="20" fill="#c3cdda">Preview the real document rhythm.</text>
+        <text x="24" y="254" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#c3cdda">Spacing, borders, and contrast matter.</text>
       </g>
 
-      <g transform="translate(1026 668) scale(1)">
-        <circle cx="0" cy="0" r="22" fill="#d9dee8" fill-opacity="0.18"/>
-        <circle cx="54" cy="0" r="22" fill="#74adea"/>
-        <circle cx="108" cy="0" r="22" fill="#74adea"/>
+      <g transform="translate(54 596)">
+        <text x="0" y="0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="19" font-weight="680" fill="#74adea">Status Table</text>
+        <rect x="0" y="22" width="1170.92" height="138" rx="17" fill="#1e2430" stroke="#303847" stroke-width="1.5"/>
+        <rect x="0" y="22" width="1170.92" height="36" rx="17" fill="#252d3b"/>
+        <rect x="0" y="92" width="1170.92" height="34" fill="#202734"/>
+        <line x1="398.11280000000005" y1="22" x2="398.11280000000005" y2="160" stroke="#303847" stroke-width="1.2"/>
+        <line x1="749.3888000000001" y1="22" x2="749.3888000000001" y2="160" stroke="#303847" stroke-width="1.2"/>
+        <text x="20" y="46" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" font-weight="700" fill="#d9dee8">Block</text>
+        <text x="418.11280000000005" y="46" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" font-weight="700" fill="#d9dee8">Signal</text>
+        <text x="769.3888000000001" y="46" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" font-weight="700" fill="#d9dee8">State</text>
+        <text x="20" y="80" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#d9dee8">Headings</text>
+        <text x="418.11280000000005" y="80" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#d9dee8">H1/H2/H3</text>
+        <text x="769.3888000000001" y="80" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#74adea">Visible</text>
+        <text x="20" y="114" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#d9dee8">Tasks</text>
+        <text x="418.11280000000005" y="114" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#d9dee8">Checked rows</text>
+        <text x="769.3888000000001" y="114" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#74adea">Styled</text>
+        <text x="20" y="148" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#d9dee8">Code</text>
+        <text x="418.11280000000005" y="148" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#d9dee8">Syntax colors</text>
+        <text x="769.3888000000001" y="148" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="16" fill="#74adea">Ready</text>
+      </g>
+
+      <g transform="translate(1056 98)">
+        <circle cx="0" cy="0" r="18" fill="#d9dee8" fill-opacity="0.18"/>
+        <circle cx="46" cy="0" r="18" fill="#74adea"/>
+        <circle cx="92" cy="0" r="18" fill="#74adea"/>
       </g>
     </g>
-  
+
 </svg>
