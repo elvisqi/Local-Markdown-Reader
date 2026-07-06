@@ -34,7 +34,7 @@ const manifest: ManifestV3Export = {
     pages: ['html-preview-sandbox.html'],
   },
   permissions: ['storage', 'scripting'],
-  host_permissions: ['file:///*', 'https://raw.githubusercontent.com/*'],
+  host_permissions: ['file:///*', 'https://cdn.jsdelivr.net/*', 'https://raw.githubusercontent.com/*'],
   web_accessible_resources: [
     {
       resources: ['reader.html', 'html-preview-sandbox.html'],
