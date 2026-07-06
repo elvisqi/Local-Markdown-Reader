@@ -4,42 +4,52 @@
   "packageBaseUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/",
   "themes": {
     "classic-journal": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/classic-journal.svg",
       "tags": ["journal", "classic", "system"]
     },
     "graphite-doc": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/graphite-doc.svg",
       "tags": ["technical", "neutral", "light"]
     },
     "ink-focus": {
       "tags": ["technical", "light", "neutral"]
     },
     "midnight-prose": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/midnight-prose.svg",
       "tags": ["dark", "longform", "low-fatigue"]
     },
     "mint-brief": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mint-brief.svg",
       "tags": ["brief", "light", "fresh"]
     },
     "mono-grid": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mono-grid.svg",
       "tags": ["tables", "code", "system"]
     },
     "night-study": {
       "tags": ["dark", "longform", "low-contrast"]
     },
     "oceanic-code": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/oceanic-code.svg",
       "tags": ["dark", "code", "blue-green"]
     },
     "paper-note": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/paper-note.svg",
       "tags": ["notes", "light", "warm"]
     },
     "plum-note": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/plum-note.svg",
       "tags": ["dark", "notes", "muted"]
     },
     "report-grid": {
       "tags": ["tables", "compact", "report"]
     },
     "solar-desk": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/solar-desk.svg",
       "tags": ["daylight", "light", "low-saturation"]
     },
     "terminal-ink": {
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/terminal-ink.svg",
       "tags": ["terminal", "dark", "code"]
     }
   }

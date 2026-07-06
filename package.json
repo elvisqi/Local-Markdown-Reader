@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "themes:previews": "node scripts/build-theme-previews.mjs",
     "themes:index": "node scripts/build-theme-index.mjs",
     "themes:verify": "node scripts/build-theme-index.mjs --check",
     "themes:references:verify": "node scripts/verify-theme-references.mjs",

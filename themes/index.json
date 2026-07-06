@@ -12,6 +12,7 @@
       "colorScheme": "system",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/classic-journal.mdv-theme.json",
       "sha256": "aa2a63d5c25a313a9c12f0f618f3050ef6f784b3320fcb4092ddaf8e861329c4",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/classic-journal.svg",
       "tags": [
         "journal",
         "classic",
@@ -28,6 +29,7 @@
       "colorScheme": "light",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/graphite-doc.mdv-theme.json",
       "sha256": "b3cb8b0fc652c50de66d30c31f55a22f9ae9e7a75255a32352a1dfba3868ac0c",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/graphite-doc.svg",
       "tags": [
         "technical",
         "neutral",
@@ -60,6 +62,7 @@
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/midnight-prose.mdv-theme.json",
       "sha256": "eb839d9ff34aeac11c413cc58773e04818c4b234df3268c524e399105cdcf7ab",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/midnight-prose.svg",
       "tags": [
         "dark",
         "longform",
@@ -76,6 +79,7 @@
       "colorScheme": "light",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/mint-brief.mdv-theme.json",
       "sha256": "3e06436180d5cc3433f94e61b0b1509f49488eda7d3a170b69604579a8536e86",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mint-brief.svg",
       "tags": [
         "brief",
         "light",
@@ -92,6 +96,7 @@
       "colorScheme": "system",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/mono-grid.mdv-theme.json",
       "sha256": "603ce7740b87e381edf997cf21a52c09d99852e52e6d698b1ee8e059c185fa4d",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/mono-grid.svg",
       "tags": [
         "tables",
         "code",
@@ -124,6 +129,7 @@
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/oceanic-code.mdv-theme.json",
       "sha256": "8d1c5f8c4c0bae7d011497c4cf307421d911ac2857b18221dfc5bdf1ce879c13",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/oceanic-code.svg",
       "tags": [
         "dark",
         "code",
@@ -140,6 +146,7 @@
       "colorScheme": "light",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/paper-note.mdv-theme.json",
       "sha256": "f3f270002574da093dd44b8a78156d53474a8994dc60a56c2d43c02309db4307",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/paper-note.svg",
       "tags": [
         "notes",
         "light",
@@ -156,6 +163,7 @@
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/plum-note.mdv-theme.json",
       "sha256": "8a6a6ef293d14c4dceb250457cebe50c4eca748b40db858b2b8a5e5fc42b9e13",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/plum-note.svg",
       "tags": [
         "dark",
         "notes",
@@ -188,6 +196,7 @@
       "colorScheme": "light",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/solar-desk.mdv-theme.json",
       "sha256": "0fe796a80aee3eb3f34f06f247397c145339945a5544b768e4da78a436d49601",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/solar-desk.svg",
       "tags": [
         "daylight",
         "light",
@@ -204,6 +213,7 @@
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/terminal-ink.mdv-theme.json",
       "sha256": "197036e029c73cf64b19831d6e41ebde4d9e0ff4cb423b7f71f1225d8c214517",
+      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/terminal-ink.svg",
       "tags": [
         "terminal",
         "dark",
