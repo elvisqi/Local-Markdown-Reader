@@ -1,4 +1,5 @@
 import type { ReaderThemePackage } from './types';
+import { DEFAULT_READER_THEME_TOKENS } from './themes';
 import { APP_VERSION } from './version';
 
 export const RECOMMENDED_THEME_PACKAGES: ReaderThemePackage[] = [
@@ -11,6 +12,7 @@ export const RECOMMENDED_THEME_PACKAGES: ReaderThemePackage[] = [
     minAppVersion: APP_VERSION,
     colorScheme: 'light',
     tokens: {
+      ...DEFAULT_READER_THEME_TOKENS,
       '--markdown-font-size': '16px',
       '--markdown-line-height': '1.72',
       '--reader-page-bg': '#f4f6f8',
@@ -57,6 +59,7 @@ export const RECOMMENDED_THEME_PACKAGES: ReaderThemePackage[] = [
     minAppVersion: APP_VERSION,
     colorScheme: 'dark',
     tokens: {
+      ...DEFAULT_READER_THEME_TOKENS,
       '--markdown-font-size': '16px',
       '--markdown-line-height': '1.75',
       '--reader-page-bg': '#0f141b',
@@ -103,6 +106,7 @@ export const RECOMMENDED_THEME_PACKAGES: ReaderThemePackage[] = [
     minAppVersion: APP_VERSION,
     colorScheme: 'system',
     tokens: {
+      ...DEFAULT_READER_THEME_TOKENS,
       '--markdown-font-size': '15px',
       '--markdown-line-height': '1.62',
       '--reader-page-bg': '#f6f7f9',

@@ -11,7 +11,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/atom-one-reader.mdv-theme.json",
-      "sha256": "3b9a3e92f850ece254ddc5e35395ceb0865186cdaac653062e4b8da971023dad",
+      "sha256": "0751ab4e34f09e4f06b8b7473d8a67881b826efc7d190fc9d697cdf653a45222",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/atom-one-reader.svg",
       "tags": [
         "obsidian-inspired",
@@ -45,7 +45,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "system",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/its-readable.mdv-theme.json",
-      "sha256": "235bd1deb43856a65fecbf17ebf13475a2e9e829f01e03d0ff1977c8263859ea",
+      "sha256": "5c7685f7f03030066cb24b9f134df61b2ed47d230b786d07d64fedcf41493bf0",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/its-readable.svg",
       "tags": [
         "obsidian-inspired",
@@ -63,7 +63,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "system",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/minimal-focus.mdv-theme.json",
-      "sha256": "4c4f9deebac234ef0fe7bf3957b91f445140504768da01098777a578d51cc7f0",
+      "sha256": "56ee52d9854bd841a28c0f04348282abad6cb62a96e21dc724135d9def4f3461",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/minimal-focus.svg",
       "tags": [
         "obsidian-inspired",
@@ -97,7 +97,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/nord-notes.mdv-theme.json",
-      "sha256": "8940c945d39a5e8c25a1449ead93714f5437d08726be2c9648b63475b4ff14e3",
+      "sha256": "f950c4b4f005f9c18b9ece3861b4b74b809b28856e2ec3d5207eeb3747f1233d",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/nord-notes.svg",
       "tags": [
         "obsidian-inspired",
@@ -115,7 +115,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/obsidianite-dark.mdv-theme.json",
-      "sha256": "dd86368aa46c025964335777d071b6e3bda1e28bce8de77ad7bdcf1759cc943a",
+      "sha256": "6ee4b067601b5e1f96b2bd12b95856749d91cb3c7d2dc2d598a538092743c085",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/obsidianite-dark.svg",
       "tags": [
         "obsidian-inspired",
@@ -133,7 +133,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/pastel-puccin.mdv-theme.json",
-      "sha256": "16f545e6030664a889b22b29c26f9f1b199855d406a583d2d5b8fe00905a48c9",
+      "sha256": "f60ecdeddf08f674a48d888a69a2db93fe460cf4a8db036fb088ae0533e0243a",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/pastel-puccin.svg",
       "tags": [
         "obsidian-inspired",
@@ -167,7 +167,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "light",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/things-flow.mdv-theme.json",
-      "sha256": "4a76a0dea47949545db4a4b6d3e106cdb2400e3bd5ca75e48627c168db33a0ac",
+      "sha256": "5e8053bf2c543d15589dd1b05d0f65ecc1ec680ae164b66d17e59d21603bf7b4",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/things-flow.svg",
       "tags": [
         "obsidian-inspired",
@@ -185,7 +185,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "light",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/topaz-blue.mdv-theme.json",
-      "sha256": "951987a32fded09d0190779daea349feb38dd1195212447f6862c85d03c49577",
+      "sha256": "58e414c120b04b1e9cacc52dc1dee67150e7c97c7f80b96a29bdbe920ef38a03",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/topaz-blue.svg",
       "tags": [
         "obsidian-inspired",
@@ -203,7 +203,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "light",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/typewriter-desk.mdv-theme.json",
-      "sha256": "dd6755bd121fa48743570e62bb85263d3753cccc75c130ef7114b64a39198765",
+      "sha256": "fe07dc8e242d266e598798d9f5126babb30e02fdd8e70df9ce362d3b4a29f774",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/typewriter-desk.svg",
       "tags": [
         "obsidian-inspired",
@@ -221,7 +221,7 @@
       "minAppVersion": "2.3.1",
       "colorScheme": "dark",
       "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/wasp-highlight.mdv-theme.json",
-      "sha256": "5d891e12cd0de4030bd4bcf7194f44af23fdfebd5fd3d7354548fa0d593a23fb",
+      "sha256": "efdd374087b64e87561b985b376533aaecd73fac31969fe93a4100b3cc5b9d79",
       "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/wasp-highlight.svg",
       "tags": [
         "obsidian-inspired",

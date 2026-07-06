@@ -53,6 +53,8 @@ Token names must start with `--reader-` or `--markdown-`.
 
 Common reader tokens:
 
+Base surfaces and palette:
+
 - `--reader-page-bg`
 - `--reader-surface`
 - `--reader-border`
@@ -60,29 +62,102 @@ Common reader tokens:
 - `--reader-muted`
 - `--reader-link`
 - `--reader-radius`
+- `--reader-base-00`
+- `--reader-base-10`
+- `--reader-base-20`
+- `--reader-base-30`
+- `--reader-base-50`
+- `--reader-base-70`
+- `--reader-base-100`
+- `--reader-color-red`
+- `--reader-color-orange`
+- `--reader-color-yellow`
+- `--reader-color-green`
+- `--reader-color-cyan`
+- `--reader-color-blue`
+- `--reader-color-purple`
+- `--reader-color-pink`
+
+Panel and chrome:
+
 - `--reader-panel-bg`
 - `--reader-panel-border`
 - `--reader-accent`
 - `--reader-accent-muted`
 - `--reader-selection-bg`
+- `--reader-toolbar-bg`
+- `--reader-control-bg`
+- `--reader-control-radius`
+- `--reader-tree-row-hover`
+- `--reader-tree-row-active`
+- `--reader-outline-active-bg`
+
+Typography and headings:
+
+- `--reader-font-family`
+- `--reader-monospace-font`
+- `--reader-font-weight`
 - `--reader-heading-text`
 - `--reader-heading-font`
 - `--reader-heading-border`
+- `--reader-h1-color` through `--reader-h6-color`
+- `--reader-h1-size` through `--reader-h6-size`
+- `--reader-h1-weight` through `--reader-h6-weight`
+- `--reader-paragraph-spacing`
+- `--reader-list-spacing`
+- `--reader-list-indent`
+- `--reader-list-item-spacing`
+
+Code:
+
 - `--reader-code-bg`
 - `--reader-code-text`
 - `--reader-inline-code-bg`
 - `--reader-inline-code-text`
+- `--reader-code-radius`
+- `--reader-code-border`
+- `--reader-code-font-size`
+- `--reader-syntax-keyword`
+- `--reader-syntax-string`
+- `--reader-syntax-function`
+- `--reader-syntax-comment`
+
+Tables:
+
 - `--reader-table-head`
 - `--reader-table-stripe`
+- `--reader-table-text`
+- `--reader-table-border`
+- `--reader-table-cell-padding`
+- `--reader-table-row-hover`
 - `--reader-rule`
+
+Quotes and callouts:
+
 - `--reader-quote-bg`
 - `--reader-quote-border`
 - `--reader-quote-text`
+- `--reader-quote-padding`
+- `--reader-quote-radius`
+- `--reader-callout-bg`
+- `--reader-callout-border`
+- `--reader-callout-title`
+- `--reader-callout-text`
+- `--reader-callout-radius`
+
+Tasks, marks, and tags:
+
 - `--reader-task-done`
+- `--reader-checkbox-bg`
+- `--reader-checkbox-border`
+- `--reader-checkbox-checked-bg`
+- `--reader-checkbox-check-color`
 - `--reader-mark-bg`
 - `--reader-mark-text`
 - `--reader-tag-bg`
 - `--reader-tag-text`
+- `--reader-tag-radius`
+- `--reader-tag-padding`
 - `--reader-shadow`
 
 Common Markdown tokens:

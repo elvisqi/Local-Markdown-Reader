@@ -190,21 +190,65 @@
   --reader-heading-text: #18202a;
   --reader-heading-font: inherit;
   --reader-heading-border: #d1d9e2;
+  --reader-font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  --reader-monospace-font: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
+  --reader-font-weight: 400;
+  --reader-h1-color: #18202a;
+  --reader-h1-size: 22px;
+  --reader-h1-weight: 750;
+  --reader-paragraph-spacing: 12px;
+  --reader-list-spacing: 12px;
+  --reader-list-indent: 22px;
   --reader-code-bg: #eef2f5;
   --reader-code-text: #243141;
   --reader-inline-code-bg: #eef2f5;
   --reader-inline-code-text: #243141;
+  --reader-code-radius: 6px;
+  --reader-code-border: #dfe4ea;
+  --reader-code-font-size: 0.88em;
   --reader-table-head: #f8fafc;
   --reader-table-stripe: #f6f8fa;
+  --reader-table-text: #18202a;
+  --reader-table-border: #dfe4ea;
+  --reader-table-cell-padding: 6px 8px;
+  --reader-table-row-hover: #eef4ff;
   --reader-rule: #d1d9e2;
   --reader-quote-bg: transparent;
   --reader-quote-border: #cfd8e3;
   --reader-quote-text: #52606d;
+  --reader-quote-padding: 8px 12px;
+  --reader-quote-radius: 0;
+  --reader-callout-bg: #f6f9fc;
+  --reader-callout-border: #cfd8e3;
+  --reader-callout-title: #18202a;
+  --reader-callout-text: #52606d;
+  --reader-callout-radius: 8px;
   --reader-task-done: #7b8794;
+  --reader-checkbox-bg: #ffffff;
+  --reader-checkbox-border: #aab6c4;
+  --reader-checkbox-checked-bg: #175ddc;
+  --reader-checkbox-check-color: #ffffff;
   --reader-mark-bg: #fff4b8;
   --reader-mark-text: #28251f;
   --reader-tag-bg: #e8f0ff;
   --reader-tag-text: #175ddc;
+  --reader-tag-radius: 999px;
+  --reader-tag-padding: 0.04em 0.45em;
+  --reader-base-00: #ffffff;
+  --reader-base-10: #f8fafc;
+  --reader-base-20: #eef2f5;
+  --reader-base-30: #dfe4ea;
+  --reader-base-50: #94a3b8;
+  --reader-base-70: #475569;
+  --reader-base-100: #18202a;
+  --reader-color-red: #dc2626;
+  --reader-color-orange: #ea580c;
+  --reader-color-yellow: #ca8a04;
+  --reader-color-green: #16a34a;
+  --reader-color-cyan: #0891b2;
+  --reader-color-blue: #175ddc;
+  --reader-color-purple: #7c3aed;
+  --reader-color-pink: #db2777;
   --reader-shadow: none;
   padding: 12px;
   border: 1px solid var(--reader-border);
@@ -227,21 +271,49 @@
   --reader-selection-bg: #25476f;
   --reader-heading-text: #f2f6fb;
   --reader-heading-border: #35465a;
+  --reader-h1-color: #f2f6fb;
   --reader-code-bg: #243140;
   --reader-code-text: #e6edf5;
   --reader-inline-code-bg: #202b38;
   --reader-inline-code-text: #dbe7f5;
+  --reader-code-border: #334254;
   --reader-table-head: #202b38;
   --reader-table-stripe: #1d2733;
+  --reader-table-text: #e8eef6;
+  --reader-table-border: #334254;
+  --reader-table-row-hover: #24344a;
   --reader-rule: #35465a;
   --reader-quote-bg: #192432;
   --reader-quote-border: #52657d;
   --reader-quote-text: #c2ccd8;
+  --reader-callout-bg: #192432;
+  --reader-callout-border: #52657d;
+  --reader-callout-title: #f2f6fb;
+  --reader-callout-text: #c2ccd8;
   --reader-task-done: #7f8d9d;
+  --reader-checkbox-bg: #18212c;
+  --reader-checkbox-border: #52657d;
+  --reader-checkbox-checked-bg: #8ab4ff;
+  --reader-checkbox-check-color: #111821;
   --reader-mark-bg: #5f4f1f;
   --reader-mark-text: #fff1b8;
   --reader-tag-bg: #18314f;
   --reader-tag-text: #aad0ff;
+  --reader-base-00: #111821;
+  --reader-base-10: #18212c;
+  --reader-base-20: #202b38;
+  --reader-base-30: #334254;
+  --reader-base-50: #7f8d9d;
+  --reader-base-70: #c2ccd8;
+  --reader-base-100: #f2f6fb;
+  --reader-color-red: #ff8a8a;
+  --reader-color-orange: #ffb86b;
+  --reader-color-yellow: #ffd166;
+  --reader-color-green: #8bd89d;
+  --reader-color-cyan: #78dce8;
+  --reader-color-blue: #8ab4ff;
+  --reader-color-purple: #c7a5ff;
+  --reader-color-pink: #ff9ac7;
 }
 
 .theme-preview__document {
@@ -255,20 +327,23 @@
   color: var(--reader-text);
   font-size: var(--markdown-font-size);
   line-height: var(--markdown-line-height);
+  font-family: var(--reader-font-family, inherit);
+  font-weight: var(--reader-font-weight, 400);
 }
 
 .theme-preview__document h1 {
   margin: 0 0 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--reader-heading-border);
-  color: var(--reader-heading-text);
+  color: var(--reader-h1-color, var(--reader-heading-text));
   font-family: var(--reader-heading-font, inherit);
-  font-size: 22px;
+  font-size: var(--reader-h1-size, 22px);
+  font-weight: var(--reader-h1-weight, 750);
   line-height: 1.2;
 }
 
 .theme-preview__document p {
-  margin: 0 0 12px;
+  margin: 0 0 var(--reader-paragraph-spacing, 12px);
 }
 
 .theme-preview__document a {
@@ -277,11 +352,11 @@
 
 .theme-preview__document code {
   padding: 0.12em 0.34em;
-  border-radius: 4px;
+  border-radius: var(--reader-code-radius, 6px);
   background: var(--reader-inline-code-bg);
   color: var(--reader-inline-code-text);
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
-  font-size: 0.88em;
+  font-family: var(--reader-monospace-font);
+  font-size: var(--reader-code-font-size, 0.88em);
 }
 
 .theme-preview__document mark {
@@ -292,7 +367,22 @@
 }
 
 .theme-preview__document input[type="checkbox"] {
+  position: relative;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  margin: 0 0.35em 0.1em 0;
+  border: 1px solid var(--reader-checkbox-border);
+  border-radius: var(--reader-checkbox-radius, 4px);
+  appearance: none;
   accent-color: var(--reader-accent);
+  background: var(--reader-checkbox-bg);
+  vertical-align: middle;
+}
+
+.theme-preview__document input[type="checkbox"]:checked {
+  background: var(--reader-checkbox-checked-bg);
+  border-color: var(--reader-checkbox-checked-bg);
 }
 
 .theme-preview__document li:has(> input[type="checkbox"]:checked) {
@@ -301,8 +391,9 @@
 
 .theme-preview__document blockquote {
   margin: 0 0 12px;
-  padding: 8px 12px;
+  padding: var(--reader-quote-padding, 8px 12px);
   border-left: 4px solid var(--reader-quote-border);
+  border-radius: var(--reader-quote-radius, 0);
   background: var(--reader-quote-bg);
   color: var(--reader-quote-text);
 }
@@ -311,11 +402,12 @@
   overflow: auto;
   margin: 0 0 12px;
   padding: 10px;
-  border-radius: 6px;
+  border: 1px solid var(--reader-code-border);
+  border-radius: var(--reader-code-radius, 6px);
   background: var(--reader-code-bg);
   color: var(--reader-code-text);
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
-  font-size: 13px;
+  font-family: var(--reader-monospace-font);
+  font-size: var(--reader-code-font-size, 13px);
 }
 
 .theme-preview__document pre code {
@@ -333,8 +425,9 @@
 
 .theme-preview__document th,
 .theme-preview__document td {
-  padding: 6px 8px;
-  border: 1px solid var(--reader-border);
+  padding: var(--reader-table-cell-padding, 6px 8px);
+  border: 1px solid var(--reader-table-border);
+  color: var(--reader-table-text);
   text-align: left;
 }
 
@@ -344,6 +437,10 @@
 
 .theme-preview__document tbody tr:nth-child(even) {
   background: var(--reader-table-stripe);
+}
+
+.theme-preview__document tbody tr:hover {
+  background: var(--reader-table-row-hover);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -361,21 +458,49 @@
     --reader-selection-bg: #25476f;
     --reader-heading-text: #f2f6fb;
     --reader-heading-border: #35465a;
+    --reader-h1-color: #f2f6fb;
     --reader-code-bg: #243140;
     --reader-code-text: #e6edf5;
     --reader-inline-code-bg: #202b38;
     --reader-inline-code-text: #dbe7f5;
+    --reader-code-border: #334254;
     --reader-table-head: #202b38;
     --reader-table-stripe: #1d2733;
+    --reader-table-text: #e8eef6;
+    --reader-table-border: #334254;
+    --reader-table-row-hover: #24344a;
     --reader-rule: #35465a;
     --reader-quote-bg: #192432;
     --reader-quote-border: #52657d;
     --reader-quote-text: #c2ccd8;
+    --reader-callout-bg: #192432;
+    --reader-callout-border: #52657d;
+    --reader-callout-title: #f2f6fb;
+    --reader-callout-text: #c2ccd8;
     --reader-task-done: #7f8d9d;
+    --reader-checkbox-bg: #18212c;
+    --reader-checkbox-border: #52657d;
+    --reader-checkbox-checked-bg: #8ab4ff;
+    --reader-checkbox-check-color: #111821;
     --reader-mark-bg: #5f4f1f;
     --reader-mark-text: #fff1b8;
     --reader-tag-bg: #18314f;
     --reader-tag-text: #aad0ff;
+    --reader-base-00: #111821;
+    --reader-base-10: #18212c;
+    --reader-base-20: #202b38;
+    --reader-base-30: #334254;
+    --reader-base-50: #7f8d9d;
+    --reader-base-70: #c2ccd8;
+    --reader-base-100: #f2f6fb;
+    --reader-color-red: #ff8a8a;
+    --reader-color-orange: #ffb86b;
+    --reader-color-yellow: #ffd166;
+    --reader-color-green: #8bd89d;
+    --reader-color-cyan: #78dce8;
+    --reader-color-blue: #8ab4ff;
+    --reader-color-purple: #c7a5ff;
+    --reader-color-pink: #ff9ac7;
   }
 }
 

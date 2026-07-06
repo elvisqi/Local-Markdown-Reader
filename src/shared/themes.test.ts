@@ -66,19 +66,42 @@ describe('themes', () => {
         '--reader-heading-text': '#1f2933',
         '--reader-heading-font': 'Georgia, serif',
         '--reader-heading-border': '#cfd8e3',
+        '--reader-font-family': 'Inter, sans-serif',
+        '--reader-monospace-font': 'Consolas, monospace',
+        '--reader-h1-size': '32px',
+        '--reader-h6-weight': '650',
+        '--reader-paragraph-spacing': '14px',
+        '--reader-list-indent': '24px',
+        '--reader-table-border': '#d8d1c4',
+        '--reader-table-cell-padding': '8px 10px',
+        '--reader-table-row-hover': '#f6f1e8',
         '--reader-inline-code-bg': '#f0ece4',
         '--reader-inline-code-text': '#2d3033',
+        '--reader-code-radius': '6px',
+        '--reader-code-border': '#d8d1c4',
+        '--reader-callout-bg': '#f8f3ea',
+        '--reader-callout-title': '#1f2933',
+        '--reader-checkbox-checked-bg': '#3b6f8f',
         '--reader-task-done': '#7b8794',
         '--reader-mark-bg': '#fff4b8',
         '--reader-mark-text': '#28251f',
         '--reader-tag-bg': '#e5eef5',
         '--reader-tag-text': '#2f5f7d',
+        '--reader-tag-radius': '999px',
+        '--reader-base-00': '#ffffff',
+        '--reader-color-blue': '#3b6f8f',
+        '--reader-toolbar-bg': '#fffdf8',
+        '--reader-tree-row-hover': '#f6f1e8',
+        '--reader-syntax-keyword': '#7c3aed',
       },
     }), 123);
 
     expect(theme.tokens['--reader-radius']).toBe('10px');
     expect(theme.tokens['--reader-heading-font']).toBe('Georgia, serif');
     expect(theme.tokens['--reader-tag-text']).toBe('#2f5f7d');
+    expect(theme.tokens['--reader-h1-size']).toBe('32px');
+    expect(theme.tokens['--reader-table-cell-padding']).toBe('8px 10px');
+    expect(theme.tokens['--reader-syntax-keyword']).toBe('#7c3aed');
   });
 
   it('ships built-in themes with the expanded token set', () => {
@@ -90,6 +113,14 @@ describe('themes', () => {
       expect(tokens['--reader-heading-text']).toBeTruthy();
       expect(tokens['--reader-inline-code-bg']).toBeTruthy();
       expect(tokens['--reader-mark-bg']).toBeTruthy();
+      expect(tokens['--reader-font-family']).toBeTruthy();
+      expect(tokens['--reader-h1-size']).toBeTruthy();
+      expect(tokens['--reader-table-cell-padding']).toBeTruthy();
+      expect(tokens['--reader-code-radius']).toBeTruthy();
+      expect(tokens['--reader-callout-bg']).toBeTruthy();
+      expect(tokens['--reader-checkbox-checked-bg']).toBeTruthy();
+      expect(tokens['--reader-base-00']).toBeTruthy();
+      expect(tokens['--reader-toolbar-bg']).toBeTruthy();
     }
   });
 
