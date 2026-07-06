@@ -39,7 +39,9 @@ type ThemeCatalogListProps = {
 type RemoteThemeListProps = {
   index: RemoteThemeIndex | null;
   installedThemes: ReaderThemePackage[];
+  hiddenThemeIds?: readonly string[];
   onRefresh: () => void | Promise<void>;
+  onPreview: RemoteThemeActionHandler;
   onInstall: RemoteThemeActionHandler;
 };
 
@@ -235,9 +237,14 @@ export function ThemeCatalogList({
 export function RemoteThemeList({
   index,
   installedThemes,
+  hiddenThemeIds = [],
   onRefresh,
+  onPreview,
   onInstall,
 }: RemoteThemeListProps) {
+  const hiddenThemeIdSet = new Set(hiddenThemeIds);
+  const visibleThemes = index?.themes.filter((theme) => !hiddenThemeIdSet.has(theme.id)) ?? [];
+
   function findInstalledTheme(themeId: string): ReaderThemePackage | undefined {
     return installedThemes.find((item) => item.id === themeId);
   }
@@ -250,18 +257,22 @@ export function RemoteThemeList({
           刷新远程主题
         </button>
       </div>
-      {index?.themes.length ? (
+      {visibleThemes.length ? (
         <ul className="theme-catalog-list" aria-label="远程主题">
-          {index.themes.map((theme) => {
+          {visibleThemes.map((theme) => {
             const installedTheme = findInstalledTheme(theme.id);
             const installedSameVersion = installedTheme?.version === theme.version;
             const unavailable = theme.deprecated || !theme.compatible;
             const disabled = installedSameVersion || unavailable;
+            const installedState = formatRemoteThemeInstalledState(theme, installedTheme);
 
             return (
               <li key={theme.id}>
                 <div>
-                  <strong>{theme.name}</strong>
+                  <div className="theme-package-title">
+                    <strong>{theme.name}</strong>
+                    {installedState && <span className="theme-package-state">{installedState}</span>}
+                  </div>
                   <span>
                     {theme.version} · {formatThemeColorScheme(theme.colorScheme)}
                     {theme.author ? ` · ${theme.author}` : ''}
@@ -270,6 +281,9 @@ export function RemoteThemeList({
                   {theme.tags.length ? <p>{theme.tags.join(' · ')}</p> : null}
                 </div>
                 <div className="theme-package-actions">
+                  <button type="button" onClick={() => void onPreview(theme)} disabled={unavailable}>
+                    预览
+                  </button>
                   <button type="button" onClick={() => void onInstall(theme)} disabled={disabled}>
                     {formatRemoteThemeInstallLabel(theme, installedTheme)}
                   </button>
@@ -279,7 +293,7 @@ export function RemoteThemeList({
           })}
         </ul>
       ) : (
-        <p className="theme-package-meta">暂无远程主题索引。</p>
+        <p className="theme-package-meta">{index ? '暂无可显示的远程主题。' : '暂无远程主题索引。'}</p>
       )}
     </div>
   );
@@ -456,4 +470,15 @@ function formatRemoteThemeInstallLabel(
   }
 
   return installedTheme ? '更新' : '安装';
+}
+
+function formatRemoteThemeInstalledState(
+  theme: RemoteThemeIndexEntry,
+  installedTheme: ReaderThemePackage | undefined,
+): string | null {
+  if (!installedTheme) {
+    return null;
+  }
+
+  return installedTheme.version === theme.version ? '已安装' : '已安装旧版';
 }

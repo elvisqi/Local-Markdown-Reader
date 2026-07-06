@@ -8,6 +8,7 @@ import {
   getInstalledThemePackageId,
   installRemoteTheme,
   installThemePackage,
+  loadRemoteTheme,
   loadCachedRemoteThemeIndex,
   loadInstalledThemes,
   parseThemePackageText,
@@ -162,6 +163,22 @@ export function useInstalledThemePackages({
     }
   }
 
+  async function previewRemoteThemeEntry(entry: RemoteThemeIndexEntry) {
+    setRemoteThemeStatus(`正在下载远程主题：${entry.name}...`);
+
+    try {
+      const theme = await loadRemoteTheme({ entry });
+      const existingTheme = findInstalledTheme(theme.id);
+      setPendingTheme(theme);
+      setRemoteThemeStatus(existingTheme
+        ? `检测到已安装远程主题：${existingTheme.name} ${existingTheme.version}，将更新为 ${theme.version}。`
+        : `远程主题已准备好：${theme.name}。`);
+    } catch (err) {
+      setPendingTheme(null);
+      setRemoteThemeStatus(err instanceof Error ? err.message : `无法预览远程主题：${entry.name}。`);
+    }
+  }
+
   async function applyInstalledTheme(theme: ReaderThemePackage) {
     await onSettingsChange({
       ...settings,
@@ -218,6 +235,7 @@ export function useInstalledThemePackages({
     previewTheme,
     installCatalogTheme,
     refreshRemoteThemes,
+    previewRemoteThemeEntry,
     installRemoteThemeEntry,
     applyInstalledTheme,
     removeInstalledTheme,

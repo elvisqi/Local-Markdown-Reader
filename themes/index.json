@@ -3,6 +3,38 @@
   "updatedAt": "2026-07-06T00:00:00.000Z",
   "themes": [
     {
+      "id": "classic-journal",
+      "name": "Classic Journal",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Traditional document rhythm with calm contrast for mixed notes.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "system",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/classic-journal.mdv-theme.json",
+      "sha256": "aa2a63d5c25a313a9c12f0f618f3050ef6f784b3320fcb4092ddaf8e861329c4",
+      "tags": [
+        "journal",
+        "classic",
+        "system"
+      ]
+    },
+    {
+      "id": "graphite-doc",
+      "name": "Graphite Doc",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Neutral grayscale for API notes, specs, and engineering documents.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "light",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/graphite-doc.mdv-theme.json",
+      "sha256": "b3cb8b0fc652c50de66d30c31f55a22f9ae9e7a75255a32352a1dfba3868ac0c",
+      "tags": [
+        "technical",
+        "neutral",
+        "light"
+      ]
+    },
+    {
       "id": "ink-focus",
       "name": "Ink Focus",
       "version": "1.0.0",
@@ -16,6 +48,54 @@
         "technical",
         "light",
         "neutral"
+      ]
+    },
+    {
+      "id": "midnight-prose",
+      "name": "Midnight Prose",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Low-fatigue dark theme tuned for long-form reading.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "dark",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/midnight-prose.mdv-theme.json",
+      "sha256": "eb839d9ff34aeac11c413cc58773e04818c4b234df3268c524e399105cdcf7ab",
+      "tags": [
+        "dark",
+        "longform",
+        "low-fatigue"
+      ]
+    },
+    {
+      "id": "mint-brief",
+      "name": "Mint Brief",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Fresh light theme for summaries, meeting notes, and brief reports.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "light",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/mint-brief.mdv-theme.json",
+      "sha256": "3e06436180d5cc3433f94e61b0b1509f49488eda7d3a170b69604579a8536e86",
+      "tags": [
+        "brief",
+        "light",
+        "fresh"
+      ]
+    },
+    {
+      "id": "mono-grid",
+      "name": "Mono Grid",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "System-aware compact style for dense tables and code-heavy documents.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "system",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/mono-grid.mdv-theme.json",
+      "sha256": "603ce7740b87e381edf997cf21a52c09d99852e52e6d698b1ee8e059c185fa4d",
+      "tags": [
+        "tables",
+        "code",
+        "system"
       ]
     },
     {
@@ -35,6 +115,54 @@
       ]
     },
     {
+      "id": "oceanic-code",
+      "name": "Oceanic Code",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Dark blue-green reading surface for technical notes and code blocks.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "dark",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/oceanic-code.mdv-theme.json",
+      "sha256": "8d1c5f8c4c0bae7d011497c4cf307421d911ac2857b18221dfc5bdf1ce879c13",
+      "tags": [
+        "dark",
+        "code",
+        "blue-green"
+      ]
+    },
+    {
+      "id": "paper-note",
+      "name": "Paper Note",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Warm light paper style for essays, notes, and knowledge bases.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "light",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/paper-note.mdv-theme.json",
+      "sha256": "f3f270002574da093dd44b8a78156d53474a8994dc60a56c2d43c02309db4307",
+      "tags": [
+        "notes",
+        "light",
+        "warm"
+      ]
+    },
+    {
+      "id": "plum-note",
+      "name": "Plum Note",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Restrained dark note theme with muted plum accents.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "dark",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/plum-note.mdv-theme.json",
+      "sha256": "8a6a6ef293d14c4dceb250457cebe50c4eca748b40db858b2b8a5e5fc42b9e13",
+      "tags": [
+        "dark",
+        "notes",
+        "muted"
+      ]
+    },
+    {
       "id": "report-grid",
       "name": "Report Grid",
       "version": "1.0.0",
@@ -48,6 +176,38 @@
         "tables",
         "compact",
         "report"
+      ]
+    },
+    {
+      "id": "solar-desk",
+      "name": "Solar Desk",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Low-saturation daylight theme for focused daytime reading.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "light",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/solar-desk.mdv-theme.json",
+      "sha256": "0fe796a80aee3eb3f34f06f247397c145339945a5544b768e4da78a436d49601",
+      "tags": [
+        "daylight",
+        "light",
+        "low-saturation"
+      ]
+    },
+    {
+      "id": "terminal-ink",
+      "name": "Terminal Ink",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Dark terminal-inspired document theme with practical contrast.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "dark",
+      "downloadUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/terminal-ink.mdv-theme.json",
+      "sha256": "197036e029c73cf64b19831d6e41ebde4d9e0ff4cb423b7f71f1225d8c214517",
+      "tags": [
+        "terminal",
+        "dark",
+        "code"
       ]
     }
   ]

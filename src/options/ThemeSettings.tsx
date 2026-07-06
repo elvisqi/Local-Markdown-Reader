@@ -32,6 +32,7 @@ export function ThemeSettings({ settings, onSettingsChange }: ThemeSettingsProps
     previewTheme,
     installCatalogTheme,
     refreshRemoteThemes,
+    previewRemoteThemeEntry,
     installRemoteThemeEntry,
     applyInstalledTheme,
     removeInstalledTheme,
@@ -65,7 +66,9 @@ export function ThemeSettings({ settings, onSettingsChange }: ThemeSettingsProps
         <RemoteThemeList
           index={remoteThemeIndex}
           installedThemes={installedThemes}
+          hiddenThemeIds={RECOMMENDED_THEME_PACKAGES.map((theme) => theme.id)}
           onRefresh={refreshRemoteThemes}
+          onPreview={previewRemoteThemeEntry}
           onInstall={installRemoteThemeEntry}
         />
         {selectedTheme && <ThemePackageCurrentSummary theme={selectedTheme} />}

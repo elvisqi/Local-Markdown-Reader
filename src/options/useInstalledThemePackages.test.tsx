@@ -233,6 +233,51 @@ describe('useInstalledThemePackages', () => {
     );
     expect(result.current.remoteThemeStatus).toBe('已安装远程主题：Ink Focus。');
   });
+
+  it('downloads remote themes for preview without installing or applying them', async () => {
+    const packageText = JSON.stringify({
+      id: 'ink-focus',
+      name: 'Ink Focus',
+      version: '1.0.0',
+      colorScheme: 'light',
+      tokens: {
+        '--reader-surface': '#ffffff',
+      },
+    });
+    const sha256 = await calculateTestSha256(packageText);
+    fetchSpy.mockResolvedValue(new Response(packageText, { status: 200 }));
+
+    const { result } = renderHook(() =>
+      useInstalledThemePackages({
+        settings: createSettings(),
+        onSettingsChange,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.previewRemoteThemeEntry({
+        id: 'ink-focus',
+        name: 'Ink Focus',
+        version: '1.0.0',
+        colorScheme: 'light',
+        compatible: true,
+        downloadUrl: 'https://example.com/themes/ink-focus.mdv-theme.json',
+        sha256,
+        tags: [],
+      });
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('https://example.com/themes/ink-focus.mdv-theme.json', expect.objectContaining({
+      cache: 'no-store',
+    }));
+    expect(result.current.pendingTheme).toEqual(expect.objectContaining({
+      id: 'ink-focus',
+      version: '1.0.0',
+    }));
+    expect(result.current.remoteThemeStatus).toBe('远程主题已准备好：Ink Focus。');
+    expect(chrome.storage.local.set).not.toHaveBeenCalled();
+    expect(onSettingsChangeSpy).not.toHaveBeenCalled();
+  });
 });
 
 function createRemoteThemeIndex(): RemoteThemeIndex {

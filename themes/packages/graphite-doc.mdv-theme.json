@@ -1,0 +1,29 @@
+{
+  "id": "graphite-doc",
+  "name": "Graphite Doc",
+  "version": "1.0.0",
+  "author": "Local Markdown Reader",
+  "description": "Neutral grayscale for API notes, specs, and engineering documents.",
+  "minAppVersion": "2.3.1",
+  "colorScheme": "light",
+  "tokens": {
+    "--markdown-font-size": "16px",
+    "--markdown-line-height": "1.68",
+    "--reader-page-bg": "#f5f6f7",
+    "--reader-surface": "#ffffff",
+    "--reader-border": "#d8dde3",
+    "--reader-text": "#1f252b",
+    "--reader-muted": "#68727d",
+    "--reader-link": "#315f8f",
+    "--reader-code-bg": "#eef1f4",
+    "--reader-code-text": "#242b33",
+    "--reader-table-head": "#f0f2f5",
+    "--reader-table-stripe": "#f7f8fa",
+    "--reader-rule": "#d4dae1",
+    "--reader-quote-bg": "#f7f8f9",
+    "--reader-quote-border": "#9aa5b1",
+    "--reader-quote-text": "#56616d",
+    "--reader-shadow": "0 10px 24px rgba(31, 37, 43, 0.07)"
+  },
+  "css": ".document-reader h1, .document-reader h2, .document-reader h3 { letter-spacing: 0; } .document-reader code { border: 1px solid var(--reader-border); }"
+}

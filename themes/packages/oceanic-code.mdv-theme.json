@@ -1,0 +1,29 @@
+{
+  "id": "oceanic-code",
+  "name": "Oceanic Code",
+  "version": "1.0.0",
+  "author": "Local Markdown Reader",
+  "description": "Dark blue-green reading surface for technical notes and code blocks.",
+  "minAppVersion": "2.3.1",
+  "colorScheme": "dark",
+  "tokens": {
+    "--markdown-font-size": "16px",
+    "--markdown-line-height": "1.7",
+    "--reader-page-bg": "#0e171b",
+    "--reader-surface": "#142229",
+    "--reader-border": "#29414b",
+    "--reader-text": "#e1edf0",
+    "--reader-muted": "#99aeb5",
+    "--reader-link": "#79c8d8",
+    "--reader-code-bg": "#1d3038",
+    "--reader-code-text": "#eaf7f8",
+    "--reader-table-head": "#1d2d34",
+    "--reader-table-stripe": "#182831",
+    "--reader-rule": "#314a55",
+    "--reader-quote-bg": "#172a31",
+    "--reader-quote-border": "#5c8790",
+    "--reader-quote-text": "#bfd2d6",
+    "--reader-shadow": "0 18px 40px rgba(0, 0, 0, 0.32)"
+  },
+  "css": ".document-reader pre { border-left: 3px solid var(--reader-link); } .document-reader table { font-variant-numeric: tabular-nums; }"
+}

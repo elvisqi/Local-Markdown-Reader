@@ -117,6 +117,7 @@ describe('ThemeSettings sections', () => {
   it('renders remote theme install states and forwards refresh and install actions', async () => {
     const user = userEvent.setup();
     const refreshRemoteThemes = vi.fn(async () => undefined);
+    const previewRemoteTheme = vi.fn(async () => undefined);
     const installRemoteTheme = vi.fn(async () => undefined);
     const remoteIndex = createRemoteThemeIndex();
 
@@ -125,6 +126,7 @@ describe('ThemeSettings sections', () => {
         index={remoteIndex}
         installedThemes={[inkFocusTheme, { ...nightStudyTheme, version: '0.9.0' }]}
         onRefresh={refreshRemoteThemes}
+        onPreview={previewRemoteTheme}
         onInstall={installRemoteTheme}
       />,
     );
@@ -138,12 +140,38 @@ describe('ThemeSettings sections', () => {
     const futureRow = within(remoteList).getByText('Future Theme').closest('li')!;
 
     expect(within(inkFocusRow).getByRole('button', { name: '已安装' })).toBeDisabled();
+    expect(within(inkFocusRow).getByText('已安装', { selector: '.theme-package-state' })).toBeInTheDocument();
     expect(within(nightStudyRow).getByRole('button', { name: '更新' })).toBeEnabled();
+    expect(within(nightStudyRow).getByText('已安装旧版', { selector: '.theme-package-state' })).toBeInTheDocument();
     expect(within(futureRow).getByRole('button', { name: '不兼容' })).toBeDisabled();
 
+    await user.click(within(nightStudyRow).getByRole('button', { name: '预览' }));
     await user.click(within(nightStudyRow).getByRole('button', { name: '更新' }));
 
+    expect(previewRemoteTheme).toHaveBeenCalledWith(remoteIndex.themes[1]);
     expect(installRemoteTheme).toHaveBeenCalledWith(remoteIndex.themes[1]);
+  });
+
+  it('hides bundled themes from the remote list and keeps installed labels visible', () => {
+    const remoteIndex = createRemoteThemeIndex();
+
+    render(
+      <RemoteThemeList
+        index={remoteIndex}
+        installedThemes={[nightStudyTheme]}
+        hiddenThemeIds={['ink-focus']}
+        onRefresh={vi.fn()}
+        onPreview={vi.fn()}
+        onInstall={vi.fn()}
+      />,
+    );
+
+    const remoteList = screen.getByRole('list', { name: '远程主题' });
+    expect(within(remoteList).queryByText('Ink Focus')).not.toBeInTheDocument();
+
+    const nightStudyRow = within(remoteList).getByText('Night Study').closest('li')!;
+    expect(within(nightStudyRow).getByText('已安装', { selector: '.theme-package-state' })).toBeInTheDocument();
+    expect(within(nightStudyRow).getByRole('button', { name: '已安装' })).toBeDisabled();
   });
 
   it('renders installed theme package actions with the active theme disabled', async () => {

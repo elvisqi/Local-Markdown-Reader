@@ -87,6 +87,25 @@
   color: #18202a;
 }
 
+.theme-package-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.theme-catalog-list .theme-package-state,
+.theme-package-list .theme-package-state {
+  padding: 1px 6px;
+  border: 1px solid #c8d3df;
+  border-radius: 999px;
+  background: #eef3f8;
+  color: #415064;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .theme-catalog-list span,
 .theme-catalog-list p,
 .theme-package-list span,

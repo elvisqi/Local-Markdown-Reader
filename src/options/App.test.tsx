@@ -325,8 +325,8 @@ describe('options App', () => {
   it('refreshes the remote theme source and installs a remote theme package', async () => {
     const user = userEvent.setup();
     const packageText = JSON.stringify({
-      id: 'ink-focus',
-      name: 'Ink Focus',
+      id: 'remote-focus',
+      name: 'Remote Focus',
       version: '1.0.0',
       colorScheme: 'light',
       tokens: {
@@ -348,6 +348,15 @@ describe('options App', () => {
             sha256,
             tags: ['light'],
           },
+          {
+            id: 'remote-focus',
+            name: 'Remote Focus',
+            version: '1.0.0',
+            colorScheme: 'light',
+            downloadUrl: 'https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/remote-focus.mdv-theme.json',
+            sha256,
+            tags: ['remote'],
+          },
         ],
       }), { status: 200 }))
       .mockResolvedValueOnce(new Response(packageText, { status: 200 }));
@@ -357,17 +366,18 @@ describe('options App', () => {
 
     await user.click(await screen.findByRole('button', { name: '刷新远程主题' }));
 
-    expect(await screen.findByText('已更新远程主题源：1 个主题。')).toBeInTheDocument();
+    expect(await screen.findByText('已更新远程主题源：2 个主题。')).toBeInTheDocument();
     const remoteList = screen.getByRole('list', { name: '远程主题' });
-    const inkFocusRow = within(remoteList).getByText('Ink Focus').closest('li')!;
+    expect(within(remoteList).queryByText('Ink Focus')).not.toBeInTheDocument();
+    const remoteFocusRow = within(remoteList).getByText('Remote Focus').closest('li')!;
 
-    await user.click(within(inkFocusRow).getByRole('button', { name: '安装' }));
+    await user.click(within(remoteFocusRow).getByRole('button', { name: '安装' }));
 
     await waitFor(() =>
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
         readerThemePackages: [
           expect.objectContaining({
-            id: 'ink-focus',
+            id: 'remote-focus',
             version: '1.0.0',
           }),
         ],
@@ -377,12 +387,12 @@ describe('options App', () => {
       expect(chrome.storage.sync.set).toHaveBeenCalledWith({
         readerSettings: expect.objectContaining({
           reading: expect.objectContaining({
-            themeId: 'installed:ink-focus',
+            themeId: 'installed:remote-focus',
           }),
         }),
       }),
     );
-    expect(screen.getByText('已安装远程主题：Ink Focus。')).toBeInTheDocument();
+    expect(screen.getByText('已安装远程主题：Remote Focus。')).toBeInTheDocument();
   });
 
   it('marks recommended themes as installed when the same version exists', async () => {

@@ -3,14 +3,44 @@
   "updatedAt": "2026-07-06T00:00:00.000Z",
   "packageBaseUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/",
   "themes": {
+    "classic-journal": {
+      "tags": ["journal", "classic", "system"]
+    },
+    "graphite-doc": {
+      "tags": ["technical", "neutral", "light"]
+    },
     "ink-focus": {
       "tags": ["technical", "light", "neutral"]
+    },
+    "midnight-prose": {
+      "tags": ["dark", "longform", "low-fatigue"]
+    },
+    "mint-brief": {
+      "tags": ["brief", "light", "fresh"]
+    },
+    "mono-grid": {
+      "tags": ["tables", "code", "system"]
     },
     "night-study": {
       "tags": ["dark", "longform", "low-contrast"]
     },
+    "oceanic-code": {
+      "tags": ["dark", "code", "blue-green"]
+    },
+    "paper-note": {
+      "tags": ["notes", "light", "warm"]
+    },
+    "plum-note": {
+      "tags": ["dark", "notes", "muted"]
+    },
     "report-grid": {
       "tags": ["tables", "compact", "report"]
+    },
+    "solar-desk": {
+      "tags": ["daylight", "light", "low-saturation"]
+    },
+    "terminal-ink": {
+      "tags": ["terminal", "dark", "code"]
     }
   }
 }

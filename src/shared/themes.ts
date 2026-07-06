@@ -176,6 +176,11 @@ type FetchRemoteThemeIndexOptions = {
   area?: chrome.storage.StorageArea;
 };
 
+type LoadRemoteThemeOptions = {
+  entry: RemoteThemeIndexEntry;
+  fetcher?: typeof fetch;
+};
+
 type InstallRemoteThemeOptions = {
   entry: RemoteThemeIndexEntry;
   fetcher?: typeof fetch;
@@ -294,6 +299,15 @@ export async function installRemoteTheme({
   fetcher = globalThis.fetch,
   area = globalThis.chrome?.storage?.local,
 }: InstallRemoteThemeOptions): Promise<{ theme: ReaderThemePackage; themes: ReaderThemePackage[] }> {
+  const theme = await loadRemoteTheme({ entry, fetcher });
+
+  return installThemePackage(theme, area);
+}
+
+export async function loadRemoteTheme({
+  entry,
+  fetcher = globalThis.fetch,
+}: LoadRemoteThemeOptions): Promise<ReaderThemePackage> {
   if (!entry.compatible) {
     throw new Error(`主题 ${entry.name} 与当前应用版本不兼容。`);
   }
@@ -318,8 +332,9 @@ export async function installRemoteTheme({
   if (theme.id !== entry.id || theme.version !== entry.version) {
     throw new Error('远程主题包与索引声明不一致。');
   }
+  assertThemeCompatible(theme);
 
-  return installThemePackage(theme, area);
+  return theme;
 }
 
 export async function deleteInstalledTheme(
