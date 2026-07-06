@@ -1,0 +1,29 @@
+{
+  "id": "solar-desk",
+  "name": "Solar Desk",
+  "version": "1.0.0",
+  "author": "Local Markdown Reader",
+  "description": "Low-saturation daylight theme for focused daytime reading.",
+  "minAppVersion": "2.3.1",
+  "colorScheme": "light",
+  "tokens": {
+    "--markdown-font-size": "16px",
+    "--markdown-line-height": "1.7",
+    "--reader-page-bg": "#f8f5e9",
+    "--reader-surface": "#fffdf4",
+    "--reader-border": "#ddd7bf",
+    "--reader-text": "#2b2b24",
+    "--reader-muted": "#716d5d",
+    "--reader-link": "#5f6f2b",
+    "--reader-code-bg": "#f0ecd8",
+    "--reader-code-text": "#303126",
+    "--reader-table-head": "#f3efd9",
+    "--reader-table-stripe": "#fbf8ec",
+    "--reader-rule": "#d9d2b8",
+    "--reader-quote-bg": "#f8f2dc",
+    "--reader-quote-border": "#a79b5b",
+    "--reader-quote-text": "#666047",
+    "--reader-shadow": "0 12px 28px rgba(43, 43, 36, 0.07)"
+  },
+  "css": ".document-reader h1, .document-reader h2, .document-reader h3 { letter-spacing: 0; } .document-reader table { font-variant-numeric: tabular-nums; }"
+}

@@ -48,7 +48,7 @@ describe('renderMermaidBlocks', () => {
   it('adds an outside fullscreen button to rendered Mermaid diagrams', async () => {
     const api = createMermaidApi();
     const root = document.createElement('div');
-    root.className = 'reader-app theme-dark style-paper width-wide';
+    root.className = 'reader-app theme-dark reader-theme-paper width-wide';
     root.innerHTML = '<pre><code class="language-mermaid">graph LR\nA-->B</code></pre>';
     document.body.append(root);
 
@@ -71,7 +71,7 @@ describe('renderMermaidBlocks', () => {
     expect(dialog).toHaveAttribute('aria-label', '最大化图表');
     expect(dialog).toHaveClass('reader-app');
     expect(dialog).toHaveClass('theme-dark');
-    expect(dialog).toHaveClass('style-paper');
+    expect(dialog).toHaveClass('reader-theme-paper');
     expect(dialog).toHaveClass('width-wide');
     expect(dialog).toHaveTextContent('graph LR A-->B');
     expect(dialog?.querySelector('.mermaid-fullscreen__trigger')).toBeNull();

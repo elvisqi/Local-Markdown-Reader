@@ -1,5 +1,5 @@
 import { isReadableDocumentFile } from '../shared/fileSystem';
-import type { DocumentFileEntry, FileTreeNode } from '../shared/types';
+import type { DocumentFileEntry, FileTreeNode, LazyFileTreeNode } from '../shared/types';
 
 type FileNavigation = {
   previous: DocumentFileEntry | null;
@@ -12,6 +12,30 @@ export function selectSiblingDocumentNavigation(tree: FileTreeNode[], activePath
   }
 
   const siblings = findSiblingDocumentFiles(tree, activePath);
+  return selectAround(siblings, activePath);
+}
+
+export function selectSiblingDocumentNavigationFromLazyTree(
+  tree: LazyFileTreeNode[],
+  activePath: string | null,
+): FileNavigation {
+  if (!activePath) {
+    return emptyNavigation();
+  }
+
+  const activeDirectory = getDirectoryPath(activePath);
+  const directory = activeDirectory ? findLazyDirectory(tree, activeDirectory) : tree;
+  const siblings = directory
+    .filter(
+      (node): node is Extract<LazyFileTreeNode, { type: 'file' }> =>
+        node.type === 'file' && isReadableDocumentFile(node.name),
+    )
+    .map((node) => ({ name: node.name, path: node.path }));
+
+  return selectAround(siblings, activePath);
+}
+
+function selectAround(siblings: DocumentFileEntry[], activePath: string): FileNavigation {
   const activeIndex = siblings.findIndex((file) => file.path === activePath);
 
   if (activeIndex < 0) {
@@ -46,6 +70,25 @@ function findDirectory(nodes: FileTreeNode[], directoryPath: string): FileTreeNo
     }
 
     const nested = findDirectory(node.children, directoryPath);
+    if (nested.length) {
+      return nested;
+    }
+  }
+
+  return [];
+}
+
+function findLazyDirectory(nodes: LazyFileTreeNode[], directoryPath: string): LazyFileTreeNode[] {
+  for (const node of nodes) {
+    if (node.type !== 'directory') {
+      continue;
+    }
+
+    if (node.path === directoryPath) {
+      return node.children;
+    }
+
+    const nested = findLazyDirectory(node.children, directoryPath);
     if (nested.length) {
       return nested;
     }

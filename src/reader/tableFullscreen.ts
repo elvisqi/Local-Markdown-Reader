@@ -3,6 +3,7 @@ const TRIGGER_CLASS = 'table-fullscreen__trigger';
 const OVERLAY_CLASS = 'table-fullscreen__overlay';
 const ACTIONS_CLASS = 'table-fullscreen__actions';
 const TABLE_REGION_CLASS = 'table-fullscreen__table';
+const ROW_COUNT_CLASS = 'table-fullscreen__row-count';
 const OVERFLOWING_CLASS = 'is-overflowing';
 const CAN_SCROLL_LEFT_CLASS = 'can-scroll-left';
 const CAN_SCROLL_RIGHT_CLASS = 'can-scroll-right';
@@ -10,6 +11,7 @@ const CAN_SCROLL_RIGHT_CLASS = 'can-scroll-right';
 export function installTableFullscreen(root: ParentNode): () => void {
   const cleanups: Array<() => void> = [
     ...wrapBareTables(root),
+    ...installTableStats(root),
     ...installTableScrollHints(root),
   ];
 
@@ -69,8 +71,8 @@ function wrapBareTables(root: ParentNode): Array<() => void> {
 
     const actions = document.createElement('div');
     actions.className = ACTIONS_CLASS;
+    wrapper.append(createTableRowCountElement(), actions);
     actions.append(trigger);
-    wrapper.append(actions);
 
     cleanups.push(() => {
       wrapper.before(table);
@@ -79,6 +81,80 @@ function wrapBareTables(root: ParentNode): Array<() => void> {
   }
 
   return cleanups;
+}
+
+function installTableStats(root: ParentNode): Array<() => void> {
+  const cleanups: Array<() => void> = [];
+
+  for (const wrapper of Array.from(root.querySelectorAll<HTMLElement>(`.${WRAPPER_CLASS}`))) {
+    const table = wrapper.querySelector<HTMLTableElement>('table');
+    const actions = wrapper.querySelector<HTMLElement>(`.${ACTIONS_CLASS}`);
+    if (!table || !actions) {
+      continue;
+    }
+
+    let rowCount = wrapper.querySelector<HTMLElement>(`.${ROW_COUNT_CLASS}`);
+    const shouldRemoveRowCount = !rowCount;
+    rowCount ??= createTableRowCountElement();
+    updateTableRowCountElement(rowCount, table);
+
+    if (wrapper.firstElementChild !== rowCount) {
+      wrapper.prepend(rowCount);
+    }
+
+    if (shouldRemoveRowCount) {
+      cleanups.push(() => rowCount.remove());
+    }
+  }
+
+  return cleanups;
+}
+
+function createTableRowCountElement(): HTMLElement {
+  const element = document.createElement('span');
+  element.className = ROW_COUNT_CLASS;
+
+  return element;
+}
+
+function updateTableRowCountElement(element: HTMLElement, table: HTMLTableElement) {
+  const stats = getTableStats(table);
+  element.title = `表格共有 ${stats.rows} 行，${stats.columns} 列`;
+  element.replaceChildren(createStatLine(`${stats.rows} 行`), createStatLine(`${stats.columns} 列`));
+}
+
+function getTableStats(table: HTMLTableElement): { rows: number; columns: number } {
+  return {
+    rows: countTableBodyRows(table),
+    columns: countTableColumns(table),
+  };
+}
+
+function formatTableStats(stats: { rows: number; columns: number }): string {
+  return `${stats.rows} 行 · ${stats.columns} 列`;
+}
+
+function createStatLine(text: string): HTMLElement {
+  const line = document.createElement('span');
+  line.className = 'table-fullscreen__stat-line';
+  line.textContent = text;
+
+  return line;
+}
+
+function countTableBodyRows(table: HTMLTableElement): number {
+  const bodyRows = Array.from(table.tBodies).reduce((count, body) => count + body.rows.length, 0);
+
+  return bodyRows || table.rows.length;
+}
+
+function countTableColumns(table: HTMLTableElement): number {
+  const referenceRow = table.tHead?.rows[0] ?? table.rows[0];
+  if (!referenceRow) {
+    return 0;
+  }
+
+  return Array.from(referenceRow.cells).reduce((count, cell) => count + cell.colSpan, 0);
 }
 
 function installTableScrollHints(root: ParentNode): Array<() => void> {
@@ -122,8 +198,12 @@ function openTableOverlay(table: HTMLTableElement) {
   closeTableOverlay();
 
   const overlay = document.createElement('div');
-  const readerAppClasses = Array.from(table.closest<HTMLElement>('.reader-app')?.classList ?? ['reader-app']);
+  const readerApp = table.closest<HTMLElement>('.reader-app');
+  const readerAppClasses = Array.from(readerApp?.classList ?? ['reader-app']);
   overlay.className = [OVERLAY_CLASS, ...readerAppClasses].join(' ');
+  if (readerApp?.dataset.readerThemeId) {
+    overlay.dataset.readerThemeId = readerApp.dataset.readerThemeId;
+  }
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', '最大化表格');
@@ -135,7 +215,7 @@ function openTableOverlay(table: HTMLTableElement) {
   toolbar.className = 'table-fullscreen__toolbar';
 
   const title = document.createElement('span');
-  title.textContent = '表格';
+  title.textContent = `表格（${formatTableStats(getTableStats(table))}）`;
 
   const closeButton = document.createElement('button');
   closeButton.type = 'button';

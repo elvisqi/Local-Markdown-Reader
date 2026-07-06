@@ -1,0 +1,29 @@
+{
+  "id": "mint-brief",
+  "name": "Mint Brief",
+  "version": "1.0.0",
+  "author": "Local Markdown Reader",
+  "description": "Fresh light theme for summaries, meeting notes, and brief reports.",
+  "minAppVersion": "2.3.1",
+  "colorScheme": "light",
+  "tokens": {
+    "--markdown-font-size": "15px",
+    "--markdown-line-height": "1.64",
+    "--reader-page-bg": "#f3f8f6",
+    "--reader-surface": "#ffffff",
+    "--reader-border": "#d5e2de",
+    "--reader-text": "#20302c",
+    "--reader-muted": "#60736d",
+    "--reader-link": "#25715f",
+    "--reader-code-bg": "#eef6f3",
+    "--reader-code-text": "#243632",
+    "--reader-table-head": "#edf6f2",
+    "--reader-table-stripe": "#f7fbf9",
+    "--reader-rule": "#d4e3df",
+    "--reader-quote-bg": "#f1faf6",
+    "--reader-quote-border": "#75a99a",
+    "--reader-quote-text": "#536a63",
+    "--reader-shadow": "0 12px 26px rgba(32, 48, 44, 0.07)"
+  },
+  "css": ".document-reader table { font-variant-numeric: tabular-nums; } .document-reader th, .document-reader td { padding-top: 0.45em; padding-bottom: 0.45em; }"
+}

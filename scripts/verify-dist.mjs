@@ -75,6 +75,7 @@ async function verifyHtmlPreviewSandboxInBrowser() {
     ],
     { stdio: ['ignore', 'ignore', 'pipe'] },
   );
+  const browserExit = new Promise((resolveExit) => browser.once('exit', resolveExit));
 
   let stderr = '';
   let browserWebSocketUrl = '';
@@ -104,7 +105,7 @@ async function verifyHtmlPreviewSandboxInBrowser() {
     throw new Error(`${error instanceof Error ? error.message : String(error)}\nChrome stderr:\n${stderr}`);
   } finally {
     browser.kill('SIGTERM');
-    await new Promise((resolveExit) => browser.once('exit', resolveExit));
+    await browserExit;
     rmSync(profilePath, { recursive: true, force: true });
   }
 }

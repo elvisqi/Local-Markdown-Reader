@@ -1,0 +1,29 @@
+{
+  "id": "terminal-ink",
+  "name": "Terminal Ink",
+  "version": "1.0.0",
+  "author": "Local Markdown Reader",
+  "description": "Dark terminal-inspired document theme with practical contrast.",
+  "minAppVersion": "2.3.1",
+  "colorScheme": "dark",
+  "tokens": {
+    "--markdown-font-size": "15px",
+    "--markdown-line-height": "1.66",
+    "--reader-page-bg": "#0f1113",
+    "--reader-surface": "#181b1f",
+    "--reader-border": "#30363d",
+    "--reader-text": "#e6edf3",
+    "--reader-muted": "#9ca6b0",
+    "--reader-link": "#8bd5a7",
+    "--reader-code-bg": "#20252a",
+    "--reader-code-text": "#edf6ee",
+    "--reader-table-head": "#20262c",
+    "--reader-table-stripe": "#1b2025",
+    "--reader-rule": "#383f47",
+    "--reader-quote-bg": "#1b2420",
+    "--reader-quote-border": "#5f9f74",
+    "--reader-quote-text": "#c4d4c9",
+    "--reader-shadow": "0 16px 34px rgba(0, 0, 0, 0.34)"
+  },
+  "css": ".document-reader pre { border: 1px solid var(--reader-border); } .document-reader code { font-size: 0.94em; } .document-reader table { font-variant-numeric: tabular-nums; }"
+}

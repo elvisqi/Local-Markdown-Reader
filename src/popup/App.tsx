@@ -2,16 +2,28 @@ import { useEffect, useState } from 'react';
 
 import { clearLastDocument, loadLastDocument, type LastDocumentRecord } from '../reader/recentDocument';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
-import type { ReaderSettings, ReadingStyle, ReadingWidth, ThemePreference } from '../shared/types';
+import {
+  BUILTIN_READER_THEMES,
+  createInstalledReaderThemeId,
+  loadInstalledThemes,
+  subscribeInstalledThemes,
+} from '../shared/themes';
+import type { ColorModePreference, ReaderSettings, ReaderThemePackage, ReadingWidth } from '../shared/types';
 import './App.css';
 
 export function App() {
   const [settings, setSettings] = useState<ReaderSettings>(DEFAULT_SETTINGS);
+  const [installedThemes, setInstalledThemes] = useState<ReaderThemePackage[]>([]);
   const [lastDocument, setLastDocument] = useState<LastDocumentRecord | null>(null);
 
   useEffect(() => {
     void loadSettings().then(setSettings);
     void loadLastDocument().then(setLastDocument);
+  }, []);
+
+  useEffect(() => {
+    void loadInstalledThemes().then(setInstalledThemes);
+    return subscribeInstalledThemes(setInstalledThemes);
   }, []);
 
   async function updateSettings(next: ReaderSettings) {
@@ -56,13 +68,13 @@ export function App() {
         )}
       </section>
       <label>
-        主题
+        颜色模式
         <select
-          value={settings.reading.theme}
+          value={settings.reading.colorMode}
           onChange={(event) =>
             void updateSettings({
               ...settings,
-              reading: { ...settings.reading, theme: event.target.value as ThemePreference },
+              reading: { ...settings.reading, colorMode: event.target.value as ColorModePreference },
             })
           }
         >
@@ -89,20 +101,32 @@ export function App() {
         </select>
       </label>
       <label>
-        样式
+        阅读主题
         <select
-          value={settings.reading.style}
+          value={settings.reading.themeId}
           onChange={(event) =>
             void updateSettings({
               ...settings,
-              reading: { ...settings.reading, style: event.target.value as ReadingStyle },
+              reading: { ...settings.reading, themeId: event.target.value as ReaderSettings['reading']['themeId'] },
             })
           }
         >
-          <option value="paper">纸张</option>
-          <option value="clean">清爽文档</option>
-          <option value="github">GitHub</option>
-          <option value="classic">经典</option>
+          <optgroup label="内置">
+            {BUILTIN_READER_THEMES.map((theme) => (
+              <option key={theme.id} value={theme.id}>
+                {theme.name}
+              </option>
+            ))}
+          </optgroup>
+          {installedThemes.length ? (
+            <optgroup label="已安装">
+              {installedThemes.map((theme) => (
+                <option key={theme.id} value={createInstalledReaderThemeId(theme.id)}>
+                  {theme.name}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
         </select>
       </label>
       <label className="inline-control">

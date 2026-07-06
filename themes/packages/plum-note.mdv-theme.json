@@ -1,0 +1,29 @@
+{
+  "id": "plum-note",
+  "name": "Plum Note",
+  "version": "1.0.0",
+  "author": "Local Markdown Reader",
+  "description": "Restrained dark note theme with muted plum accents.",
+  "minAppVersion": "2.3.1",
+  "colorScheme": "dark",
+  "tokens": {
+    "--markdown-font-size": "16px",
+    "--markdown-line-height": "1.72",
+    "--reader-page-bg": "#16151b",
+    "--reader-surface": "#211f28",
+    "--reader-border": "#393342",
+    "--reader-text": "#ece7ef",
+    "--reader-muted": "#aaa0b2",
+    "--reader-link": "#d0a1c7",
+    "--reader-code-bg": "#2a2631",
+    "--reader-code-text": "#f0eaf2",
+    "--reader-table-head": "#2a2630",
+    "--reader-table-stripe": "#25222b",
+    "--reader-rule": "#40384a",
+    "--reader-quote-bg": "#282431",
+    "--reader-quote-border": "#806b8c",
+    "--reader-quote-text": "#d0c6d7",
+    "--reader-shadow": "0 18px 38px rgba(0, 0, 0, 0.3)"
+  },
+  "css": ".document-reader h1, .document-reader h2, .document-reader h3 { color: #f1ecf4; letter-spacing: 0; } .document-reader a { text-decoration-thickness: 0.08em; }"
+}

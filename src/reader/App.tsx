@@ -1,17 +1,32 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   CSSProperties,
+  DragEvent as ReactDragEvent,
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
 } from 'react';
 
-import { analyzeDocumentTree, getDocumentFileKind, selectDefaultDocument } from '../shared/fileSystem';
+import {
+  getDocumentFileKind,
+  isReadableDocumentFile,
+  selectDefaultLoadedDocument,
+  selectRememberedLoadedDocument,
+} from '../shared/fileSystem';
 import { renderHtmlDocument } from '../shared/render/html';
 import { resolveMarkdownHref } from '../shared/render/links';
 import { renderMarkdown } from '../shared/render/markdown';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, subscribeSettings } from '../shared/settings';
+import {
+  buildBuiltinThemeStylesheet,
+  buildInstalledThemeStylesheet,
+  getBuiltinReaderTheme,
+  getInstalledThemePackageId,
+  loadInstalledThemes,
+  scopeCss,
+  subscribeInstalledThemes,
+} from '../shared/themes';
 import { consumeTemporaryMarkdownDocument, type TemporaryMarkdownDocument } from '../shared/temporaryDocument';
-import type { FileTreeNode, OutlineItem, RenderResult } from '../shared/types';
+import type { LazyFileTreeNode, OutlineItem, ReaderThemePackage, RenderResult } from '../shared/types';
 import { selectActiveHeadingId } from './activeHeading';
 import {
   clearAiProjectState,
@@ -27,14 +42,18 @@ import { FileDrawer } from './components/FileDrawer';
 import { LargeDocumentReader } from './components/LargeDocumentReader';
 import { OutlinePanel } from './components/OutlinePanel';
 import { ReaderToolbar } from './components/ReaderToolbar';
-import { selectSiblingMarkdownNavigation } from './fileNavigation';
+import { selectSiblingDocumentNavigationFromLazyTree } from './fileNavigation';
 import {
+  createDocumentFileSnapshot,
+  createDirectoryScanSession,
+  hydrateDirectoryPath,
+  isStaleLoadedDirectoryError,
   openDirectory,
   openDocumentFile,
   readAssetFile,
   readDocumentFileSnapshot,
   readMarkdownFileSlice,
-  scanMarkdownDirectory,
+  type DirectoryScanSession,
   type DocumentFileSnapshot,
 } from './fileSystemAccess';
 import {
@@ -63,10 +82,21 @@ import {
   loadLastDocument,
   requestDirectoryReadPermission,
   saveLastDocument,
-  selectRememberedDocumentPath,
   type LastDocumentRecord,
 } from './recentDocument';
 import { JsonDocumentReader } from './JsonDocumentReader';
+import { YamlDocumentReader } from './YamlDocumentReader';
+import {
+  createEmptyLazyFileTree,
+  type LazyFileTreeState,
+  markDirectoryError,
+  markDirectoryLoading,
+  pruneExpandedPaths,
+  replaceDirectoryChildren,
+  selectLoadedDocumentExists,
+  setExpandedPaths as setLazyExpandedPaths,
+  upsertLoadedPath,
+} from './lazyFileTree';
 import { RenderedMarkdownContent } from './RenderedMarkdownContent';
 import { installTableFullscreen } from './tableFullscreen';
 import './App.css';
@@ -102,12 +132,13 @@ type LargeDocumentSession = {
   kind: Exclude<LargeDocumentKind, 'normal'>;
   reason: string;
   file: File;
+  documentKind: ActiveDocumentKind;
   index: LargeDocumentIndex;
   client: LargeDocumentWorkerClient;
   rememberRecord?: LastDocumentRecord;
 };
 
-type ActiveDocumentKind = 'markdown' | 'html' | 'json';
+type ActiveDocumentKind = 'markdown' | 'html' | 'json' | 'jsonl' | 'yaml';
 type FileDrawerTab = 'folder' | 'ai-projects';
 type DocumentSource =
   | { type: 'folder'; handle: FileSystemDirectoryHandle }
@@ -125,6 +156,7 @@ type ReaderHistoryState = {
 
 export function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [installedThemes, setInstalledThemes] = useState<ReaderThemePackage[]>([]);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const initialLayoutPreferences = useMemo(loadReaderLayoutPreferences, []);
   const initialPersistedOutlineWidth = useMemo(loadPersistedOutlinePanelWidth, []);
@@ -135,15 +167,13 @@ export function App() {
   const [isResizingOutlinePanel, setIsResizingOutlinePanel] = useState(false);
   const [drawerTab, setDrawerTab] = useState<FileDrawerTab>('folder');
   const [folderDirectoryHandle, setFolderDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null);
-  const [folderTree, setFolderTree] = useState<FileTreeNode[]>([]);
+  const [folderTree, setFolderTree] = useState(createEmptyLazyFileTree);
   const [folderActivePath, setFolderActivePath] = useState<string | null>(null);
-  const [folderExpandedPaths, setFolderExpandedPaths] = useState<string[]>([]);
   const [activePath, setActivePath] = useState<string | null>(null);
   const [activeAiProjectId, setActiveAiProjectId] = useState<string | null>(null);
   const [aiProjectState, setAiProjectState] = useState<AiProjectState>(EMPTY_AI_PROJECT_STATE);
-  const [aiProjectTrees, setAiProjectTrees] = useState<Record<string, FileTreeNode[]>>({});
+  const [aiProjectTrees, setAiProjectTrees] = useState<Record<string, LazyFileTreeState>>({});
   const [aiProjectActivePaths, setAiProjectActivePaths] = useState<Record<string, string | null>>({});
-  const [aiProjectExpandedPaths, setAiProjectExpandedPaths] = useState<Record<string, string[]>>({});
   const [aiProjectStatus, setAiProjectStatus] = useState<string | null>(null);
   const [activeDocumentSource, setActiveDocumentSource] = useState<DocumentSource>(null);
   const [activeDocumentKind, setActiveDocumentKind] = useState<ActiveDocumentKind>('markdown');
@@ -159,6 +189,8 @@ export function App() {
   const [largeDocument, setLargeDocument] = useState<LargeDocumentSession | null>(null);
   const [largeAnchorLine, setLargeAnchorLine] = useState(1);
   const openRequestIdRef = useRef(0);
+  const folderScanSessionRef = useRef<DirectoryScanSession | null>(null);
+  const aiProjectScanSessionsRef = useRef<Record<string, DirectoryScanSession>>({});
   const renderedContentRef = useRef<HTMLDivElement | null>(null);
   const htmlPreviewRef = useRef<HTMLIFrameElement | null>(null);
   const htmlPreviewLastRenderRef = useRef<{ key: string; target: Window | null } | null>(null);
@@ -166,17 +198,31 @@ export function App() {
   const persistedOutlineWidthRef = useRef(initialPersistedOutlineWidth);
   const [htmlPreviewLoadCount, setHtmlPreviewLoadCount] = useState(0);
   const title = useMemo(() => rendered.title ?? activePath ?? 'Markdown Reader', [activePath, rendered.title]);
+  const activeInstalledThemeId = getInstalledThemePackageId(settings.reading.themeId);
+  const activeBuiltinTheme = getBuiltinReaderTheme(settings.reading.themeId);
+  const activeThemePackage = useMemo(
+    () => installedThemes.find((theme) => theme.id === activeInstalledThemeId) ?? null,
+    [activeInstalledThemeId, installedThemes],
+  );
+  const activeThemeStylesheet = useMemo(
+    () => buildSafeReaderThemeStylesheet(activeThemePackage, activeBuiltinTheme),
+    [activeBuiltinTheme, activeThemePackage],
+  );
+  const customCssStylesheet = useMemo(
+    () => buildSafeCustomCssStylesheet(settings.rendering.customCss),
+    [settings.rendering.customCss],
+  );
   const htmlPreviewActive = activeDocumentKind === 'html' && !largeDocument && !settings.reading.rawMode;
   const outlineVisible = settings.reading.showOutline && activeDocumentKind === 'markdown';
   const activeNavigationTree = useMemo(() => {
     if (activeDocumentSource?.type === 'ai-project') {
-      return aiProjectTrees[activeDocumentSource.projectId] ?? [];
+      return aiProjectTrees[activeDocumentSource.projectId]?.nodes ?? [];
     }
 
-    return activeDocumentSource?.type === 'folder' ? folderTree : [];
-  }, [activeDocumentSource, aiProjectTrees, folderTree]);
+    return activeDocumentSource?.type === 'folder' ? folderTree.nodes : [];
+  }, [activeDocumentSource, aiProjectTrees, folderTree.nodes]);
   const fileNavigation = useMemo(
-    () => selectSiblingMarkdownNavigation(activeNavigationTree, activePath),
+    () => selectSiblingDocumentNavigationFromLazyTree(activeNavigationTree, activePath),
     [activeNavigationTree, activePath],
   );
   useEffect(() => {
@@ -218,6 +264,11 @@ export function App() {
 
   useEffect(() => {
     return subscribeSettings(setSettings);
+  }, []);
+
+  useEffect(() => {
+    void loadInstalledThemes().then(setInstalledThemes);
+    return subscribeInstalledThemes(setInstalledThemes);
   }, []);
 
   useEffect(() => {
@@ -449,7 +500,7 @@ export function App() {
   async function openFolder() {
     const requestId = beginOpenRequest();
     setError(null);
-    setStatus('请选择一个文件夹，读取其中的 Markdown、HTML 或 JSON 文件。');
+    setStatus('请选择一个文件夹，读取其中的 Markdown、HTML、JSON、JSONL 或 YAML 文件。');
 
     try {
       const handle = await openDirectory();
@@ -457,19 +508,21 @@ export function App() {
         return;
       }
 
-      const nextTree = await scanMarkdownDirectory(handle);
+      const scanSession = createDirectoryScanSession(handle);
+      const rootChildren = await scanSession.scanChildren('');
       if (!isCurrentOpenRequest(requestId)) {
         return;
       }
 
-      const defaultPath = selectDefaultDocument(nextTree);
+      const nextTree = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
+      const defaultPath = selectDefaultLoadedDocument(nextTree.nodes);
 
+      folderScanSessionRef.current = scanSession;
       setFolderDirectoryHandle(handle);
       setFolderTree(nextTree);
       setFolderActivePath(defaultPath);
-      setFolderExpandedPaths([]);
-      setDrawerOpen(false);
-      setStatus(nextTree.length ? null : '这个文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
+      setDrawerOpen(!defaultPath);
+      setStatus(nextTree.nodes.length ? null : '这个文件夹根目录没有可显示的文件或子目录。');
 
       if (defaultPath) {
         await openFile(handle, defaultPath, true, { source: { type: 'folder', handle }, requestId });
@@ -486,10 +539,36 @@ export function App() {
     }
   }
 
+  async function loadFolderDirectory(path: string) {
+    const scanSession = folderScanSessionRef.current;
+    if (!scanSession) {
+      return;
+    }
+
+    setFolderTree((current) => markDirectoryLoading(current, path));
+
+    try {
+      const children = await scanSession.scanChildren(path);
+      if (folderScanSessionRef.current !== scanSession) {
+        return;
+      }
+
+      setFolderTree((current) => replaceDirectoryChildren(current, path, children));
+    } catch (err) {
+      if (folderScanSessionRef.current !== scanSession) {
+        return;
+      }
+
+      setFolderTree((current) =>
+        markDirectoryError(current, path, err instanceof Error ? err.message : '无法读取目录。'),
+      );
+    }
+  }
+
   async function openStandaloneFile() {
     const requestId = beginOpenRequest();
     setError(null);
-    setStatus('请选择一个 Markdown、HTML 或 JSON 文件。');
+    setStatus('请选择一个 Markdown、HTML、JSON、JSONL 或 YAML 文件。');
 
     try {
       const snapshot = await openDocumentFile();
@@ -497,32 +576,7 @@ export function App() {
         return;
       }
 
-      const documentKind = getSnapshotDocumentKind(snapshot);
-      const source: DocumentSource = { type: 'standalone' };
-      setDrawerOpen(false);
-
-      if (documentKind === 'html' || documentKind === 'json') {
-        await openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
-        return;
-      }
-
-      const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
-      if (!isCurrentOpenRequest(requestId)) {
-        return;
-      }
-
-      const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
-
-      if (classification.kind !== 'normal') {
-        await openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
-          anchorLine: 1,
-          source,
-          requestId,
-        });
-        return;
-      }
-
-      await openNormalDocumentSnapshot(snapshot, 'markdown', undefined, undefined, source, requestId);
+      await openStandaloneSnapshot(snapshot, requestId);
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
         return;
@@ -536,6 +590,37 @@ export function App() {
       setStatus(null);
       setError(err instanceof Error ? err.message : '无法打开文件。');
     }
+  }
+
+  async function openStandaloneSnapshot(snapshot: DocumentFileSnapshot, requestId: number): Promise<boolean> {
+    if (!isCurrentOpenRequest(requestId)) {
+      return false;
+    }
+
+    const documentKind = getSnapshotDocumentKind(snapshot);
+    const source: DocumentSource = { type: 'standalone' };
+    setDrawerOpen(false);
+
+    if (isAlwaysNormalDocumentKind(documentKind)) {
+      return openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
+    }
+
+    const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
+    if (!isCurrentOpenRequest(requestId)) {
+      return false;
+    }
+
+    const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
+
+    if (classification.kind !== 'normal') {
+      return openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+        anchorLine: 1,
+        source,
+        requestId,
+      });
+    }
+
+    return openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
   }
 
   async function openFile(
@@ -558,7 +643,7 @@ export function App() {
       const source = options.source ?? activeDocumentSource ?? { type: 'folder', handle };
       const rememberRecord = remember ? createLastDocumentRecord(source, path) : undefined;
 
-      if (documentKind === 'html' || documentKind === 'json') {
+      if (isAlwaysNormalDocumentKind(documentKind)) {
         return openNormalDocumentSnapshot(
           snapshot,
           documentKind,
@@ -577,7 +662,7 @@ export function App() {
       const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
 
       if (classification.kind !== 'normal') {
-        return openLargeDocument(snapshot, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+        return openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
           rememberRecord,
           anchorLine: options.anchorLine ?? 1,
           source,
@@ -587,7 +672,7 @@ export function App() {
 
       return openNormalDocumentSnapshot(
         snapshot,
-        'markdown',
+        documentKind,
         rememberRecord,
         undefined,
         source,
@@ -606,6 +691,7 @@ export function App() {
 
   async function openLargeDocument(
     snapshot: DocumentFileSnapshot,
+    documentKind: ActiveDocumentKind,
     kind: Exclude<LargeDocumentKind, 'normal'>,
     reason: string,
     options: { rememberRecord?: LastDocumentRecord; anchorLine?: number; source?: DocumentSource; requestId?: number } = {},
@@ -634,12 +720,14 @@ export function App() {
     setActivePath(snapshot.path);
     updateSourceActivePath(options.source, snapshot.path);
     setActiveDocumentSource(options.source ?? null);
-    setActiveDocumentKind('markdown');
+    setActiveDocumentKind(documentKind);
     setDocumentSourceText('');
+    const largeDocumentOutline = documentKind === 'markdown' ? index.outline : [];
+    const largeDocumentTitle = documentKind === 'markdown' ? index.title ?? snapshot.path : snapshot.path;
     setRendered({
       ...EMPTY_RENDER,
-      title: index.title ?? snapshot.path,
-      outline: index.outline,
+      title: largeDocumentTitle,
+      outline: largeDocumentOutline,
       diagnostics: index.warnings.map((message) => ({ level: 'warning', message })),
     });
     setHtmlPreviewDocument(null);
@@ -649,6 +737,7 @@ export function App() {
       kind,
       reason,
       file: snapshot.file,
+      documentKind,
       index,
       client,
       rememberRecord: options.rememberRecord,
@@ -748,13 +837,15 @@ export function App() {
       return;
     }
 
-    if (!isDocumentPathInTree(activeNavigationTree, state.path)) {
+    const requestId = beginOpenRequest();
+    const documentSource = activeDocumentSource;
+    const pathAvailable = await ensureLoadedDocumentPath(documentSource, state.path, requestId);
+    if (!pathAvailable) {
       return;
     }
 
-    const requestId = beginOpenRequest();
-    const opened = await openFile(activeDocumentSource.handle, state.path, true, {
-      source: activeDocumentSource,
+    const opened = await openFile(documentSource.handle, state.path, true, {
+      source: documentSource,
       requestId,
     });
 
@@ -943,22 +1034,38 @@ export function App() {
     setStatus(`正在恢复上次文档：${record.path}`);
 
     try {
-      const nextTree = await scanMarkdownDirectory(record.directoryHandle);
-      if (!isCurrentOpenRequest(requestId)) {
-        return;
-      }
-
-      const rememberedPath = selectRememberedDocumentPath(nextTree, record.path);
       const source: DocumentSource = record.source === 'ai-project' && record.aiProjectId
         ? { type: 'ai-project', projectId: record.aiProjectId, handle: record.directoryHandle }
         : { type: 'folder', handle: record.directoryHandle };
+      let rememberedPath: string | null;
 
       if (source.type === 'ai-project') {
+        const scanSession = createDirectoryScanSession(record.directoryHandle);
+        const hydrated = await hydrateDirectoryPath(scanSession, record.path);
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
+
+        const nextTree = upsertLoadedPath(createEmptyLazyFileTree(), record.path, hydrated);
+        rememberedPath = selectRememberedLoadedDocument(nextTree.nodes, record.path);
+        aiProjectScanSessionsRef.current = {
+          ...aiProjectScanSessionsRef.current,
+          [source.projectId]: scanSession,
+        };
         setActiveAiProjectId(source.projectId);
         setAiProjectTrees((current) => ({ ...current, [source.projectId]: nextTree }));
         setAiProjectActivePaths((current) => ({ ...current, [source.projectId]: rememberedPath }));
         setDrawerTab('ai-projects');
       } else {
+        const scanSession = createDirectoryScanSession(record.directoryHandle);
+        const hydrated = await hydrateDirectoryPath(scanSession, record.path);
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
+
+        const nextTree = upsertLoadedPath(createEmptyLazyFileTree(), record.path, hydrated);
+        rememberedPath = selectRememberedLoadedDocument(nextTree.nodes, record.path);
+        folderScanSessionRef.current = scanSession;
         setFolderDirectoryHandle(record.directoryHandle);
         setFolderTree(nextTree);
         setFolderActivePath(rememberedPath);
@@ -969,7 +1076,7 @@ export function App() {
         await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path, { source, requestId });
       } else {
         clearReaderForSource(source);
-        setStatus('上次打开的文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
+        setStatus('上次打开的文件夹里没有找到 Markdown、HTML、JSON、JSONL 或 YAML 文件。');
       }
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
@@ -1029,15 +1136,37 @@ export function App() {
     setStatus('正在重载目录');
 
     try {
-      const nextTree = await scanMarkdownDirectory(folderDirectoryHandle);
-      if (!isCurrentOpenRequest(requestId)) {
-        return;
+      const directoriesToReload = [...new Set(['', ...folderTree.loadedDirectoryPaths])]
+        .sort((a, b) => selectPathDepth(a) - selectPathDepth(b));
+      const scanSession = createDirectoryScanSession(folderDirectoryHandle);
+      let nextTree = createEmptyLazyFileTree();
+
+      for (const directoryPath of directoriesToReload) {
+        let children: LazyFileTreeNode[];
+        try {
+          children = await scanSession.scanChildren(directoryPath);
+        } catch (err) {
+          if (directoryPath && isStaleLoadedDirectoryError(err)) {
+            continue;
+          }
+
+          throw err;
+        }
+
+        if (!isCurrentOpenRequest(requestId)) {
+          return;
+        }
+
+        nextTree = replaceDirectoryChildren(nextTree, directoryPath, children);
       }
 
-      const treeAnalysis = analyzeDocumentTree(nextTree, folderActivePath);
-      const activeFileExists = treeAnalysis.containsPath;
-      const fallbackPath = activeFileExists ? null : treeAnalysis.defaultPath;
+      nextTree = pruneExpandedPaths(setLazyExpandedPaths(nextTree, folderTree.expandedPaths));
+      const activeFileExists = folderActivePath
+        ? selectLoadedDocumentExists(nextTree.nodes, folderActivePath)
+        : false;
+      const fallbackPath = activeFileExists ? null : selectDefaultLoadedDocument(nextTree.nodes);
 
+      folderScanSessionRef.current = scanSession;
       setFolderTree(nextTree);
 
       if (activeFileExists) {
@@ -1057,7 +1186,7 @@ export function App() {
       if (activeDocumentSource?.type === 'folder') {
         clearReaderForSource({ type: 'folder', handle: folderDirectoryHandle });
       }
-      setStatus('这个文件夹里没有找到 Markdown、HTML 或 JSON 文件。');
+      setStatus('这个文件夹根目录没有可显示的文件或子目录。');
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
         return;
@@ -1070,9 +1199,9 @@ export function App() {
 
   async function clearAiProjects() {
     setAiProjectState(EMPTY_AI_PROJECT_STATE);
+    aiProjectScanSessionsRef.current = {};
     setAiProjectTrees({});
     setAiProjectActivePaths({});
-    setAiProjectExpandedPaths({});
     setActiveAiProjectId(null);
     setAiProjectStatus('已清空 AI 项目记录。');
     await clearAiProjectState();
@@ -1195,7 +1324,7 @@ export function App() {
         return;
       }
 
-      await activateAiProject(project, project.directoryHandle, false, requestId);
+      await reloadLoadedAiProjectTree(project, project.directoryHandle, requestId);
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
         return;
@@ -1206,17 +1335,37 @@ export function App() {
     }
   }
 
-  async function activateAiProject(
+  async function reloadLoadedAiProjectTree(
     project: AiProjectEntry,
     handle: FileSystemDirectoryHandle,
-    openDefaultFile: boolean,
     requestId: number,
   ) {
-    const nextTree = await scanMarkdownDirectory(handle);
-    if (!isCurrentOpenRequest(requestId)) {
-      return;
+    const currentTree = aiProjectTrees[project.id] ?? createEmptyLazyFileTree();
+    const directoriesToReload = [...new Set(['', ...currentTree.loadedDirectoryPaths])]
+      .sort((a, b) => selectPathDepth(a) - selectPathDepth(b));
+    const scanSession = createDirectoryScanSession(handle);
+    let nextTree = createEmptyLazyFileTree();
+
+    for (const directoryPath of directoriesToReload) {
+      let children: LazyFileTreeNode[];
+      try {
+        children = await scanSession.scanChildren(directoryPath);
+      } catch (err) {
+        if (directoryPath && isStaleLoadedDirectoryError(err)) {
+          continue;
+        }
+
+        throw err;
+      }
+
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
+      nextTree = replaceDirectoryChildren(nextTree, directoryPath, children);
     }
 
+    nextTree = pruneExpandedPaths(setLazyExpandedPaths(nextTree, currentTree.expandedPaths));
     const nextState = mergeAiProjectDirectory(aiProjectState, project, handle);
 
     setAiProjectState(nextState);
@@ -1225,16 +1374,74 @@ export function App() {
       return;
     }
 
+    aiProjectScanSessionsRef.current = {
+      ...aiProjectScanSessionsRef.current,
+      [project.id]: scanSession,
+    };
     setActiveAiProjectId(project.id);
     setAiProjectTrees((current) => ({ ...current, [project.id]: nextTree }));
     setDrawerTab('ai-projects');
     openFileDrawer();
-    setAiProjectStatus(nextTree.length ? null : '这个项目目录里没有找到 Markdown、HTML 或 JSON 文件。');
+    setAiProjectStatus(nextTree.nodes.length ? null : '这个项目根目录没有可显示的文件或子目录。');
 
     const projectActivePath = aiProjectActivePaths[project.id] ?? null;
-    const treeAnalysis = analyzeDocumentTree(nextTree, projectActivePath);
-    const activeFileExists = treeAnalysis.containsPath;
-    const defaultPath = treeAnalysis.defaultPath;
+    const activeFileExists = projectActivePath
+      ? selectLoadedDocumentExists(nextTree.nodes, projectActivePath)
+      : false;
+    const fallbackPath = activeFileExists ? null : selectDefaultLoadedDocument(nextTree.nodes);
+    const source: DocumentSource = { type: 'ai-project', projectId: project.id, handle };
+
+    if (activeFileExists) {
+      setAiProjectActivePaths((current) => ({ ...current, [project.id]: projectActivePath }));
+      setAiProjectStatus(null);
+      return;
+    }
+
+    if (fallbackPath) {
+      await openFile(handle, fallbackPath, true, { source, requestId });
+      return;
+    }
+
+    setAiProjectActivePaths((current) => ({ ...current, [project.id]: null }));
+    clearReaderForSource(source);
+  }
+
+  async function activateAiProject(
+    project: AiProjectEntry,
+    handle: FileSystemDirectoryHandle,
+    openDefaultFile: boolean,
+    requestId: number,
+  ) {
+    const scanSession = createDirectoryScanSession(handle);
+    const rootChildren = await scanSession.scanChildren('');
+    if (!isCurrentOpenRequest(requestId)) {
+      return;
+    }
+
+    const nextTree = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
+    const nextState = mergeAiProjectDirectory(aiProjectState, project, handle);
+
+    setAiProjectState(nextState);
+    await saveAiProjectState(nextState);
+    if (!isCurrentOpenRequest(requestId)) {
+      return;
+    }
+
+    aiProjectScanSessionsRef.current = {
+      ...aiProjectScanSessionsRef.current,
+      [project.id]: scanSession,
+    };
+    setActiveAiProjectId(project.id);
+    setAiProjectTrees((current) => ({ ...current, [project.id]: nextTree }));
+    setDrawerTab('ai-projects');
+    openFileDrawer();
+    setAiProjectStatus(nextTree.nodes.length ? null : '这个项目根目录没有可显示的文件或子目录。');
+
+    const projectActivePath = aiProjectActivePaths[project.id] ?? null;
+    const activeFileExists = projectActivePath
+      ? selectLoadedDocumentExists(nextTree.nodes, projectActivePath)
+      : false;
+    const defaultPath = selectDefaultLoadedDocument(nextTree.nodes);
     const source: DocumentSource = { type: 'ai-project', projectId: project.id, handle };
     const pathToOpen = activeFileExists ? projectActivePath : defaultPath;
 
@@ -1251,6 +1458,43 @@ export function App() {
     if (!defaultPath) {
       setAiProjectActivePaths((current) => ({ ...current, [project.id]: null }));
       clearReaderForSource(source);
+    }
+  }
+
+  async function loadAiProjectDirectory(project: AiProjectEntry, path: string) {
+    const scanSession = aiProjectScanSessionsRef.current[project.id];
+    if (!scanSession) {
+      return;
+    }
+
+    setAiProjectTrees((current) => ({
+      ...current,
+      [project.id]: markDirectoryLoading(current[project.id] ?? createEmptyLazyFileTree(), path),
+    }));
+
+    try {
+      const children = await scanSession.scanChildren(path);
+      if (aiProjectScanSessionsRef.current[project.id] !== scanSession) {
+        return;
+      }
+
+      setAiProjectTrees((current) => ({
+        ...current,
+        [project.id]: replaceDirectoryChildren(current[project.id] ?? createEmptyLazyFileTree(), path, children),
+      }));
+    } catch (err) {
+      if (aiProjectScanSessionsRef.current[project.id] !== scanSession) {
+        return;
+      }
+
+      setAiProjectTrees((current) => ({
+        ...current,
+        [project.id]: markDirectoryError(
+          current[project.id] ?? createEmptyLazyFileTree(),
+          path,
+          err instanceof Error ? err.message : '无法读取目录。',
+        ),
+      }));
     }
   }
 
@@ -1440,20 +1684,22 @@ export function App() {
       return;
     }
 
-    if (!isDocumentPathInTree(activeNavigationTree, path)) {
+    const requestId = beginOpenRequest();
+    const documentSource = activeDocumentSource;
+    const pathAvailable = await ensureLoadedDocumentPath(documentSource, path, requestId);
+    if (!pathAvailable) {
       return;
     }
 
-    const requestId = beginOpenRequest();
     const linkedDocumentKind = getDocumentFileKind(path);
     const previousHistoryState = createReaderHistoryState(
-      activeDocumentSource,
+      documentSource,
       activePath,
       resolveActiveDocumentHistoryHash(),
       window.scrollY,
     );
-    const opened = await openFile(activeDocumentSource.handle, path, true, {
-      source: activeDocumentSource,
+    const opened = await openFile(documentSource.handle, path, true, {
+      source: documentSource,
       requestId,
     });
 
@@ -1462,7 +1708,7 @@ export function App() {
         window.history.replaceState(previousHistoryState, '', window.location.href);
       }
 
-      const nextHistoryState = createReaderHistoryState(activeDocumentSource, path, hash, 0);
+      const nextHistoryState = createReaderHistoryState(documentSource, path, hash, 0);
       if (nextHistoryState) {
         window.history.pushState(nextHistoryState, '', window.location.href);
       }
@@ -1482,6 +1728,54 @@ export function App() {
         document.getElementById(hash)?.scrollIntoView({ block: 'start' });
         setActiveHeadingId(hash);
       });
+    }
+  }
+
+  async function ensureLoadedDocumentPath(
+    source: Exclude<DocumentSource, null | { type: 'standalone' }>,
+    path: string,
+    requestId: number,
+  ): Promise<boolean> {
+    const currentNodes = source.type === 'folder'
+      ? folderTree.nodes
+      : aiProjectTrees[source.projectId]?.nodes ?? [];
+    if (selectLoadedDocumentExists(currentNodes, path)) {
+      return true;
+    }
+
+    const scanSession = source.type === 'folder'
+      ? folderScanSessionRef.current
+      : aiProjectScanSessionsRef.current[source.projectId];
+    if (!scanSession) {
+      return false;
+    }
+
+    try {
+      const hydrated = await hydrateDirectoryPath(scanSession, path);
+      if (!isCurrentOpenRequest(requestId)) {
+        return false;
+      }
+
+      if (source.type === 'folder') {
+        const nextTree = upsertLoadedPath(folderTree, path, hydrated);
+        setFolderTree(nextTree);
+        return selectLoadedDocumentExists(nextTree.nodes, path);
+      }
+
+      const nextTree = upsertLoadedPath(aiProjectTrees[source.projectId] ?? createEmptyLazyFileTree(), path, hydrated);
+      setAiProjectTrees((current) => {
+        return {
+          ...current,
+          [source.projectId]: nextTree,
+        };
+      });
+      return selectLoadedDocumentExists(nextTree.nodes, path);
+    } catch (err) {
+      if (isStaleLoadedDirectoryError(err)) {
+        return false;
+      }
+
+      throw err;
     }
   }
 
@@ -1614,6 +1908,61 @@ export function App() {
     setOutlineWidth(nextWidths.outlineWidth);
   }
 
+  function printCurrentDocument() {
+    window.print();
+  }
+
+  function handleReaderDragOver(event: ReactDragEvent<HTMLDivElement>) {
+    const fileCount = countDraggedFiles(event.dataTransfer);
+    if (fileCount === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = fileCount === 1 ? 'copy' : 'none';
+  }
+
+  function handleReaderDrop(event: ReactDragEvent<HTMLDivElement>) {
+    const fileCount = countDraggedFiles(event.dataTransfer);
+    if (fileCount === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    const file = selectSingleDroppedFile(event.dataTransfer);
+    if (!file) {
+      setStatus(null);
+      setError('一次只能拖入一个文件。');
+      return;
+    }
+
+    void openDroppedFile(file);
+  }
+
+  async function openDroppedFile(file: File) {
+    const requestId = beginOpenRequest();
+    setError(null);
+
+    if (!isReadableDocumentFile(file.name)) {
+      setStatus(null);
+      setError('请拖入一个 Markdown、HTML、JSON、JSONL 或 YAML 文件。');
+      return;
+    }
+
+    setStatus(`正在打开 ${file.name}`);
+
+    try {
+      await openStandaloneSnapshot(createDocumentFileSnapshot(file.name, file), requestId);
+    } catch (err) {
+      if (!isCurrentOpenRequest(requestId)) {
+        return;
+      }
+
+      setStatus(null);
+      setError(err instanceof Error ? err.message : `无法打开 ${file.name}。`);
+    }
+  }
+
   const readerShellStyle = {
     '--file-drawer-width': `${drawerWidth}px`,
     '--outline-panel-width': `${outlineWidth}px`,
@@ -1621,8 +1970,18 @@ export function App() {
 
   return (
     <div
-      className={`reader-app theme-${settings.reading.theme} width-${settings.reading.width} style-${settings.reading.style}`}
+      className={[
+        'reader-app',
+        `theme-${settings.reading.colorMode}`,
+        `width-${settings.reading.width}`,
+        activeBuiltinTheme?.cssClass,
+      ].filter(Boolean).join(' ')}
+      data-reader-theme-id={settings.reading.themeId}
+      onDragOver={handleReaderDragOver}
+      onDrop={handleReaderDrop}
     >
+      {activeThemeStylesheet && <style data-reader-theme-stylesheet>{activeThemeStylesheet}</style>}
+      {customCssStylesheet && <style data-reader-custom-css>{customCssStylesheet}</style>}
       <ReaderToolbar
         title={title}
         rawMode={settings.reading.rawMode}
@@ -1632,6 +1991,7 @@ export function App() {
         nextFile={fileNavigation.next}
         onOpenPrevious={() => openSiblingFile(fileNavigation.previous?.path)}
         onOpenNext={() => openSiblingFile(fileNavigation.next?.path)}
+        onPrint={printCurrentDocument}
         onRawModeChange={(rawMode) =>
           setSettings((current) => {
             const next = { ...current, reading: { ...current.reading, rawMode } };
@@ -1646,28 +2006,32 @@ export function App() {
       >
         <FileDrawer
           open={drawerOpen}
-          tree={folderTree}
+          tree={folderTree.nodes}
           activePath={folderActivePath}
-          expandedPaths={folderExpandedPaths}
+          expandedPaths={folderTree.expandedPaths}
           activeTab={drawerTab}
           aiProjects={aiProjectState.projects}
           aiProjectSources={aiProjectState.sources}
           aiProjectTrees={aiProjectTrees}
           aiProjectActivePaths={aiProjectActivePaths}
-          aiProjectExpandedPaths={aiProjectExpandedPaths}
           aiProjectStatus={aiProjectStatus}
           activeAiProjectId={activeAiProjectId}
           onOpenFolder={openFolder}
           onReloadFolder={() => void reloadFolderTree()}
-          onFolderExpandedPathsChange={setFolderExpandedPaths}
+          onFolderExpandedPathsChange={(paths) => setFolderTree((current) => setLazyExpandedPaths(current, paths))}
+          onLoadFolderDirectory={(path) => void loadFolderDirectory(path)}
           onTabChange={changeDrawerTab}
           onOpenAiProjectSettings={() => void openAiProjectSettings()}
           onClearAiProjects={() => void clearAiProjects()}
           onOpenAiProject={(project) => void openAiProject(project)}
           onReloadAiProject={(project) => void reloadAiProject(project)}
           onAiProjectExpandedPathsChange={(project, paths) =>
-            setAiProjectExpandedPaths((current) => ({ ...current, [project.id]: paths }))
+            setAiProjectTrees((current) => ({
+              ...current,
+              [project.id]: setLazyExpandedPaths(current[project.id] ?? createEmptyLazyFileTree(), paths),
+            }))
           }
+          onLoadProjectDirectory={(project, path) => void loadAiProjectDirectory(project, path)}
           onSelectAiProjectFile={selectAiProjectFile}
           onClose={() => setDrawerOpen(false)}
           onSelect={(path) => {
@@ -1701,6 +2065,7 @@ export function App() {
                   const heading = findNearestLargeHeading(largeDocument.index.outline, line);
                   setActiveHeadingId(heading?.id ?? activeHeadingId);
                 }}
+                chunkedPreviewEnabled={largeDocument.documentKind === 'markdown'}
               />
             ) : settings.reading.rawMode ? (
               <section className="raw-source">
@@ -1723,11 +2088,18 @@ export function App() {
                 title={activePath}
                 onLoad={() => setHtmlPreviewLoadCount((count) => count + 1)}
               />
-            ) : activeDocumentKind === 'json' ? (
+            ) : activeDocumentKind === 'json' || activeDocumentKind === 'jsonl' ? (
               <JsonDocumentReader
                 source={documentSourceText}
                 fileName={activePath}
-                theme={settings.reading.theme}
+                theme={settings.reading.colorMode}
+                format={activeDocumentKind === 'jsonl' ? 'jsonl' : 'json'}
+              />
+            ) : activeDocumentKind === 'yaml' ? (
+              <YamlDocumentReader
+                source={documentSourceText}
+                fileName={activePath}
+                theme={settings.reading.colorMode}
               />
             ) : (
               <div ref={renderedContentRef}>
@@ -1740,7 +2112,7 @@ export function App() {
           ) : (
             <section className="empty-state">
               <h2>打开本地文件夹</h2>
-              <p>选择包含 Markdown、HTML 或 JSON 文件的文件夹，把它作为本地文档集阅读。</p>
+              <p>选择包含 Markdown、HTML、JSON、JSONL 或 YAML 文件的文件夹，把它作为本地文档集阅读。</p>
               {lastDocument && (
                 <p>
                   上次打开：{lastDocument.directoryName}/{lastDocument.path}
@@ -1822,19 +2194,39 @@ function flattenOutlineIds(outline: OutlineItem[]): string[] {
   return outline.flatMap((item) => [item.id, ...flattenOutlineIds(item.children)]);
 }
 
-function isDocumentPathInTree(tree: FileTreeNode[], path: string): boolean {
-  return analyzeDocumentTree(tree, path).containsPath;
+function selectPathDepth(path: string): number {
+  return path.split('/').filter(Boolean).length;
 }
 
 function selectSourceSaveName(path: string | null, kind: ActiveDocumentKind): string {
-  const fallbackName = kind === 'html' ? 'document.html' : kind === 'json' ? 'document.json' : 'document.md';
+  const fallbackName = kind === 'html'
+    ? 'document.html'
+    : kind === 'json'
+      ? 'document.json'
+      : kind === 'jsonl'
+        ? 'document.jsonl'
+        : kind === 'yaml'
+          ? 'document.yaml'
+          : 'document.md';
   const name = path?.split('/').filter(Boolean).at(-1) ?? fallbackName;
   const extensionPattern = kind === 'html'
     ? /\.(html|htm)$/i
     : kind === 'json'
       ? /\.json$/i
-      : /\.(md|markdown)$/i;
-  const extension = kind === 'html' ? '.html' : kind === 'json' ? '.json' : '.md';
+      : kind === 'jsonl'
+        ? /\.jsonl$/i
+        : kind === 'yaml'
+          ? /\.(yaml|yml)$/i
+          : /\.(md|markdown)$/i;
+  const extension = kind === 'html'
+    ? '.html'
+    : kind === 'json'
+      ? '.json'
+      : kind === 'jsonl'
+        ? '.jsonl'
+        : kind === 'yaml'
+          ? '.yaml'
+          : '.md';
 
   return extensionPattern.test(name) ? name : `${name}${extension}`;
 }
@@ -1854,6 +2246,20 @@ function getSourceSavePickerType(kind: ActiveDocumentKind): { description: strin
     };
   }
 
+  if (kind === 'jsonl') {
+    return {
+      description: 'JSONL 文件',
+      accept: { 'application/x-ndjson': ['.jsonl'] },
+    };
+  }
+
+  if (kind === 'yaml') {
+    return {
+      description: 'YAML 文件',
+      accept: { 'text/yaml': ['.yaml', '.yml'] },
+    };
+  }
+
   return {
     description: 'Markdown 文件',
     accept: { 'text/markdown': ['.md', '.markdown'] },
@@ -1865,7 +2271,11 @@ function downloadSource(source: string, filename: string, kind: ActiveDocumentKi
     ? 'text/html;charset=utf-8'
     : kind === 'json'
       ? 'application/json;charset=utf-8'
-      : 'text/markdown;charset=utf-8';
+      : kind === 'jsonl'
+        ? 'application/x-ndjson;charset=utf-8'
+        : kind === 'yaml'
+          ? 'text/yaml;charset=utf-8'
+          : 'text/markdown;charset=utf-8';
   const objectUrl = URL.createObjectURL(new Blob([source], { type }));
   const anchor = document.createElement('a');
 
@@ -2161,6 +2571,48 @@ function normalizeSidePanelWidths(
 
 function getSnapshotDocumentKind(snapshot: DocumentFileSnapshot): ActiveDocumentKind {
   return getDocumentFileKind(snapshot.path) ?? getDocumentFileKind(snapshot.name) ?? 'markdown';
+}
+
+function buildSafeReaderThemeStylesheet(
+  installedTheme: ReaderThemePackage | null,
+  builtinTheme: ReturnType<typeof getBuiltinReaderTheme>,
+): string {
+  try {
+    return installedTheme ? buildInstalledThemeStylesheet(installedTheme) : buildBuiltinThemeStylesheet(builtinTheme);
+  } catch {
+    return '';
+  }
+}
+
+function buildSafeCustomCssStylesheet(css: string): string {
+  if (!css.trim()) {
+    return '';
+  }
+
+  try {
+    return scopeCss(css, '.reader-app');
+  } catch {
+    return '';
+  }
+}
+
+function selectSingleDroppedFile(dataTransfer: DataTransfer): File | null {
+  const itemFiles = Array.from(dataTransfer.items ?? [])
+    .filter((item) => item.kind === 'file')
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => Boolean(file));
+
+  const files = itemFiles.length > 0 ? itemFiles : Array.from(dataTransfer.files ?? []);
+  return files.length === 1 ? files[0] : null;
+}
+
+function countDraggedFiles(dataTransfer: DataTransfer): number {
+  const itemCount = Array.from(dataTransfer.items ?? []).filter((item) => item.kind === 'file').length;
+  return itemCount || dataTransfer.files?.length || 0;
+}
+
+function isAlwaysNormalDocumentKind(kind: ActiveDocumentKind): boolean {
+  return kind === 'html' || kind === 'json';
 }
 
 function findLargeOutlineLine(items: LargeOutlineItem[], id: string): number | null {

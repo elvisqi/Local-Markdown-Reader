@@ -1,0 +1,710 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-06",
+  "target": {
+    "total": 100,
+    "perEcosystem": {
+      "obsidian": 50,
+      "vscode": 50
+    }
+  },
+  "sources": [
+    {
+      "id": "obsidian-community-themes",
+      "ecosystem": "obsidian",
+      "name": "Obsidian Community Themes",
+      "url": "https://community.obsidian.md/search?type=theme",
+      "selectionTarget": 50
+    },
+    {
+      "id": "vscode-marketplace-themes",
+      "ecosystem": "vscode",
+      "name": "Visual Studio Code Marketplace Themes",
+      "url": "https://marketplace.visualstudio.com/search?target=VSCode&category=Themes&sortBy=Installs",
+      "selectionTarget": 50
+    }
+  ],
+  "candidates": [
+    {
+      "id": "obsidian:minimal",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Minimal",
+      "author": "Kepano",
+      "sourceUrl": "https://github.com/kepano/obsidian-minimal",
+      "repositoryUrl": "https://github.com/kepano/obsidian-minimal",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["minimal", "writing", "customizable"],
+      "notes": "Reference candidate only; review license and avoid copying CSS directly."
+    },
+    {
+      "id": "obsidian:things",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Things",
+      "author": "Colin Eckert",
+      "sourceUrl": "https://github.com/colineckert/obsidian-things",
+      "repositoryUrl": "https://github.com/colineckert/obsidian-things",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["notes", "native", "productivity"],
+      "notes": "Reference candidate only; capture layout and readability ideas, not source CSS."
+    },
+    {
+      "id": "obsidian:anup",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "AnuPpuccin",
+      "author": "anubisnekhet",
+      "sourceUrl": "https://github.com/anubisnekhet/AnuPpuccin",
+      "repositoryUrl": "https://github.com/anubisnekhet/AnuPpuccin",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["customizable", "colorful", "notes"],
+      "notes": "Reference candidate only; review customization model and readability patterns."
+    },
+    {
+      "id": "obsidian:atom",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Atom",
+      "author": "kognise",
+      "sourceUrl": "https://github.com/kognise/obsidian-atom",
+      "repositoryUrl": "https://github.com/kognise/obsidian-atom",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["editor", "balanced", "system"],
+      "notes": "Reference candidate only; useful for editor-like reading surfaces."
+    },
+    {
+      "id": "obsidian:blue-topaz",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Blue Topaz",
+      "author": "pkm-er",
+      "sourceUrl": "https://github.com/pkm-er/Blue-Topaz_Obsidian-css",
+      "repositoryUrl": "https://github.com/pkm-er/Blue-Topaz_Obsidian-css",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["feature-rich", "notes", "system"],
+      "notes": "Reference candidate only; observe dense document affordances and theme controls."
+    },
+    {
+      "id": "obsidian:catppuccin",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Catppuccin",
+      "author": "catppuccin",
+      "sourceUrl": "https://github.com/catppuccin/obsidian",
+      "repositoryUrl": "https://github.com/catppuccin/obsidian",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["palette", "soft", "system"],
+      "notes": "Reference candidate only; review palette balance across light and dark modes."
+    },
+    {
+      "id": "obsidian:cybertron",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Cybertron",
+      "author": "nickmilo",
+      "sourceUrl": "https://github.com/nickmilo/Cybertron",
+      "repositoryUrl": "https://github.com/nickmilo/Cybertron",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "knowledge", "contrast"],
+      "notes": "Reference candidate only; use for dark knowledge-base hierarchy ideas."
+    },
+    {
+      "id": "obsidian:dracula",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Dracula for Obsidian",
+      "author": "jarodise",
+      "sourceUrl": "https://github.com/jarodise/Dracula-for-Obsidian.md",
+      "repositoryUrl": "https://github.com/jarodise/Dracula-for-Obsidian.md",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "contrast", "palette"],
+      "notes": "Reference candidate only; compare against VS Code Dracula for cross-ecosystem consistency."
+    },
+    {
+      "id": "obsidian:everforest",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Everforest",
+      "author": "0xglitchbyte",
+      "sourceUrl": "https://github.com/0xglitchbyte/obsidian_everforest",
+      "repositoryUrl": "https://github.com/0xglitchbyte/obsidian_everforest",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["green", "soft", "system"],
+      "notes": "Reference candidate only; useful for muted long-reading palettes."
+    },
+    {
+      "id": "obsidian:gitsidian",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Gitsidian",
+      "author": "ismailgunacar",
+      "sourceUrl": "https://github.com/ismailgunacar/gitsidian",
+      "repositoryUrl": "https://github.com/ismailgunacar/gitsidian",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["github", "editor", "system"],
+      "notes": "Reference candidate only; evaluate GitHub-like document rhythm."
+    },
+    {
+      "id": "obsidian:its-theme",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "ITS Theme",
+      "author": "SlRvb",
+      "sourceUrl": "https://github.com/slrvb/Obsidian--ITS-Theme",
+      "repositoryUrl": "https://github.com/slrvb/Obsidian--ITS-Theme",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["feature-rich", "notes", "system"],
+      "notes": "Reference candidate only; inspect handling of complex note layouts."
+    },
+    {
+      "id": "obsidian:moonlight",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Moonlight",
+      "author": "kartik-karz",
+      "sourceUrl": "https://github.com/kartik-karz/moonlight-obsidian",
+      "repositoryUrl": "https://github.com/kartik-karz/moonlight-obsidian",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["dark", "soft", "system"],
+      "notes": "Reference candidate only; useful for low-glare dark reading."
+    },
+    {
+      "id": "obsidian:notation",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Notation",
+      "author": "deathau",
+      "sourceUrl": "https://github.com/deathau/Notation-for-Obsidian",
+      "repositoryUrl": "https://github.com/deathau/Notation-for-Obsidian",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["notes", "paper", "system"],
+      "notes": "Reference candidate only; inspect note-taking visual metaphors."
+    },
+    {
+      "id": "obsidian:obsidian-gruvbox",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Obsidian gruvbox",
+      "author": "insanum",
+      "sourceUrl": "https://github.com/insanum/obsidian_gruvbox",
+      "repositoryUrl": "https://github.com/insanum/obsidian_gruvbox",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["gruvbox", "warm", "system"],
+      "notes": "Reference candidate only; use for warm palette comparison."
+    },
+    {
+      "id": "obsidian:obsidian-nord",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Obsidian Nord",
+      "author": "insanum",
+      "sourceUrl": "https://github.com/insanum/obsidian_nord",
+      "repositoryUrl": "https://github.com/insanum/obsidian_nord",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["nord", "cool", "system"],
+      "notes": "Reference candidate only; useful for cool low-contrast palettes."
+    },
+    {
+      "id": "obsidian:obsidianite",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Obsidianite",
+      "author": "bennyxguo",
+      "sourceUrl": "https://github.com/bennyxguo/Obsidian-Obsidianite",
+      "repositoryUrl": "https://github.com/bennyxguo/Obsidian-Obsidianite",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "contrast", "notes"],
+      "notes": "Reference candidate only; inspect dark-mode document hierarchy."
+    },
+    {
+      "id": "obsidian:primary",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Primary",
+      "author": "primary-theme",
+      "sourceUrl": "https://github.com/primary-theme/obsidian",
+      "repositoryUrl": "https://github.com/primary-theme/obsidian",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["clean", "notes", "system"],
+      "notes": "Reference candidate only; inspect clean note surfaces and spacing."
+    },
+    {
+      "id": "obsidian:prism",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Prism",
+      "author": "damiankorcz",
+      "sourceUrl": "https://github.com/damiankorcz/Prism-Theme",
+      "repositoryUrl": "https://github.com/damiankorcz/Prism-Theme",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["customizable", "colorful", "system"],
+      "notes": "Reference candidate only; review palette customization breadth."
+    },
+    {
+      "id": "obsidian:sanctum",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Sanctum",
+      "author": "jdanielmourao",
+      "sourceUrl": "https://github.com/jdanielmourao/obsidian-sanctum",
+      "repositoryUrl": "https://github.com/jdanielmourao/obsidian-sanctum",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["minimal", "notes", "system"],
+      "notes": "Reference candidate only; evaluate calm knowledge-base layouts."
+    },
+    {
+      "id": "obsidian:shimmering-focus",
+      "ecosystem": "obsidian",
+      "sourceId": "obsidian-community-themes",
+      "name": "Shimmering Focus",
+      "author": "Chris Grieser",
+      "sourceUrl": "https://github.com/chrisgrieser/shimmering-focus",
+      "repositoryUrl": "https://github.com/chrisgrieser/shimmering-focus",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["focus", "writing", "system"],
+      "notes": "Reference candidate only; useful for focused writing and reading treatment."
+    },
+    {
+      "id": "vscode:dracula",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Dracula Theme Official",
+      "author": "Dracula Theme",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=dracula-theme.theme-dracula",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=dracula-theme.theme-dracula",
+      "repositoryUrl": "https://github.com/dracula/visual-studio-code",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "contrast", "editor"],
+      "notes": "Reference candidate only; use for palette direction after license review."
+    },
+    {
+      "id": "vscode:github-theme",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "GitHub Theme",
+      "author": "GitHub",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=GitHub.github-vscode-theme",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=GitHub.github-vscode-theme",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["github", "editor", "system"],
+      "notes": "Reference candidate only; review marketplace metadata and license before adaptation."
+    },
+    {
+      "id": "vscode:andromeda",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Andromeda",
+      "author": "EliverLara",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=EliverLara.andromeda",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=EliverLara.andromeda",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "editor", "palette"],
+      "notes": "Reference candidate only; inspect dark palette and accent behavior."
+    },
+    {
+      "id": "vscode:atom-one-dark",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Atom One Dark Theme",
+      "author": "akamud",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=akamud.vscode-theme-onedark",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=akamud.vscode-theme-onedark",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "editor", "atom"],
+      "notes": "Reference candidate only; compare editor contrast for code blocks."
+    },
+    {
+      "id": "vscode:atom-one-light",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Atom One Light Theme",
+      "author": "akamud",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=akamud.vscode-theme-onelight",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=akamud.vscode-theme-onelight",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "light",
+      "tags": ["light", "editor", "atom"],
+      "notes": "Reference candidate only; useful for light editor-style reading surfaces."
+    },
+    {
+      "id": "vscode:ayu",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Ayu",
+      "author": "teabyii",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=teabyii.ayu",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=teabyii.ayu",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["editor", "soft", "system"],
+      "notes": "Reference candidate only; inspect neutral contrast across variants."
+    },
+    {
+      "id": "vscode:bearded-theme",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Bearded Theme",
+      "author": "BeardedBear",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=BeardedBear.beardedtheme",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=BeardedBear.beardedtheme",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["editor", "palette", "system"],
+      "notes": "Reference candidate only; review breadth of variants before adaptation."
+    },
+    {
+      "id": "vscode:catppuccin",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Catppuccin for VSCode",
+      "author": "Catppuccin",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=Catppuccin.catppuccin-vsc",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=Catppuccin.catppuccin-vsc",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["palette", "soft", "system"],
+      "notes": "Reference candidate only; compare with Obsidian Catppuccin."
+    },
+    {
+      "id": "vscode:cobalt2",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Cobalt2 Theme Official",
+      "author": "wesbos",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=wesbos.theme-cobalt2",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=wesbos.theme-cobalt2",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "high-contrast", "editor"],
+      "notes": "Reference candidate only; inspect strong contrast and heading emphasis."
+    },
+    {
+      "id": "vscode:community-material-theme",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Community Material Theme",
+      "author": "Equinusocio",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=Equinusocio.vsc-community-material-theme",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=Equinusocio.vsc-community-material-theme",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["material", "editor", "system"],
+      "notes": "Reference candidate only; inspect material palette treatment."
+    },
+    {
+      "id": "vscode:material-palenight",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Palenight Theme",
+      "author": "whizkydee",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=whizkydee.material-palenight-theme",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=whizkydee.material-palenight-theme",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "material", "soft"],
+      "notes": "Reference candidate only; useful for low-glare dark palette comparison."
+    },
+    {
+      "id": "vscode:monokai-pro",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Monokai Pro",
+      "author": "monokai",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=monokai.theme-monokai-pro-vscode",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=monokai.theme-monokai-pro-vscode",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "monokai", "editor"],
+      "notes": "Reference candidate only; inspect contrast and saturated accent use."
+    },
+    {
+      "id": "vscode:night-owl",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Night Owl",
+      "author": "sdras",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=sdras.night-owl",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=sdras.night-owl",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "accessibility", "editor"],
+      "notes": "Reference candidate only; inspect night reading contrast."
+    },
+    {
+      "id": "vscode:noctis",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Noctis",
+      "author": "liviuschera",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=liviuschera.noctis",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=liviuschera.noctis",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["editor", "palette", "system"],
+      "notes": "Reference candidate only; review large variant family for reader adaptation."
+    },
+    {
+      "id": "vscode:one-dark-pro",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "One Dark Pro",
+      "author": "zhuangtongfa",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=zhuangtongfa.Material-theme",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=zhuangtongfa.Material-theme",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "popular", "editor"],
+      "notes": "Reference candidate only; useful as a popular dark editor baseline."
+    },
+    {
+      "id": "vscode:one-monokai",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "One Monokai Theme",
+      "author": "azemoh",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=azemoh.one-monokai",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=azemoh.one-monokai",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "monokai", "editor"],
+      "notes": "Reference candidate only; inspect hybrid One/Monokai treatment."
+    },
+    {
+      "id": "vscode:shades-of-purple",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Shades of Purple",
+      "author": "ahmadawais",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=ahmadawais.shades-of-purple",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=ahmadawais.shades-of-purple",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "purple", "editor"],
+      "notes": "Reference candidate only; inspect saturated dark theme tradeoffs."
+    },
+    {
+      "id": "vscode:synthwave-84",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "SynthWave '84",
+      "author": "RobbOwen",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=RobbOwen.synthwave-vscode",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=RobbOwen.synthwave-vscode",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "neon", "editor"],
+      "notes": "Reference candidate only; use sparingly for accent and contrast lessons."
+    },
+    {
+      "id": "vscode:tokyo-night",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Tokyo Night",
+      "author": "enkia",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=enkia.tokyo-night",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=enkia.tokyo-night",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "dark",
+      "tags": ["dark", "soft", "editor"],
+      "notes": "Reference candidate only; inspect subdued dark editor palette."
+    },
+    {
+      "id": "vscode:winter-is-coming",
+      "ecosystem": "vscode",
+      "sourceId": "vscode-marketplace-themes",
+      "name": "Winter is Coming Theme",
+      "author": "johnpapa",
+      "sourceUrl": "https://marketplace.visualstudio.com/items?itemName=johnpapa.winteriscoming",
+      "marketplaceUrl": "https://marketplace.visualstudio.com/items?itemName=johnpapa.winteriscoming",
+      "license": {
+        "status": "needs-review"
+      },
+      "usage": "inspiration-only",
+      "reviewStatus": "candidate",
+      "colorScheme": "system",
+      "tags": ["editor", "contrast", "system"],
+      "notes": "Reference candidate only; review light and dark variants for readability."
+    }
+  ]
+}

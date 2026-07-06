@@ -18,6 +18,7 @@ describe('ReaderToolbar', () => {
         nextFile={null}
         onOpenPrevious={vi.fn()}
         onOpenNext={vi.fn()}
+        onPrint={vi.fn()}
         onRawModeChange={onRawModeChange}
       />,
     );
@@ -48,6 +49,7 @@ describe('ReaderToolbar', () => {
         nextFile={null}
         onOpenPrevious={vi.fn()}
         onOpenNext={vi.fn()}
+        onPrint={vi.fn()}
         onRawModeChange={vi.fn()}
       />,
     );
@@ -55,6 +57,30 @@ describe('ReaderToolbar', () => {
     await user.click(screen.getByRole('button', { name: '重载' }));
 
     expect(onReload).toHaveBeenCalledOnce();
+  });
+
+  it('emits print actions from the toolbar', async () => {
+    const user = userEvent.setup();
+    const onPrint = vi.fn();
+
+    render(
+      <ReaderToolbar
+        title="Document"
+        rawMode={false}
+        onToggleDrawer={vi.fn()}
+        onReload={vi.fn()}
+        previousFile={null}
+        nextFile={null}
+        onOpenPrevious={vi.fn()}
+        onOpenNext={vi.fn()}
+        onPrint={onPrint}
+        onRawModeChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: '打印' }));
+
+    expect(onPrint).toHaveBeenCalledOnce();
   });
 
   it('shows sibling file navigation with target filenames in tooltips', async () => {
@@ -72,6 +98,7 @@ describe('ReaderToolbar', () => {
         nextFile={{ name: '03-api.md', path: 'docs/03-api.md' }}
         onOpenPrevious={onOpenPrevious}
         onOpenNext={onOpenNext}
+        onPrint={vi.fn()}
         onRawModeChange={vi.fn()}
       />,
     );
@@ -100,6 +127,7 @@ describe('ReaderToolbar', () => {
         nextFile={null}
         onOpenPrevious={vi.fn()}
         onOpenNext={vi.fn()}
+        onPrint={vi.fn()}
         onRawModeChange={vi.fn()}
       />,
     );

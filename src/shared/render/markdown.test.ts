@@ -2,11 +2,14 @@ import { renderMarkdown } from './markdown';
 
 describe('renderMarkdown', () => {
   it('renders GFM tables', async () => {
-    const result = await renderMarkdown('| A | B |\n| - | - |\n| 1 | 2 |');
+    const result = await renderMarkdown('| A | B |\n| - | - |\n| 1 | 2 |\n| 3 | 4 |');
 
     expect(result.html).toContain('<table>');
     expect(result.html).toContain('class="table-fullscreen"');
     expect(result.html).toContain('class="table-fullscreen__table"');
+    expect(result.html).toContain('class="table-fullscreen__row-count"');
+    expect(result.html).toContain('2 行');
+    expect(result.html.indexOf('table-fullscreen__row-count')).toBeLessThan(result.html.indexOf('table-fullscreen__trigger'));
     expect(result.html).toContain('class="table-fullscreen__trigger"');
     expect(result.html).toContain('aria-label="最大化表格"');
   });
@@ -58,6 +61,13 @@ describe('renderMarkdown', () => {
       },
     ]);
     expect(result.html).toContain('id="intro"');
+  });
+
+  it('keeps rendered heading text from becoming a same-page link', async () => {
+    const result = await renderMarkdown('# Intro');
+
+    expect(result.html).toContain('<h1 id="intro">Intro</h1>');
+    expect(result.html).not.toContain('href="#intro"');
   });
 
   it('creates unique slugs for duplicate headings', async () => {

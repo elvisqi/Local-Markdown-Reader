@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
 
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../shared/settings';
-import type { ReaderSettings, ReadingStyle, ReadingWidth, ThemePreference } from '../shared/types';
+import type { ReaderSettings } from '../shared/types';
 import {
   authorizeAiProjectSource,
   clearAiProjectState,
   EMPTY_AI_PROJECT_STATE,
   getAiProjectProviderLabel,
   loadAiProjectState,
+  mergeAiProjectDirectory,
   rescanAiProjectSource,
   saveAiProjectState,
+  type AiProjectEntry,
   type AiProjectProvider,
   type AiProjectSourceRecord,
   type AiProjectState,
 } from '../reader/aiProjects';
+import { openDirectory } from '../reader/fileSystemAccess';
+import { ThemeSettings } from './ThemeSettings';
 import './App.css';
 
 export function App() {
@@ -67,81 +71,33 @@ export function App() {
     await clearAiProjectState();
   }
 
+  async function authorizeAiProject(project: AiProjectEntry) {
+    setAiProjectStatus(`请选择项目目录：${project.expectedPath}`);
+
+    try {
+      const handle = await openDirectory();
+      const nextState = mergeAiProjectDirectory(aiProjectState, project, handle);
+
+      setAiProjectState(nextState);
+      await saveAiProjectState(nextState);
+      setAiProjectStatus(`已授权项目：${project.name}。`);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setAiProjectStatus(null);
+        return;
+      }
+
+      setAiProjectStatus(err instanceof Error ? err.message : `无法授权项目 ${project.name}。`);
+    }
+  }
+
   return (
     <main className="options-app">
       <header>
         <h1>Markdown 阅读器设置</h1>
         {saved && <span>已保存</span>}
       </header>
-      <section>
-        <h2>阅读</h2>
-        <label>
-          阅读器主题
-          <select
-            value={settings.reading.theme}
-            onChange={(event) =>
-              void updateSettings({
-                ...settings,
-                reading: { ...settings.reading, theme: event.target.value as ThemePreference },
-              })
-            }
-          >
-            <option value="system">跟随系统</option>
-            <option value="light">浅色</option>
-            <option value="dark">深色</option>
-          </select>
-        </label>
-        <label>
-          阅读宽度
-          <select
-            value={settings.reading.width}
-            onChange={(event) =>
-              void updateSettings({
-                ...settings,
-                reading: { ...settings.reading, width: event.target.value as ReadingWidth },
-              })
-            }
-          >
-            <option value="narrow">窄</option>
-            <option value="comfortable">舒适</option>
-            <option value="wide">宽</option>
-            <option value="full">全宽</option>
-          </select>
-        </label>
-        <label>
-          阅读样式
-          <select
-            value={settings.reading.style}
-            onChange={(event) =>
-              void updateSettings({
-                ...settings,
-                reading: { ...settings.reading, style: event.target.value as ReadingStyle },
-              })
-            }
-          >
-            <option value="paper">纸张</option>
-            <option value="clean">清爽文档</option>
-            <option value="github">GitHub</option>
-            <option value="classic">经典</option>
-          </select>
-        </label>
-        <label>
-          弹窗主题
-          <select
-            value={settings.ui.popupTheme}
-            onChange={(event) =>
-              void updateSettings({
-                ...settings,
-                ui: { ...settings.ui, popupTheme: event.target.value as ThemePreference },
-              })
-            }
-          >
-            <option value="system">跟随系统</option>
-            <option value="light">浅色</option>
-            <option value="dark">深色</option>
-          </select>
-        </label>
-      </section>
+      <ThemeSettings settings={settings} onSettingsChange={updateSettings} />
       <section>
         <h2>渲染</h2>
         <Toggle
@@ -188,7 +144,7 @@ export function App() {
       <section>
         <h2>AI 项目</h2>
         <p className="options-note">
-          授权 Codex 或 Claude Code 的配置目录后，阅读器左侧 AI 项目工作台会列出可授权的项目。
+          授权 Codex 或 Claude Code 的配置目录后，在这里授权项目目录；阅读器左侧只显示已授权项目。
         </p>
         <AiProjectSourceSettings
           provider="codex"
@@ -208,6 +164,12 @@ export function App() {
             清空 AI 项目记录
           </button>
         </div>
+        {aiProjectState.projects.length ? (
+          <AiProjectList
+            projects={aiProjectState.projects}
+            onAuthorize={(project) => void authorizeAiProject(project)}
+          />
+        ) : null}
         {aiProjectStatus && <p className="options-status">{aiProjectStatus}</p>}
       </section>
       <section>
@@ -227,6 +189,33 @@ export function App() {
         </label>
       </section>
     </main>
+  );
+}
+
+function AiProjectList({
+  projects,
+  onAuthorize,
+}: {
+  projects: AiProjectEntry[];
+  onAuthorize: (project: AiProjectEntry) => void;
+}) {
+  return (
+    <ul className="ai-project-list">
+      {projects.map((project) => (
+        <li key={project.id}>
+          <div>
+            <strong>{project.directoryName ? `${project.name} · 已授权` : project.name}</strong>
+            <span>{project.expectedPath}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => onAuthorize(project)}
+          >
+            {project.directoryHandle ? `重新授权项目：${project.name}` : `授权项目：${project.name}`}
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 

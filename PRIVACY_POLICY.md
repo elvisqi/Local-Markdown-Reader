@@ -1,6 +1,6 @@
 # Privacy Policy / 隐私权政策
 
-Effective date / 生效日期: 2026-05-09
+Effective date / 生效日期: 2026-07-06
 
 Product / 产品: Local Markdown Reader / 本地 Markdown 阅读器
 
@@ -24,12 +24,14 @@ Local Markdown Reader is a local-first Chrome/Edge extension for reading Markdow
 - The extension does not collect analytics.
 - The extension does not sell personal data.
 - The extension does not transmit Markdown or HTML document contents to the developer or to a remote server.
+- The extension may fetch a remote theme catalog and theme package files from the project's GitHub Pages site when the user refreshes or installs remote themes.
 - Local folder access only occurs after the user explicitly selects a folder through the browser's folder picker.
 
 - 本扩展不需要用户账号。
 - 本扩展不收集分析统计数据。
 - 本扩展不出售个人数据。
 - 本扩展不会把 Markdown 或 HTML 文档内容传输给开发者或远程服务器。
+- 当用户刷新或安装远程主题时，本扩展可能会从项目的 GitHub Pages 站点获取主题目录和主题包文件。
 - 只有在用户通过浏览器文件夹选择器明确选择文件夹后，本扩展才会读取该本地文件夹。
 
 ## 3. Information The Extension Handles / 本扩展处理的信息
@@ -41,11 +43,13 @@ The extension may handle the following data locally in the user's browser:
 - Markdown and HTML file contents from folders explicitly selected by the user.
 - Local file and folder names needed to display the file list and current document title.
 - Reading settings, such as theme, reading width, reading style, outline visibility, and raw Markdown mode.
+- Installed theme packages and the cached remote theme catalog.
 - Last opened document state, including the selected folder handle, folder name, file path, and last updated timestamp, so the extension can restore the previous reading session when permission is still available.
 
 - 用户明确选择的文件夹中的 Markdown 和 HTML 文件内容。
 - 为展示文件列表和当前文档标题所需的本地文件名和文件夹名。
 - 阅读设置，例如主题、正文宽度、阅读样式、大纲显示状态和 Raw Markdown 模式。
+- 已安装的主题包和缓存的远程主题目录。
 - 上次打开文档的状态，包括已选择的文件夹句柄、文件夹名称、文件路径和更新时间戳，用于在浏览器仍保留授权时恢复上次阅读会话。
 
 ## 4. How Information Is Collected / 信息如何产生或读取
@@ -94,6 +98,10 @@ The extension does not include analytics tracking, advertising SDKs, remote logg
 
 本扩展不包含分析追踪、广告 SDK、远程日志、支付处理、账号登录或营销像素。
 
+When the user refreshes or installs remote themes, the extension fetches the remote theme catalog from `https://cdn.jsdelivr.net/gh/elvisqi/Local-Markdown-Reader@2.0/` and selected theme package files from `https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/`. These requests do not include Markdown or HTML document contents. Remote theme packages are verified before installation using SHA-256 hashes published in the theme catalog.
+
+当用户刷新或安装远程主题时，扩展会从 `https://cdn.jsdelivr.net/gh/elvisqi/Local-Markdown-Reader@2.0/` 获取远程主题目录，并从 `https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/` 获取用户选择的主题包文件。这些请求不会包含 Markdown 或 HTML 文档内容。远程主题包安装前会通过主题目录中发布的 SHA-256 哈希进行校验。
+
 The extension's use of information is limited to providing or improving its local document reading functionality. The extension's use of information received from Chrome APIs adheres to the Chrome Web Store User Data Policy, including the Limited Use requirements.
 
 本扩展对信息的使用仅限于提供或改进本地文档阅读功能。本扩展对从 Chrome API 获得的信息的使用遵守 Chrome Web Store User Data Policy，包括 Limited Use 要求。
@@ -111,10 +119,12 @@ The extension requests the following permissions:
 - `storage`: used to save reader settings such as theme, style, width, outline visibility, and raw Markdown mode.
 - `scripting`: used by the extension's Manifest V3 architecture when opening and coordinating extension pages.
 - `file:///*` host permission: used to support local file compatibility and allow the extension to provide a reader entry for local Markdown files. This permission does not by itself allow the extension to enumerate arbitrary local folders. Folder enumeration occurs only after the user explicitly grants folder access through the browser folder picker.
+- `https://cdn.jsdelivr.net/*` and `https://raw.githubusercontent.com/*` host permissions: used to fetch the remote theme catalog and selected remote theme packages from the project GitHub repository.
 
 - `storage`：用于保存阅读器设置，例如主题、样式、正文宽度、大纲显示状态和 Raw Markdown 模式。
 - `scripting`：用于扩展 Manifest V3 架构下打开和协调扩展页面。
 - `file:///*` 主机权限：用于支持本地文件兼容性，并为本地 Markdown 文件提供阅读入口。该权限本身不会让扩展枚举任意本地文件夹；只有用户通过浏览器文件夹选择器明确授权后，扩展才会枚举该文件夹。
+- `https://cdn.jsdelivr.net/*` 和 `https://raw.githubusercontent.com/*` 主机权限：用于从项目 GitHub 仓库获取远程主题目录和用户选择的远程主题包。
 
 ## 9. Data Retention / 数据保留
 
@@ -125,6 +135,10 @@ Markdown 和 HTML 文档内容仅在本地读取并用于展示，扩展不会�
 Reading settings are retained in browser extension storage until the user changes them, clears browser extension data, removes the extension, or resets browser profile data.
 
 阅读设置会保存在浏览器扩展存储中，直到用户修改设置、清除浏览器扩展数据、卸载扩展或重置浏览器用户资料。
+
+Installed theme packages and the cached remote theme catalog are retained in browser extension local storage until the user changes installed themes, clears browser extension data, removes the extension, or resets browser profile data.
+
+已安装主题包和缓存的远程主题目录会保存在浏览器扩展本地存储中，直到用户修改已安装主题、清除浏览器扩展数据、卸载扩展或重置浏览器用户资料。
 
 Last opened document state may be retained in browser local storage mechanisms such as IndexedDB until the user clears site/extension data, removes the extension, or the browser revokes access.
 
@@ -153,6 +167,10 @@ Users can control the extension's access and stored data in the following ways:
 The extension is designed to process Markdown and HTML documents locally in the browser. It does not transmit document contents to external servers. Access to local folders is mediated by browser permission prompts and the browser's File System Access API.
 
 本扩展设计为在浏览器本地处理 Markdown 和 HTML 文档，不会将文档内容传输到外部服务器。本地文件夹访问由浏览器权限提示和浏览器 File System Access API 管理。
+
+Remote theme packages are validated with SHA-256 hashes before installation. Users should install themes only from sources they trust because themes can change the visual presentation of rendered documents.
+
+远程主题包安装前会使用 SHA-256 哈希校验。由于主题可以改变文档渲染后的视觉呈现，用户应只安装自己信任来源的主题。
 
 No software system can guarantee absolute security. Users should only grant folder access to extensions they trust and may revoke access or remove the extension at any time through browser settings.
 

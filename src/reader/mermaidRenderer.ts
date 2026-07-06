@@ -389,8 +389,12 @@ function openMermaidOverlay(diagram: HTMLElement) {
   closeMermaidOverlay();
 
   const overlay = document.createElement('div');
-  const readerAppClasses = Array.from(diagram.closest<HTMLElement>('.reader-app')?.classList ?? ['reader-app']);
+  const readerApp = diagram.closest<HTMLElement>('.reader-app');
+  const readerAppClasses = Array.from(readerApp?.classList ?? ['reader-app']);
   overlay.className = [OVERLAY_CLASS, ...readerAppClasses].join(' ');
+  if (readerApp?.dataset.readerThemeId) {
+    overlay.dataset.readerThemeId = readerApp.dataset.readerThemeId;
+  }
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', '最大化图表');

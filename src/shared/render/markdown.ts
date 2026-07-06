@@ -1,6 +1,5 @@
 import GithubSlugger from 'github-slugger';
 import { toString } from 'mdast-util-to-string';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import rehypeSlug from 'rehype-slug';
 import rehypeStringify from 'rehype-stringify';
@@ -69,6 +68,11 @@ export async function renderMarkdown(
         ...(defaultSchema.attributes?.div ?? []),
         ['className', 'table-fullscreen', 'table-fullscreen__table', 'table-fullscreen__actions'],
       ],
+      span: [
+        ...(defaultSchema.attributes?.span ?? []),
+        ['className', 'table-fullscreen__row-count'],
+        ['title', /^表格共有 \d+ 行$/],
+      ],
       button: [
         ...(defaultSchema.attributes?.button ?? []),
         ['className', 'table-fullscreen__trigger'],
@@ -86,12 +90,6 @@ export async function renderMarkdown(
     .use(remarkMath)
     .use(remarkRehype, { allowDangerousHtml: options.allowHtml ?? false })
     .use(rehypeSlug);
-
-  if (!options.chunkMode) {
-    processor.use(rehypeAutolinkHeadings, {
-      behavior: 'wrap',
-    });
-  }
 
   const file = await processor
     .use(wrapTablesForFullscreen)
@@ -189,6 +187,8 @@ const wrapTablesForFullscreen: Plugin<[], HastRoot> = () => {
 };
 
 function createTableFullscreenWrapper(table: Element): Element {
+  const rowCount = countTableBodyRows(table);
+
   return {
     type: 'element',
     tagName: 'div',
@@ -213,6 +213,20 @@ function createTableFullscreenWrapper(table: Element): Element {
         children: [
           {
             type: 'element',
+            tagName: 'span',
+            properties: {
+              className: ['table-fullscreen__row-count'],
+              title: `表格共有 ${rowCount} 行`,
+            },
+            children: [
+              {
+                type: 'text',
+                value: `${rowCount} 行`,
+              },
+            ],
+          },
+          {
+            type: 'element',
             tagName: 'button',
             properties: {
               type: 'button',
@@ -226,6 +240,32 @@ function createTableFullscreenWrapper(table: Element): Element {
       },
     ],
   };
+}
+
+function countTableBodyRows(table: Element): number {
+  const bodyRows = table.children
+    ?.filter((child) => isElementWithTag(child, 'tbody'))
+    .flatMap((body) => body.children?.filter((child) => isElementWithTag(child, 'tr')) ?? []) ?? [];
+
+  if (bodyRows.length > 0) {
+    return bodyRows.length;
+  }
+
+  return countDescendantRows(table);
+}
+
+function countDescendantRows(node: Element): number {
+  return node.children?.reduce((count, child) => {
+    if (!isRecord(child) || child.type !== 'element') {
+      return count;
+    }
+
+    return count + (child.tagName === 'tr' ? 1 : countDescendantRows(child as Element));
+  }, 0) ?? 0;
+}
+
+function isElementWithTag(node: unknown, tagName: string): node is Element {
+  return isRecord(node) && node.type === 'element' && node.tagName === tagName;
 }
 
 function extractYamlTitle(value: string): string | null {

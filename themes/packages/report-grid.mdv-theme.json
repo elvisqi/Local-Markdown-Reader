@@ -1,0 +1,29 @@
+{
+  "id": "report-grid",
+  "name": "Report Grid",
+  "version": "1.0.0",
+  "author": "Local Markdown Reader",
+  "description": "Compact report style for tables and structured notes.",
+  "minAppVersion": "2.3.0",
+  "colorScheme": "system",
+  "tokens": {
+    "--markdown-font-size": "15px",
+    "--markdown-line-height": "1.62",
+    "--reader-page-bg": "#f6f7f9",
+    "--reader-surface": "#ffffff",
+    "--reader-border": "#d7dde5",
+    "--reader-text": "#202733",
+    "--reader-muted": "#667280",
+    "--reader-link": "#245da8",
+    "--reader-code-bg": "#eef2f6",
+    "--reader-code-text": "#243141",
+    "--reader-table-head": "#edf2f7",
+    "--reader-table-stripe": "#f8fafc",
+    "--reader-rule": "#d7dde5",
+    "--reader-quote-bg": "#f5f7fa",
+    "--reader-quote-border": "#8795a7",
+    "--reader-quote-text": "#56616f",
+    "--reader-shadow": "0 10px 24px rgba(32, 39, 51, 0.06)"
+  },
+  "css": ".document-reader table { font-variant-numeric: tabular-nums; } .document-reader th, .document-reader td { padding-top: 0.42em; padding-bottom: 0.42em; }"
+}

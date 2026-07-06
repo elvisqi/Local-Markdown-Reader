@@ -15,6 +15,7 @@ export function LargeDocumentReader({
   anchorLine,
   onNavigateLine,
   mermaidEnabled = false,
+  chunkedPreviewEnabled = true,
 }: {
   file: File;
   index: LargeDocumentIndex;
@@ -23,8 +24,9 @@ export function LargeDocumentReader({
   anchorLine: number;
   onNavigateLine: (line: number) => void;
   mermaidEnabled?: boolean;
+  chunkedPreviewEnabled?: boolean;
 }) {
-  const previewAvailable = index.size < EXTREME_MARKDOWN_BYTES;
+  const previewAvailable = chunkedPreviewEnabled && index.size < EXTREME_MARKDOWN_BYTES;
   const chunks = useMemo(() => (previewAvailable ? createMarkdownChunks(index) : []), [index, previewAvailable]);
   const [view, setView] = useState<'raw' | 'preview'>(previewAvailable ? 'preview' : 'raw');
   const [query, setQuery] = useState('');
@@ -110,19 +112,25 @@ export function LargeDocumentReader({
         <button type="button" onClick={() => void runSearch()}>
           搜索
         </button>
-        <div className="large-document-reader__view-toggle" role="tablist" aria-label="大文件视图">
-          <button type="button" aria-pressed={view === 'raw'} onClick={() => setView('raw')}>
-            原文
-          </button>
-          <button
-            type="button"
-            aria-pressed={view === 'preview'}
-            onClick={() => setView('preview')}
-            disabled={!previewAvailable}
-          >
-            分块预览
-          </button>
-        </div>
+        {chunkedPreviewEnabled ? (
+          <div className="large-document-reader__view-toggle" role="tablist" aria-label="大文件视图">
+            <button type="button" aria-pressed={view === 'raw'} onClick={() => setView('raw')}>
+              原文
+            </button>
+            <button
+              type="button"
+              aria-pressed={view === 'preview'}
+              onClick={() => setView('preview')}
+              disabled={!previewAvailable}
+            >
+              分块预览
+            </button>
+          </div>
+        ) : (
+          <div className="large-document-reader__view-toggle" role="status">
+            原文预览
+          </div>
+        )}
       </div>
 
       {status && <p className="status-note">{status}</p>}

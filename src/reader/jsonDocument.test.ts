@@ -1,4 +1,4 @@
-import { parseJsonDocument, summarizeJsonValue } from './jsonDocument';
+import { parseJsonDocument, parseJsonLinesDocument, summarizeJsonValue } from './jsonDocument';
 
 describe('jsonDocument', () => {
   it('parses JSON and summarizes its structure', () => {
@@ -47,4 +47,32 @@ describe('jsonDocument', () => {
     });
   });
 
+  it('parses JSONL into a JSON array and summarizes rows', () => {
+    const result = parseJsonLinesDocument('{"id":1,"event":"open"}\n\n{"id":2,"event":"close"}\n');
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.data).toEqual([
+      { id: 1, event: 'open' },
+      { id: 2, event: 'close' },
+    ]);
+    expect(result.summary).toMatchObject({
+      rootType: 'array',
+      topLevelEntries: 2,
+    });
+  });
+
+  it('returns the line number when JSONL parsing fails', () => {
+    const result = parseJsonLinesDocument('{"id":1}\n{"id":');
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error).toMatch(/第 2 行/);
+  });
 });

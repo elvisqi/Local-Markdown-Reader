@@ -1,4 +1,4 @@
-import type { FileTreeNode } from './types';
+import type { FileTreeNode, LazyFileTreeNode } from './types';
 import {
   analyzeDocumentTree,
   flattenDocumentFiles,
@@ -9,8 +9,12 @@ import {
   isReadableDocumentFile,
   normalizePath,
   selectDefaultDocument,
+  selectDefaultLoadedDocument,
+  selectPathAncestors,
+  selectRememberedLoadedDocument,
   shouldIgnoreDirectory,
   sortFileEntries,
+  sortLazyFileTreeNodes,
 } from './fileSystem';
 
 describe('file system helpers', () => {
@@ -40,6 +44,19 @@ describe('file system helpers', () => {
     expect(isReadableDocumentFile('data.json')).toBe(true);
     expect(getDocumentFileKind('data.json')).toBe('json');
     expect(getDocumentFileKind('DATA.JSON')).toBe('json');
+  });
+
+  it('accepts JSONL as a readable document type', () => {
+    expect(isReadableDocumentFile('events.jsonl')).toBe(true);
+    expect(getDocumentFileKind('events.jsonl')).toBe('jsonl');
+    expect(getDocumentFileKind('EVENTS.JSONL')).toBe('jsonl');
+  });
+
+  it('accepts YAML as a readable document type', () => {
+    expect(isReadableDocumentFile('config.yaml')).toBe(true);
+    expect(isReadableDocumentFile('compose.yml')).toBe(true);
+    expect(getDocumentFileKind('config.yaml')).toBe('yaml');
+    expect(getDocumentFileKind('COMPOSE.YML')).toBe('yaml');
   });
 
   it('ignores hidden and generated directories', () => {
@@ -98,12 +115,22 @@ describe('file system helpers', () => {
       { type: 'file', name: 'config.json', path: 'config.json' },
       { type: 'file', name: 'index.json', path: 'index.json' },
     ];
+    const treeWithIndexJsonl: FileTreeNode[] = [
+      { type: 'file', name: 'events.jsonl', path: 'events.jsonl' },
+      { type: 'file', name: 'index.jsonl', path: 'index.jsonl' },
+    ];
+    const treeWithIndexYaml: FileTreeNode[] = [
+      { type: 'file', name: 'config.yaml', path: 'config.yaml' },
+      { type: 'file', name: 'index.yml', path: 'index.yml' },
+    ];
 
     expect(selectDefaultDocument(treeWithReadme)).toBe('README.md');
     expect(selectDefaultDocument(treeWithReadmeHtml)).toBe('README.html');
     expect(selectDefaultDocument(treeWithIndex)).toBe('index.md');
     expect(selectDefaultDocument(treeWithIndexHtml)).toBe('index.html');
     expect(selectDefaultDocument(treeWithIndexJson)).toBe('index.json');
+    expect(selectDefaultDocument(treeWithIndexJsonl)).toBe('index.jsonl');
+    expect(selectDefaultDocument(treeWithIndexYaml)).toBe('index.yml');
     expect(selectDefaultDocument(treeNested)).toBe('docs/api.html');
   });
 
@@ -164,6 +191,7 @@ describe('file system helpers', () => {
         children: [
           { type: 'file', name: 'api.html', path: 'docs/api.html' },
           { type: 'file', name: 'data.json', path: 'docs/data.json' },
+          { type: 'file', name: 'events.jsonl', path: 'docs/events.jsonl' },
           { type: 'file', name: 'image.svg', path: 'docs/image.svg' },
         ],
       },
@@ -173,6 +201,56 @@ describe('file system helpers', () => {
       { name: 'README.md', path: 'README.md' },
       { name: 'api.html', path: 'docs/api.html' },
       { name: 'data.json', path: 'docs/data.json' },
+      { name: 'events.jsonl', path: 'docs/events.jsonl' },
     ]);
+  });
+});
+
+describe('lazy file tree helpers', () => {
+  it('selects directory ancestors for a document path', () => {
+    expect(selectPathAncestors('docs/guides/install.md')).toEqual(['docs', 'docs/guides']);
+    expect(selectPathAncestors('README.md')).toEqual([]);
+  });
+
+  it('sorts lazy directories before files using existing name collation', () => {
+    const nodes: LazyFileTreeNode[] = [
+      { id: 'z.md', type: 'file', name: 'z.md', path: 'z.md' },
+      { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+      { id: 'a.md', type: 'file', name: 'a.md', path: 'a.md' },
+    ];
+
+    expect(sortLazyFileTreeNodes(nodes).map((node) => node.name)).toEqual(['docs', 'a.md', 'z.md']);
+  });
+
+  it('selects a default file from loaded lazy nodes only', () => {
+    const nodes: LazyFileTreeNode[] = [
+      { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ];
+
+    expect(selectDefaultLoadedDocument(nodes)).toBe('README.md');
+  });
+
+  it('keeps a remembered file when that file exists in loaded lazy nodes', () => {
+    const nodes: LazyFileTreeNode[] = [
+      {
+        id: 'docs',
+        type: 'directory',
+        name: 'docs',
+        path: 'docs',
+        children: [{ id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
+        loadState: 'loaded',
+      },
+    ];
+
+    expect(selectRememberedLoadedDocument(nodes, 'docs/guide.md')).toBe('docs/guide.md');
+  });
+
+  it('falls back to the default loaded document when the remembered file is missing', () => {
+    const nodes: LazyFileTreeNode[] = [
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ];
+
+    expect(selectRememberedLoadedDocument(nodes, 'missing.md')).toBe('README.md');
   });
 });

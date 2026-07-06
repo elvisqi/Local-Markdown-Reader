@@ -1,0 +1,293 @@
+.reading-settings-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.reading-settings-grid__controls {
+  display: grid;
+  gap: 10px;
+}
+
+.theme-package-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.theme-package-actions input[type="file"] {
+  max-width: 320px;
+}
+
+.theme-package-meta {
+  margin: 10px 0 0;
+  color: #4c5968;
+  font-size: 13px;
+}
+
+.theme-catalog {
+  margin-top: 16px;
+}
+
+.theme-catalog h3 {
+  margin: 0 0 10px;
+  color: #18202a;
+  font-size: 14px;
+}
+
+.theme-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.theme-section-heading h3 {
+  margin: 0;
+}
+
+.theme-catalog-list,
+.theme-package-list {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.theme-catalog-list {
+  margin-top: 0;
+}
+
+.theme-catalog-list li,
+.theme-package-list li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e5e9ef;
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+
+.theme-catalog-list li > div:first-child,
+.theme-package-list li > div:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.theme-catalog-list strong,
+.theme-package-list strong {
+  color: #18202a;
+}
+
+.theme-package-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.theme-catalog-list .theme-package-state,
+.theme-package-list .theme-package-state {
+  padding: 1px 6px;
+  border: 1px solid #c8d3df;
+  border-radius: 999px;
+  background: #eef3f8;
+  color: #415064;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.theme-catalog-list span,
+.theme-catalog-list p,
+.theme-package-list span,
+.theme-package-list p {
+  margin: 0;
+  color: #5c6877;
+  font-size: 13px;
+}
+
+.theme-package-preview {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.theme-package-preview__summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #dfe4ea;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.theme-package-preview__summary > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.theme-package-preview__summary strong {
+  color: #18202a;
+}
+
+.theme-package-preview__summary span,
+.theme-package-preview__summary p {
+  margin: 0;
+  color: #5c6877;
+  font-size: 13px;
+}
+
+.theme-preview {
+  --markdown-font-size: 15px;
+  --markdown-line-height: 1.65;
+  --reader-page-bg: #f6f7f9;
+  --reader-surface: #ffffff;
+  --reader-border: #dfe4ea;
+  --reader-text: #18202a;
+  --reader-muted: #647282;
+  --reader-link: #175ddc;
+  --reader-code-bg: #eef2f5;
+  --reader-code-text: #243141;
+  --reader-table-head: #f8fafc;
+  --reader-table-stripe: #f6f8fa;
+  --reader-rule: #d1d9e2;
+  --reader-quote-bg: transparent;
+  --reader-quote-border: #cfd8e3;
+  --reader-quote-text: #52606d;
+  --reader-shadow: none;
+  padding: 12px;
+  border: 1px solid var(--reader-border);
+  border-radius: 8px;
+  background: var(--reader-page-bg);
+  color: var(--reader-text);
+}
+
+.theme-preview.theme-dark {
+  --reader-page-bg: #111821;
+  --reader-surface: #18212c;
+  --reader-border: #334254;
+  --reader-text: #e8eef6;
+  --reader-muted: #9aa8b7;
+  --reader-link: #8ab4ff;
+  --reader-code-bg: #243140;
+  --reader-code-text: #e6edf5;
+  --reader-table-head: #202b38;
+  --reader-table-stripe: #1d2733;
+  --reader-rule: #35465a;
+  --reader-quote-bg: #192432;
+  --reader-quote-border: #52657d;
+  --reader-quote-text: #c2ccd8;
+}
+
+.theme-preview__document {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--reader-border);
+  border-radius: 8px;
+  background: var(--reader-surface);
+  box-shadow: var(--reader-shadow);
+  color: var(--reader-text);
+  font-size: var(--markdown-font-size);
+  line-height: var(--markdown-line-height);
+}
+
+.theme-preview__document h1 {
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--reader-rule);
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.theme-preview__document p {
+  margin: 0 0 12px;
+}
+
+.theme-preview__document a {
+  color: var(--reader-link);
+}
+
+.theme-preview__document blockquote {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-left: 4px solid var(--reader-quote-border);
+  background: var(--reader-quote-bg);
+  color: var(--reader-quote-text);
+}
+
+.theme-preview__document pre {
+  overflow: auto;
+  margin: 0 0 12px;
+  padding: 10px;
+  border-radius: 6px;
+  background: var(--reader-code-bg);
+  color: var(--reader-code-text);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+}
+
+.theme-preview__document table {
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.theme-preview__document th,
+.theme-preview__document td {
+  padding: 6px 8px;
+  border: 1px solid var(--reader-border);
+  text-align: left;
+}
+
+.theme-preview__document th {
+  background: var(--reader-table-head);
+}
+
+.theme-preview__document tbody tr:nth-child(even) {
+  background: var(--reader-table-stripe);
+}
+
+@media (prefers-color-scheme: dark) {
+  .theme-preview.theme-system {
+    --reader-page-bg: #111821;
+    --reader-surface: #18212c;
+    --reader-border: #334254;
+    --reader-text: #e8eef6;
+    --reader-muted: #9aa8b7;
+    --reader-link: #8ab4ff;
+    --reader-code-bg: #243140;
+    --reader-code-text: #e6edf5;
+    --reader-table-head: #202b38;
+    --reader-table-stripe: #1d2733;
+    --reader-rule: #35465a;
+    --reader-quote-bg: #192432;
+    --reader-quote-border: #52657d;
+    --reader-quote-text: #c2ccd8;
+  }
+}
+
+@media (max-width: 760px) {
+  .reading-settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .theme-catalog-list li,
+  .theme-package-list li,
+  .theme-package-preview__summary {
+    display: grid;
+  }
+}

@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type { FileTreeNode } from '../shared/types';
+import type { FileTreeNode, LazyFileTreeNode } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/settings';
 import { App } from './App';
 import * as aiProjects from './aiProjects';
@@ -13,6 +13,8 @@ vi.mock('./fileSystemAccess', async () => {
 
   return {
     ...actual,
+    createDirectoryScanSession: vi.fn(),
+    hydrateDirectoryPath: vi.fn(),
     openDirectory: vi.fn(),
     openDocumentFile: vi.fn(),
     openMarkdownFile: vi.fn(),
@@ -53,6 +55,7 @@ vi.mock('./aiProjects', async () => {
   return {
     ...actual,
     loadAiProjectState: vi.fn(async () => ({ sources: {}, projects: [] })),
+    requestAiProjectDirectoryPermission: vi.fn(async () => true),
     saveAiProjectState: vi.fn(async () => undefined),
   };
 });
@@ -75,6 +78,53 @@ vi.mock('./mermaidRenderer', () => ({
 
 function isTestReaderHistoryState(value: unknown): value is { path: string; hash?: string } {
   return Boolean(value && typeof value === 'object' && (value as { marker?: unknown }).marker === 'local-markdown-reader');
+}
+
+function toLoadedLazyFileTree(nodes: FileTreeNode[]): LazyFileTreeNode[] {
+  return nodes.map((node) => {
+    if (node.type === 'file') {
+      return {
+        id: node.path,
+        type: 'file',
+        name: node.name,
+        path: node.path,
+      };
+    }
+
+    return {
+      id: node.path,
+      type: 'directory',
+      name: node.name,
+      path: node.path,
+      loadState: 'loaded',
+      children: toLoadedLazyFileTree(node.children),
+    };
+  });
+}
+
+function toHydratedLazySegments(nodes: FileTreeNode[], documentPath: string): Array<{ path: string; children: LazyFileTreeNode[] }> {
+  const parts = documentPath.split('/').filter(Boolean);
+  const segments: Array<{ path: string; children: LazyFileTreeNode[] }> = [
+    { path: '', children: toLoadedLazyFileTree(nodes) },
+  ];
+  let currentNodes = nodes;
+  const currentPath: string[] = [];
+
+  for (const part of parts.slice(0, -1)) {
+    currentPath.push(part);
+    const directory = currentNodes.find((node) => node.type === 'directory' && node.name === part);
+    if (!directory || directory.type !== 'directory') {
+      break;
+    }
+
+    currentNodes = directory.children;
+    segments.push({
+      path: currentPath.join('/'),
+      children: toLoadedLazyFileTree(currentNodes),
+    });
+  }
+
+  return segments;
 }
 
 describe('App file navigation and drawer behavior', () => {
@@ -107,6 +157,18 @@ describe('App file navigation and drawer behavior', () => {
     URL.revokeObjectURL = vi.fn();
     vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(tree);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockImplementation((handle) => ({
+      scanChildren: vi.fn(async (path) => {
+        if (path) {
+          return [];
+        }
+
+        return toLoadedLazyFileTree(await fileSystemAccess.scanMarkdownDirectory(handle));
+      }),
+    }));
+    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockImplementation(async (_scanSession, path) =>
+      toHydratedLazySegments(await fileSystemAccess.scanMarkdownDirectory(directoryHandle), path),
+    );
     vi.mocked(fileSystemAccess.readDocumentFile).mockImplementation(async (_handle, path) => `# ${path}`);
     vi.mocked(fileSystemAccess.readAssetFile).mockResolvedValue(null);
     vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
@@ -151,6 +213,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(null);
     vi.mocked(recentDocument.saveLastDocument).mockResolvedValue(undefined);
     vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({ sources: {}, projects: [] });
+    vi.mocked(aiProjects.requestAiProjectDirectoryPermission).mockResolvedValue(true);
     vi.mocked(aiProjects.saveAiProjectState).mockResolvedValue(undefined);
     vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue(null);
   });
@@ -191,6 +254,20 @@ describe('App file navigation and drawer behavior', () => {
       ) as { html?: string } | undefined;
 
     expect(renderPayload?.html).toContain(`data-reader-link-id="${linkId}"`);
+  }
+
+  function getDrawerFileItem(name: string, drawer = screen.getByLabelText('文件列表')): HTMLElement {
+    const drawerQueries = within(drawer);
+    return drawerQueries.queryByRole('treeitem', { name }) ?? drawerQueries.getByRole('button', { name });
+  }
+
+  function queryDrawerFileItem(name: string, drawer = screen.queryByLabelText('文件列表')): HTMLElement | null {
+    if (!drawer) {
+      return null;
+    }
+
+    const drawerQueries = within(drawer);
+    return drawerQueries.queryByRole('treeitem', { name }) ?? drawerQueries.queryByRole('button', { name });
   }
 
   it('restores drawer open state and width from local layout preferences without live cross-tab updates', async () => {
@@ -394,6 +471,93 @@ describe('App file navigation and drawer behavior', () => {
     });
   });
 
+  it('opens a folder by scanning only root children', async () => {
+    const user = userEvent.setup();
+    const directoryHandle = { kind: 'directory', name: 'Docs' } as FileSystemDirectoryHandle;
+    const scanChildren = vi.fn().mockResolvedValue([
+      { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ]);
+    vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue({ scanChildren });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: /打开文件夹/ }));
+
+    expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(directoryHandle);
+    expect(scanChildren).toHaveBeenCalledWith('');
+    expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
+  });
+
+  it('loads a folder branch when the user expands it', async () => {
+    const user = userEvent.setup();
+    const directoryHandle = { kind: 'directory', name: 'Docs' } as FileSystemDirectoryHandle;
+    const scanChildren = vi.fn()
+      .mockResolvedValueOnce([
+        { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+      ])
+      .mockResolvedValueOnce([
+        { id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' },
+      ]);
+    vi.mocked(fileSystemAccess.openDirectory).mockResolvedValue(directoryHandle);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue({ scanChildren });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: /打开文件夹/ }));
+    await user.click(await screen.findByRole('treeitem', { name: 'docs' }));
+
+    expect(scanChildren).toHaveBeenLastCalledWith('docs');
+    expect(await screen.findByRole('treeitem', { name: 'guide.md' })).toBeInTheDocument();
+  });
+
+  it('restores the remembered folder document without recursively scanning the full directory', async () => {
+    const record = {
+      directoryHandle: { kind: 'directory', name: 'Docs' } as FileSystemDirectoryHandle,
+      directoryName: 'Docs',
+      path: 'docs/guides/install.md',
+      updatedAt: Date.now(),
+      source: 'folder' as const,
+    };
+    const scanSession = { scanChildren: vi.fn() };
+    const file = new File(['# Install'], 'install.md', { type: 'text/markdown' });
+    vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(record);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue(scanSession);
+    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockResolvedValue([
+      {
+        path: '',
+        children: [{ id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'loaded' }],
+      },
+      {
+        path: 'docs',
+        children: [{ id: 'docs/guides', type: 'directory', name: 'guides', path: 'docs/guides', children: [], loadState: 'loaded' }],
+      },
+      {
+        path: 'docs/guides',
+        children: [{ id: 'docs/guides/install.md', type: 'file', name: 'install.md', path: 'docs/guides/install.md' }],
+      },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'docs/guides/install.md',
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+      file,
+    });
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Install' })).not.toHaveLength(0));
+
+    expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(record.directoryHandle);
+    expect(fileSystemAccess.hydrateDirectoryPath).toHaveBeenCalledWith(scanSession, 'docs/guides/install.md');
+    expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
+  });
+
   it('falls back to the default drawer layout when local layout preferences are malformed', async () => {
     const user = userEvent.setup();
 
@@ -571,6 +735,84 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
   });
 
+  it('prints the current reader content from the toolbar', async () => {
+    const user = userEvent.setup();
+    const print = vi.fn();
+    vi.stubGlobal('print', print);
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '打印' }));
+
+    expect(print).toHaveBeenCalledOnce();
+  });
+
+  it('opens a single dropped Markdown file as a standalone document', async () => {
+    const droppedFile = new File(['# Dropped document'], 'dropped.md', { type: 'text/markdown' });
+
+    render(<App />);
+
+    fireEvent.drop(screen.getByText('打开本地文件夹').closest('.reader-app')!, {
+      dataTransfer: {
+        files: [droppedFile],
+        items: [
+          {
+            kind: 'file',
+            getAsFile: () => droppedFile,
+          },
+        ],
+      },
+    });
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Dropped document' })).toBeInTheDocument());
+    expect(recentDocument.saveLastDocument).not.toHaveBeenCalled();
+  });
+
+  it('shows an error when a dropped file is not a readable document', async () => {
+    const droppedFile = new File(['not a document'], 'image.png', { type: 'image/png' });
+
+    render(<App />);
+
+    fireEvent.drop(screen.getByText('打开本地文件夹').closest('.reader-app')!, {
+      dataTransfer: {
+        files: [droppedFile],
+        items: [
+          {
+            kind: 'file',
+            getAsFile: () => droppedFile,
+          },
+        ],
+      },
+    });
+
+    await waitFor(() => expect(screen.getByText('请拖入一个 Markdown、HTML、JSON、JSONL 或 YAML 文件。')).toBeInTheDocument());
+  });
+
+  it('shows an error when multiple files are dropped together', async () => {
+    const firstFile = new File(['# One'], 'one.md', { type: 'text/markdown' });
+    const secondFile = new File(['# Two'], 'two.md', { type: 'text/markdown' });
+
+    render(<App />);
+
+    fireEvent.drop(screen.getByText('打开本地文件夹').closest('.reader-app')!, {
+      dataTransfer: {
+        files: [firstFile, secondFile],
+        items: [
+          {
+            kind: 'file',
+            getAsFile: () => firstFile,
+          },
+          {
+            kind: 'file',
+            getAsFile: () => secondFile,
+          },
+        ],
+      },
+    });
+
+    await waitFor(() => expect(screen.getByText('一次只能拖入一个文件。')).toBeInTheDocument());
+  });
+
   it('opens relative document links inside rendered Markdown using the authorized folder', async () => {
     const user = userEvent.setup();
     const pushStateSpy = vi.spyOn(window.history, 'pushState');
@@ -640,6 +882,91 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'start' }));
   });
 
+  it('opens relative document links into unloaded lazy branches by hydrating the target path', async () => {
+    const user = userEvent.setup();
+    const scanSession = {
+      scanChildren: vi.fn(async (path: string) => {
+        if (path === '') {
+          return [
+            { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+            {
+              id: 'references',
+              type: 'directory',
+              name: 'references',
+              path: 'references',
+              children: [],
+              loadState: 'unloaded',
+            },
+          ] satisfies LazyFileTreeNode[];
+        }
+
+        if (path === 'docs') {
+          return [
+            { id: 'docs/01-intro.md', type: 'file', name: '01-intro.md', path: 'docs/01-intro.md' },
+          ] satisfies LazyFileTreeNode[];
+        }
+
+        if (path === 'references') {
+          return [
+            { id: 'references/guide.md', type: 'file', name: 'guide.md', path: 'references/guide.md' },
+          ] satisfies LazyFileTreeNode[];
+        }
+
+        return [];
+      }),
+    };
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue(scanSession);
+    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockImplementation(async (_scanSession, path) => [
+      {
+        path: '',
+        children: [
+          { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+          {
+            id: 'references',
+            type: 'directory',
+            name: 'references',
+            path: 'references',
+            children: [],
+            loadState: 'unloaded',
+          },
+        ],
+      },
+      {
+        path: path.split('/').slice(0, -1).join('/'),
+        children: [{ id: path, type: 'file', name: path.split('/').at(-1) ?? path, path }],
+      },
+    ] satisfies Array<{ path: string; children: LazyFileTreeNode[] }>);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const source = path === 'docs/01-intro.md'
+        ? '# Intro\n\n[Guide](../references/guide.md#target)'
+        : '# Guide\n\n## Target';
+      const file = new File([source], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await user.click(await screen.findByRole('treeitem', { name: 'docs' }));
+    await user.click(await screen.findByRole('treeitem', { name: '01-intro.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Intro' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('link', { name: 'Guide' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'Guide' })).not.toHaveLength(0));
+    expect(fileSystemAccess.hydrateDirectoryPath).toHaveBeenCalledWith(scanSession, 'references/guide.md');
+    expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(directoryHandle, 'references/guide.md');
+    await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'start' }));
+  });
+
   it('preserves the current Markdown anchor when pushing a linked document into history', async () => {
     const user = userEvent.setup();
     const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
@@ -651,7 +978,7 @@ describe('App file navigation and drawer behavior', () => {
     vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(linkTree);
     vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
       const source = path === 'intro.md'
-        ? '# Intro\n\n## Details\n\n[Next](next.md)'
+        ? '# Intro\n\n[Details](#details)\n\n## Details\n\n[Next](next.md)'
         : '# Next';
       const file = new File([source], path, { type: 'text/markdown' });
       return {
@@ -855,12 +1182,12 @@ describe('App file navigation and drawer behavior', () => {
 
     await user.click(screen.getByRole('button', { name: '文件' }));
 
-    expect(screen.getByRole('button', { name: '02-design.md' })).toBeInTheDocument();
+    expect(getDrawerFileItem('02-design.md')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '02-design.md' }));
+    await user.click(getDrawerFileItem('02-design.md'));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/02-design.md' })).not.toHaveLength(0));
-    expect(screen.getByRole('button', { name: '02-design.md' })).toBeInTheDocument();
+    expect(getDrawerFileItem('02-design.md')).toBeInTheDocument();
   });
 
   it('opens sibling files with left and right arrow keys outside editable controls', async () => {
@@ -943,10 +1270,43 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '重载目录' }));
 
     await waitFor(() =>
-      expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '04-new.md' })).toBeInTheDocument(),
+      expect(getDrawerFileItem('04-new.md')).toBeInTheDocument(),
     );
     expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0);
     expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledTimes(2);
+  });
+
+  it('opens an AI project by loading only the project root directory', async () => {
+    const user = userEvent.setup();
+    const projectHandle = { kind: 'directory', name: 'AI Docs' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'project-1',
+      provider: 'codex' as const,
+      name: 'AI Docs',
+      expectedPath: '/AI Docs',
+      directoryHandle: projectHandle,
+      directoryName: 'AI Docs',
+      discoveredAt: 1,
+    };
+    const scanChildren = vi.fn().mockResolvedValue([
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ]);
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      projects: [project],
+      sources: {},
+    });
+    vi.mocked(aiProjects.requestAiProjectDirectoryPermission).mockResolvedValue(true);
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockReturnValue({ scanChildren });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(screen.getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/AI Docs'));
+
+    expect(fileSystemAccess.createDirectoryScanSession).toHaveBeenCalledWith(projectHandle);
+    expect(scanChildren).toHaveBeenCalledWith('');
+    expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
   });
 
   it('opens AI project directories inline in the AI project workspace', async () => {
@@ -1004,15 +1364,100 @@ describe('App file navigation and drawer behavior', () => {
 
     const drawer = screen.getByLabelText('文件列表');
     await waitFor(() =>
-      expect(within(drawer).getByRole('button', { name: 'README.md' })).toHaveAttribute('aria-current', 'page'),
+      expect(getDrawerFileItem('README.md', drawer)).toHaveAttribute('aria-current', 'page'),
     );
     expect(drawer).toBeInTheDocument();
 
     await user.click(within(drawer).getByText('docs'));
-    await user.click(within(drawer).getByRole('button', { name: 'guide.md' }));
+    await user.click(getDrawerFileItem('guide.md', drawer));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0));
     expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(projectHandle, 'docs/guide.md');
+  });
+
+  it('reloads an AI project while preserving loaded branches and the active nested file', async () => {
+    const user = userEvent.setup();
+    const projectHandle = { kind: 'directory', name: 'md-viewer' } as FileSystemDirectoryHandle;
+    const project = {
+      id: 'codex:/Users/qiyu/Github/md-viewer',
+      provider: 'codex' as const,
+      name: 'md-viewer',
+      expectedPath: '/Users/qiyu/Github/md-viewer',
+      discoveredAt: 123,
+      directoryHandle: projectHandle,
+      directoryName: 'md-viewer',
+    };
+    const initialScanChildren = vi.fn(async (path: string) => {
+      if (path === '') {
+        return [
+          { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+          { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+        ] satisfies LazyFileTreeNode[];
+      }
+
+      if (path === 'docs') {
+        return [
+          { id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' },
+        ] satisfies LazyFileTreeNode[];
+      }
+
+      return [];
+    });
+    const reloadScanChildren = vi.fn(async (path: string) => {
+      if (path === '') {
+        return [
+          { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+          { id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' },
+        ] satisfies LazyFileTreeNode[];
+      }
+
+      if (path === 'docs') {
+        return [
+          { id: 'docs/guide.md', type: 'file', name: 'guide.md', path: 'docs/guide.md' },
+          { id: 'docs/new.md', type: 'file', name: 'new.md', path: 'docs/new.md' },
+        ] satisfies LazyFileTreeNode[];
+      }
+
+      return [];
+    });
+
+    vi.mocked(aiProjects.loadAiProjectState).mockResolvedValue({
+      sources: {},
+      projects: [project],
+    });
+    let scanSessionCreationCount = 0;
+    vi.mocked(fileSystemAccess.createDirectoryScanSession).mockImplementation(() => {
+      scanSessionCreationCount += 1;
+      return { scanChildren: scanSessionCreationCount === 1 ? initialScanChildren : reloadScanChildren };
+    });
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = new File([`# ${path}`], path.split('/').at(-1) ?? path, { type: 'text/markdown' });
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(screen.getByRole('tab', { name: 'AI 项目' }));
+    await user.click(await screen.findByTitle('/Users/qiyu/Github/md-viewer'));
+    await user.click(await screen.findByRole('treeitem', { name: 'docs' }));
+    await user.click(await screen.findByRole('treeitem', { name: 'guide.md' }));
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0));
+
+    await user.click(screen.getByRole('button', { name: '重载当前' }));
+
+    await waitFor(() => expect(getDrawerFileItem('new.md')).toBeInTheDocument());
+    expect(getDrawerFileItem('guide.md')).toHaveAttribute('aria-current', 'page');
+    expect(screen.getAllByRole('heading', { name: 'docs/guide.md' })).not.toHaveLength(0);
+    expect(reloadScanChildren).toHaveBeenCalledWith('');
+    expect(reloadScanChildren).toHaveBeenCalledWith('docs');
   });
 
   it('keeps previously opened AI project trees visible after opening another project', async () => {
@@ -1062,13 +1507,13 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(screen.getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/alpha'));
-    await waitFor(() => expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'alpha.md' })).toBeInTheDocument());
+    await waitFor(() => expect(getDrawerFileItem('alpha.md')).toBeInTheDocument());
 
     await user.click(screen.getByTitle('/Users/qiyu/Github/beta'));
 
     const drawer = screen.getByLabelText('文件列表');
-    await waitFor(() => expect(within(drawer).getByRole('button', { name: 'beta.md' })).toBeInTheDocument());
-    expect(within(drawer).getByRole('button', { name: 'alpha.md' })).toBeInTheDocument();
+    await waitFor(() => expect(getDrawerFileItem('beta.md', drawer)).toBeInTheDocument());
+    expect(getDrawerFileItem('alpha.md', drawer)).toBeInTheDocument();
   });
 
   it('keeps folder and AI project reading sessions independent when switching tabs', async () => {
@@ -1119,29 +1564,29 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' }));
+    await user.click(getDrawerFileItem('folder-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
 
     const folderDrawer = screen.getByLabelText('文件列表');
-    expect(within(folderDrawer).getByRole('button', { name: 'folder-a.md' })).toBeInTheDocument();
-    expect(within(folderDrawer).getByRole('button', { name: 'folder-b.md' })).toHaveAttribute('aria-current', 'page');
-    expect(within(folderDrawer).queryByRole('button', { name: 'project-a.md' })).not.toBeInTheDocument();
+    expect(getDrawerFileItem('folder-a.md', folderDrawer)).toBeInTheDocument();
+    expect(getDrawerFileItem('folder-b.md', folderDrawer)).toHaveAttribute('aria-current', 'page');
+    expect(queryDrawerFileItem('project-a.md', folderDrawer)).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
 
     await user.click(within(folderDrawer).getByRole('tab', { name: 'AI 项目' }));
 
     const aiDrawer = screen.getByLabelText('文件列表');
-    expect(within(aiDrawer).getByRole('button', { name: 'project-a.md' })).toBeInTheDocument();
-    expect(within(aiDrawer).getByRole('button', { name: 'project-b.md' })).toHaveAttribute('aria-current', 'page');
-    expect(within(aiDrawer).queryByRole('button', { name: 'folder-a.md' })).not.toBeInTheDocument();
+    expect(getDrawerFileItem('project-a.md', aiDrawer)).toBeInTheDocument();
+    expect(getDrawerFileItem('project-b.md', aiDrawer)).toHaveAttribute('aria-current', 'page');
+    expect(queryDrawerFileItem('folder-a.md', aiDrawer)).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
     expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(projectHandle, 'project-b.md');
   });
@@ -1197,7 +1642,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
@@ -1208,7 +1653,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('project-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -1254,7 +1699,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'README.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByTitle('/Users/qiyu/Github/ai-docs'));
@@ -1380,7 +1825,7 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(resolveNormalSample).toBeTypeOf('function'));
 
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'z-big.md' }));
+    await user.click(getDrawerFileItem('z-big.md'));
     await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
 
     const finishNormalSample = resolveNormalSample as ((source: string) => void) | null;
@@ -1677,7 +2122,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/empty-ai-docs'));
 
-    await waitFor(() => expect(screen.getByText('这个项目目录里没有找到 Markdown、HTML 或 JSON 文件。')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('这个项目根目录没有可显示的文件或子目录。')).toBeInTheDocument());
     expect(screen.queryAllByRole('heading', { name: 'docs/01-intro.md' })).toHaveLength(0);
     expect(screen.getByRole('heading', { name: '打开本地文件夹' })).toBeInTheDocument();
   });
@@ -1751,24 +2196,24 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-docs/folder-a.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-notes' }));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-notes' })).toHaveAttribute('aria-expanded', 'true');
+    await user.click(getDrawerFileItem('folder-notes'));
+    expect(getDrawerFileItem('folder-notes')).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-docs/project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-notes' }));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-notes' })).toHaveAttribute('aria-expanded', 'true');
+    await user.click(getDrawerFileItem('project-notes'));
+    expect(getDrawerFileItem('project-notes')).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-docs/folder-a.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-notes' })).toHaveAttribute('aria-expanded', 'true');
+    expect(getDrawerFileItem('folder-notes')).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-docs/project-a.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-notes' })).toHaveAttribute('aria-expanded', 'true');
+    expect(getDrawerFileItem('project-notes')).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('opens HTML files from the authorized folder in a raw iframe preview with scripts enabled', async () => {
@@ -1805,7 +2250,7 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'README.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'report.html' }));
+    await user.click(getDrawerFileItem('report.html'));
 
     const preview = await screen.findByTitle('HTML 预览：report.html');
     expect(preview).toBeInstanceOf(HTMLIFrameElement);
@@ -2356,7 +2801,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '项目总览.html' }));
+    await user.click(getDrawerFileItem('项目总览.html'));
     const sourcePreview = await screen.findByTitle('HTML 预览：项目总览.html') as HTMLIFrameElement;
     const sourcePostMessage = vi.fn();
     const sourceFrameWindow = {
@@ -2400,7 +2845,7 @@ describe('App file navigation and drawer behavior', () => {
       value: targetFrameWindow,
     });
     expect(fileSystemAccess.readDocumentFileSnapshot).toHaveBeenLastCalledWith(directoryHandle, '当前有效资产清单.html');
-    expect(screen.getByRole('button', { name: '当前有效资产清单.html' })).toHaveAttribute('aria-current', 'page');
+    expect(getDrawerFileItem('当前有效资产清单.html')).toHaveAttribute('aria-current', 'page');
     expect(pushStateSpy).toHaveBeenCalled();
     const linkedDocumentState = pushStateSpy.mock.calls
       .map(([state]) => state)
@@ -2481,7 +2926,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '项目总览.html' }));
+    await user.click(getDrawerFileItem('项目总览.html'));
     await waitFor(() => expect(screen.getByTitle('HTML 预览：项目总览.html')).toBeInTheDocument());
 
     vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockClear();
@@ -2525,7 +2970,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '项目总览.html' }));
+    await user.click(getDrawerFileItem('项目总览.html'));
     const sourcePreview = await screen.findByTitle('HTML 预览：项目总览.html') as HTMLIFrameElement;
 
     await user.click(screen.getByLabelText('原文'));
@@ -2574,7 +3019,7 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(screen.getByRole('button', { name: '文件' }));
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '项目总览.html' }));
+    await user.click(getDrawerFileItem('项目总览.html'));
     const sourcePreview = await screen.findByTitle('HTML 预览：项目总览.html') as HTMLIFrameElement;
     const sourcePostMessage = vi.fn();
     const sourceFrameWindow = {
@@ -2641,7 +3086,7 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'README.md' })).not.toHaveLength(0));
 
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'report.html' }));
+    await user.click(getDrawerFileItem('report.html'));
 
     const preview = await screen.findByTitle('HTML 预览：report.html');
     const shell = screen.getByLabelText('文件列表').parentElement;
@@ -2746,13 +3191,13 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' }));
+    await user.click(getDrawerFileItem('folder-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     const finishTemporaryDocument = resolveTemporaryDocument as
@@ -2774,14 +3219,14 @@ describe('App file navigation and drawer behavior', () => {
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('folder-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('project-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -2853,13 +3298,13 @@ describe('App file navigation and drawer behavior', () => {
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-a.md' })).not.toHaveLength(0));
     await user.click(screen.getByRole('button', { name: '文件' }));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' }));
+    await user.click(getDrawerFileItem('folder-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await user.click(await screen.findByTitle('/Users/qiyu/Github/ai-docs'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-a.md' })).not.toHaveLength(0));
-    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' }));
+    await user.click(getDrawerFileItem('project-b.md'));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
 
     const finishTemporaryDocument = resolveTemporaryDocument as
@@ -2888,14 +3333,14 @@ describe('App file navigation and drawer behavior', () => {
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: '文件夹' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'folder-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'folder-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('folder-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
 
     await user.click(within(screen.getByLabelText('文件列表')).getByRole('tab', { name: 'AI 项目' }));
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'project-b.md' })).not.toHaveLength(0));
-    expect(within(screen.getByLabelText('文件列表')).getByRole('button', { name: 'project-b.md' })).toHaveAttribute(
+    expect(getDrawerFileItem('project-b.md')).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -2959,6 +3404,73 @@ describe('App file navigation and drawer behavior', () => {
     expect(fileSystemAccess.readMarkdownFileSlice).not.toHaveBeenCalled();
   });
 
+  it('opens JSONL files with a structured JSON reader without a right outline panel', async () => {
+    const user = userEvent.setup();
+    const jsonlTree: FileTreeNode[] = [
+      { type: 'file', name: 'events.jsonl', path: 'events.jsonl' },
+    ];
+    const jsonlFile = new File(
+      ['{"id":1,"event":"open"}\n{"id":2,"event":"close"}\n'],
+      'events.jsonl',
+      { type: 'application/x-ndjson' },
+    );
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(jsonlTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'events.jsonl',
+      name: 'events.jsonl',
+      size: jsonlFile.size,
+      type: jsonlFile.type,
+      lastModified: jsonlFile.lastModified,
+      file: jsonlFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('{"id":1,"event":"open"}\n');
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'events.jsonl' })).not.toHaveLength(0));
+    expect(await screen.findByLabelText('JSON 编辑器')).toBeInTheDocument();
+    expect(screen.getByText('Array')).toBeInTheDocument();
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).not.toHaveClass('has-outline-panel');
+  });
+
+  it('opens YAML files with a structured YAML reader without a right outline panel', async () => {
+    const user = userEvent.setup();
+    const yamlTree: FileTreeNode[] = [
+      { type: 'file', name: 'config.yaml', path: 'config.yaml' },
+    ];
+    const yamlFile = new File(
+      ['users:\n  - id: 1\n    name: Ada\nmeta:\n  total: 1\n'],
+      'config.yaml',
+      { type: 'text/yaml' },
+    );
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue(yamlTree);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'config.yaml',
+      name: 'config.yaml',
+      size: yamlFile.size,
+      type: yamlFile.type,
+      lastModified: yamlFile.lastModified,
+      file: yamlFile,
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'config.yaml' })).not.toHaveLength(0));
+    expect(await screen.findByLabelText('YAML 编辑器')).toBeInTheDocument();
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).not.toHaveClass('has-outline-panel');
+    expect(fileSystemAccess.readDocumentFile).not.toHaveBeenCalled();
+  });
+
   it('opens large directory documents without full markdown rendering', async () => {
     const user = userEvent.setup();
     const largeFile = new File(['# Big\n'.padEnd(2 * 1024 * 1024, 'x')], 'big.md', {
@@ -2985,6 +3497,85 @@ describe('App file navigation and drawer behavior', () => {
 
     await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
     expect(fileSystemAccess.readDocumentFile).not.toHaveBeenCalled();
+  });
+
+  it('opens large YAML documents in raw large-file mode without markdown chunk preview', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['services:\n'.padEnd(2 * 1024 * 1024, 'x')], 'config.yaml', {
+      type: 'text/yaml',
+    });
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'config.yaml', path: 'config.yaml' },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'config.yaml',
+      name: 'config.yaml',
+      size: largeFile.size,
+      type: 'text/yaml',
+      lastModified: largeFile.lastModified,
+      file: largeFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('services:\n');
+    largeDocumentClient.buildIndex.mockResolvedValue({
+      name: 'config.yaml',
+      size: largeFile.size,
+      lineCount: 2,
+      lineStarts: [0, 10],
+      title: null,
+      outline: [],
+      warnings: [],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: '分块预览' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('large-document-virtual-source')).toBeInTheDocument();
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
+  });
+
+  it('opens large JSONL documents in raw large-file mode without full JSONL parsing', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['{"id":1}\n'.padEnd(2 * 1024 * 1024, 'x')], 'events.jsonl', {
+      type: 'application/x-ndjson',
+    });
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'events.jsonl', path: 'events.jsonl' },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockResolvedValue({
+      path: 'events.jsonl',
+      name: 'events.jsonl',
+      size: largeFile.size,
+      type: 'application/x-ndjson',
+      lastModified: largeFile.lastModified,
+      file: largeFile,
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('{"id":1}\n');
+    largeDocumentClient.buildIndex.mockResolvedValue({
+      name: 'events.jsonl',
+      size: largeFile.size,
+      lineCount: 2,
+      lineStarts: [0, 9],
+      title: null,
+      outline: [],
+      warnings: [],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: '分块预览' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('large-document-virtual-source')).toBeInTheDocument();
+    expect(screen.queryByLabelText('JSON 编辑器')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('文档大纲')).not.toBeInTheDocument();
   });
 
   it('asks for file authorization when a temporary standalone file is too large to inline', async () => {
@@ -3191,6 +3782,17 @@ describe('App file navigation and drawer behavior', () => {
       updatedAt: 456,
     };
     vi.mocked(recentDocument.loadLastDocument).mockResolvedValue(rememberedRecord);
+    vi.mocked(fileSystemAccess.hydrateDirectoryPath).mockResolvedValue([
+      {
+        path: '',
+        children: [{ id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'loaded' }],
+      },
+      {
+        path: 'docs',
+        children: [{ id: 'docs/02-design.md', type: 'file', name: '02-design.md', path: 'docs/02-design.md' }],
+      },
+    ]);
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockClear();
     vi.mocked(temporaryDocument.consumeTemporaryMarkdownDocument).mockResolvedValue(null);
     window.history.replaceState(null, '', '/reader.html?temporaryDocument=temp-1');
 
@@ -3198,7 +3800,8 @@ describe('App file navigation and drawer behavior', () => {
 
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/02-design.md' })).not.toHaveLength(0));
     expect(temporaryDocument.consumeTemporaryMarkdownDocument).toHaveBeenCalledWith('temp-1');
-    expect(fileSystemAccess.scanMarkdownDirectory).toHaveBeenCalledWith(directoryHandle);
+    expect(fileSystemAccess.hydrateDirectoryPath).toHaveBeenCalledWith(expect.any(Object), 'docs/02-design.md');
+    expect(fileSystemAccess.scanMarkdownDirectory).not.toHaveBeenCalled();
   });
 
   it('copies markdown source from raw mode inside the document page', async () => {

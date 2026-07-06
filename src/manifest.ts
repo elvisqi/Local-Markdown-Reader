@@ -4,7 +4,7 @@ const manifest: ManifestV3Export = {
   manifest_version: 3,
   name: '__MSG_extensionName__',
   description: '__MSG_extensionDescription__',
-  version: '1.8.7',
+  version: '2.3.1',
   default_locale: 'en',
   icons: {
     16: 'icons/icon-16.png',
@@ -34,7 +34,7 @@ const manifest: ManifestV3Export = {
     pages: ['html-preview-sandbox.html'],
   },
   permissions: ['storage', 'scripting'],
-  host_permissions: ['file:///*'],
+  host_permissions: ['file:///*', 'https://cdn.jsdelivr.net/*', 'https://raw.githubusercontent.com/*'],
   web_accessible_resources: [
     {
       resources: ['reader.html', 'html-preview-sandbox.html'],

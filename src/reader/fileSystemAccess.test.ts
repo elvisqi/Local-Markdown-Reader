@@ -1,9 +1,12 @@
 import {
+  createDirectoryScanSession,
+  hydrateDirectoryPath,
   openMarkdownFile,
   openDocumentFile,
   readMarkdownFile,
   readMarkdownFileSlice,
   readMarkdownFileSnapshot,
+  scanDirectoryChildren,
   scanMarkdownDirectory,
 } from './fileSystemAccess';
 
@@ -56,11 +59,13 @@ function dir(name: string, entries: Array<FakeDirectoryHandle | FakeFileHandle>)
 }
 
 describe('fileSystemAccess', () => {
-  it('recursively scans Markdown, HTML, and JSON files and ignores generated directories', async () => {
+  it('recursively scans Markdown, HTML, JSON, and YAML files and ignores generated directories', async () => {
     const root = dir('root', [
       file('README.md'),
       file('report.html'),
       file('data.json'),
+      file('config.yaml'),
+      file('compose.yml'),
       file('component.mdx'),
       dir('docs', [file('guide.md'), file('image.svg')]),
       dir('node_modules', [file('ignored.md')]),
@@ -74,9 +79,102 @@ describe('fileSystemAccess', () => {
         path: 'docs',
         children: [{ type: 'file', name: 'guide.md', path: 'docs/guide.md' }],
       },
+      { type: 'file', name: 'compose.yml', path: 'compose.yml' },
+      { type: 'file', name: 'config.yaml', path: 'config.yaml' },
       { type: 'file', name: 'data.json', path: 'data.json' },
       { type: 'file', name: 'README.md', path: 'README.md' },
       { type: 'file', name: 'report.html', path: 'report.html' },
+    ]);
+  });
+
+  it('scans only one directory level for lazy file trees', async () => {
+    const nestedEntries = vi.fn(async function* () {
+      yield ['deep.md', file('deep.md')] as [string, FakeFileHandle];
+    });
+    const nested = {
+      kind: 'directory',
+      name: 'nested',
+      entries: nestedEntries,
+    } satisfies FakeDirectoryHandle;
+    const root = dir('root', [
+      file('README.md'),
+      file('asset.png'),
+      dir('node_modules', [file('ignored.md')]),
+      nested,
+    ]);
+
+    await expect(scanDirectoryChildren(root as unknown as FileSystemDirectoryHandle, '')).resolves.toEqual([
+      { id: 'nested', type: 'directory', name: 'nested', path: 'nested', children: [], loadState: 'unloaded' },
+      { id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' },
+    ]);
+    expect(nestedEntries).not.toHaveBeenCalled();
+  });
+
+  it('caches directory handles while lazily scanning nested directories', async () => {
+    const guidesEntries = vi.fn(async function* () {
+      yield ['install.md', file('install.md')] as [string, FakeFileHandle];
+    });
+    const guides = {
+      kind: 'directory',
+      name: 'guides',
+      entries: guidesEntries,
+    } satisfies FakeDirectoryHandle;
+    const docsEntries = vi.fn(async function* () {
+      yield ['guides', guides] as [string, FakeDirectoryHandle];
+    });
+    const docs = {
+      kind: 'directory',
+      name: 'docs',
+      entries: docsEntries,
+    } satisfies FakeDirectoryHandle;
+    const rootEntries = vi.fn(async function* () {
+      yield ['docs', docs] as [string, FakeDirectoryHandle];
+    });
+    const root = {
+      kind: 'directory',
+      name: 'root',
+      entries: rootEntries,
+    } satisfies FakeDirectoryHandle;
+    const session = createDirectoryScanSession(root as unknown as FileSystemDirectoryHandle);
+
+    await session.scanChildren('');
+    await session.scanChildren('docs');
+    await session.scanChildren('docs/guides');
+
+    expect(rootEntries).toHaveBeenCalledTimes(1);
+    expect(docsEntries).toHaveBeenCalledTimes(1);
+    expect(guidesEntries).toHaveBeenCalledTimes(1);
+  });
+
+  it('hydrates direct children along a remembered document path', async () => {
+    const root = dir('root', [dir('docs', [dir('guides', [file('install.md')])])]);
+    const scanSession = createDirectoryScanSession(root as unknown as FileSystemDirectoryHandle);
+
+    await expect(hydrateDirectoryPath(scanSession, 'docs/guides/install.md')).resolves.toEqual([
+      {
+        path: '',
+        children: [{ id: 'docs', type: 'directory', name: 'docs', path: 'docs', children: [], loadState: 'unloaded' }],
+      },
+      {
+        path: 'docs',
+        children: [{ id: 'docs/guides', type: 'directory', name: 'guides', path: 'docs/guides', children: [], loadState: 'unloaded' }],
+      },
+      {
+        path: 'docs/guides',
+        children: [{ id: 'docs/guides/install.md', type: 'file', name: 'install.md', path: 'docs/guides/install.md' }],
+      },
+    ]);
+  });
+
+  it('returns loaded ancestors when a remembered directory no longer exists', async () => {
+    const root = dir('root', [file('README.md')]);
+    const scanSession = createDirectoryScanSession(root as unknown as FileSystemDirectoryHandle);
+
+    await expect(hydrateDirectoryPath(scanSession, 'docs/guides/install.md')).resolves.toEqual([
+      {
+        path: '',
+        children: [{ id: 'README.md', type: 'file', name: 'README.md', path: 'README.md' }],
+      },
     ]);
   });
 
@@ -132,11 +230,13 @@ describe('fileSystemAccess', () => {
         multiple: false,
         types: [
           {
-            description: 'Markdown、HTML 或 JSON 文件',
+            description: 'Markdown、HTML、JSON、JSONL 或 YAML 文件',
             accept: {
               'application/json': ['.json'],
+              'application/x-ndjson': ['.jsonl'],
               'text/html': ['.html', '.htm'],
               'text/markdown': ['.md', '.markdown', '.mdown', '.mkdn', '.mdtxt', '.mdtext'],
+              'text/yaml': ['.yaml', '.yml'],
             },
           },
         ],
