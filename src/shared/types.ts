@@ -20,6 +20,31 @@ export type ReaderThemePackage = {
   installedAt: number;
 };
 
+export type RemoteThemeIndexEntry = {
+  id: string;
+  name: string;
+  version: string;
+  author?: string;
+  description?: string;
+  minAppVersion?: string;
+  colorScheme: ThemeColorScheme;
+  downloadUrl: string;
+  sha256: string;
+  previewUrl?: string;
+  tags: string[];
+  deprecated?: boolean;
+  replacementThemeId?: string;
+  compatible: boolean;
+};
+
+export type RemoteThemeIndex = {
+  sourceUrl: string;
+  fetchedAt: number;
+  version: number;
+  updatedAt?: string;
+  themes: RemoteThemeIndexEntry[];
+};
+
 export type ReaderSettings = {
   reading: {
     colorMode: ColorModePreference;

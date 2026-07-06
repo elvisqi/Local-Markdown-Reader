@@ -79,10 +79,7 @@ Run checks:
 运行检查：
 
 ```bash
-npm run typecheck
-npm test -- --run
-npm run build
-npm run verify:dist
+npm run preflight
 ```
 
 ## Load The Extension / 加载扩展

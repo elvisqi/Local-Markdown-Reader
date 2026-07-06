@@ -7,9 +7,17 @@ import {
   createInstalledReaderThemeId,
   getBuiltinReaderTheme,
 } from '../shared/themes';
-import type { ColorModePreference, ReaderSettings, ReaderThemePackage, ReadingWidth } from '../shared/types';
+import type {
+  ColorModePreference,
+  ReaderSettings,
+  ReaderThemePackage,
+  ReadingWidth,
+  RemoteThemeIndex,
+  RemoteThemeIndexEntry,
+} from '../shared/types';
 
 type ThemeActionHandler = (theme: ReaderThemePackage) => void | Promise<void>;
+type RemoteThemeActionHandler = (theme: RemoteThemeIndexEntry) => void | Promise<void>;
 
 type ReadingSettingsFormProps = {
   settings: ReaderSettings;
@@ -26,6 +34,13 @@ type ThemeCatalogListProps = {
   installedThemes: ReaderThemePackage[];
   onPreview: ThemeActionHandler;
   onInstall: ThemeActionHandler;
+};
+
+type RemoteThemeListProps = {
+  index: RemoteThemeIndex | null;
+  installedThemes: ReaderThemePackage[];
+  onRefresh: () => void | Promise<void>;
+  onInstall: RemoteThemeActionHandler;
 };
 
 type InstalledThemePackageListProps = {
@@ -217,6 +232,59 @@ export function ThemeCatalogList({
   );
 }
 
+export function RemoteThemeList({
+  index,
+  installedThemes,
+  onRefresh,
+  onInstall,
+}: RemoteThemeListProps) {
+  function findInstalledTheme(themeId: string): ReaderThemePackage | undefined {
+    return installedThemes.find((item) => item.id === themeId);
+  }
+
+  return (
+    <div className="theme-catalog">
+      <div className="theme-section-heading">
+        <h3>远程主题</h3>
+        <button type="button" onClick={() => void onRefresh()}>
+          刷新远程主题
+        </button>
+      </div>
+      {index?.themes.length ? (
+        <ul className="theme-catalog-list" aria-label="远程主题">
+          {index.themes.map((theme) => {
+            const installedTheme = findInstalledTheme(theme.id);
+            const installedSameVersion = installedTheme?.version === theme.version;
+            const unavailable = theme.deprecated || !theme.compatible;
+            const disabled = installedSameVersion || unavailable;
+
+            return (
+              <li key={theme.id}>
+                <div>
+                  <strong>{theme.name}</strong>
+                  <span>
+                    {theme.version} · {formatThemeColorScheme(theme.colorScheme)}
+                    {theme.author ? ` · ${theme.author}` : ''}
+                  </span>
+                  {theme.description && <p>{theme.description}</p>}
+                  {theme.tags.length ? <p>{theme.tags.join(' · ')}</p> : null}
+                </div>
+                <div className="theme-package-actions">
+                  <button type="button" onClick={() => void onInstall(theme)} disabled={disabled}>
+                    {formatRemoteThemeInstallLabel(theme, installedTheme)}
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="theme-package-meta">暂无远程主题索引。</p>
+      )}
+    </div>
+  );
+}
+
 export function ThemePackageCurrentSummary({
   theme,
 }: ThemePackageCurrentSummaryProps) {
@@ -369,4 +437,23 @@ function formatThemeColorScheme(colorScheme: ReaderThemePackage['colorScheme']):
   }
 
   return '跟随系统';
+}
+
+function formatRemoteThemeInstallLabel(
+  theme: RemoteThemeIndexEntry,
+  installedTheme: ReaderThemePackage | undefined,
+): string {
+  if (!theme.compatible) {
+    return '不兼容';
+  }
+
+  if (theme.deprecated) {
+    return '已下架';
+  }
+
+  if (installedTheme?.version === theme.version) {
+    return '已安装';
+  }
+
+  return installedTheme ? '更新' : '安装';
 }

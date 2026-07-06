@@ -38,6 +38,18 @@
   font-size: 14px;
 }
 
+.theme-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.theme-section-heading h3 {
+  margin: 0;
+}
+
 .theme-catalog-list,
 .theme-package-list {
   display: grid;

@@ -3,8 +3,13 @@ import {
   buildBuiltinThemeStylesheet,
   buildInstalledThemeStylesheet,
   deleteInstalledTheme,
+  fetchRemoteThemeIndex,
+  installRemoteTheme,
   installThemePackageFromText,
+  loadCachedRemoteThemeIndex,
+  loadInstalledThemes,
   parseThemePackageText,
+  saveCachedRemoteThemeIndex,
   scopeCss,
   serializeThemePackage,
 } from './themes';
@@ -209,6 +214,152 @@ describe('themes', () => {
     });
     expect(serialized.installedAt).toBeUndefined();
   });
+
+  it('fetches and caches a compatible remote theme index', async () => {
+    const area = createStorageArea();
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      version: 1,
+      updatedAt: '2026-07-06T00:00:00.000Z',
+      themes: [
+        {
+          id: 'ink-focus',
+          name: 'Ink Focus',
+          version: '1.0.0',
+          colorScheme: 'light',
+          minAppVersion: '2.3.0',
+          downloadUrl: 'https://example.com/themes/ink-focus.mdv-theme.json',
+          sha256: 'a'.repeat(64),
+          tags: ['light', 'writing'],
+        },
+      ],
+    }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    }));
+
+    const index = await fetchRemoteThemeIndex({
+      indexUrl: 'https://example.com/themes/index.json',
+      fetcher,
+      area,
+    });
+
+    expect(fetcher).toHaveBeenCalledWith('https://example.com/themes/index.json', expect.objectContaining({
+      cache: 'no-store',
+    }));
+    expect(index.themes).toHaveLength(1);
+    expect(index.themes[0]).toMatchObject({
+      id: 'ink-focus',
+      compatible: true,
+    });
+    await expect(loadCachedRemoteThemeIndex(area)).resolves.toMatchObject({
+      sourceUrl: 'https://example.com/themes/index.json',
+      themes: [expect.objectContaining({ id: 'ink-focus' })],
+    });
+  });
+
+  it('rejects malformed remote theme indexes without overwriting cached data', async () => {
+    const area = createStorageArea();
+    await saveCachedRemoteThemeIndex({
+      sourceUrl: 'https://example.com/themes/index.json',
+      fetchedAt: 123,
+      version: 1,
+      updatedAt: '2026-07-06T00:00:00.000Z',
+      themes: [],
+    }, area);
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      version: 1,
+      updatedAt: '2026-07-06T00:00:00.000Z',
+      themes: [
+        {
+          id: 'bad-theme',
+          name: 'Bad Theme',
+          version: '1.0.0',
+          colorScheme: 'dark',
+          downloadUrl: 'javascript:alert(1)',
+          sha256: 'b'.repeat(64),
+        },
+      ],
+    })));
+
+    await expect(fetchRemoteThemeIndex({
+      indexUrl: 'https://example.com/themes/index.json',
+      fetcher,
+      area,
+    })).rejects.toThrow('远程主题 downloadUrl 必须使用 https。');
+
+    await expect(loadCachedRemoteThemeIndex(area)).resolves.toMatchObject({
+      sourceUrl: 'https://example.com/themes/index.json',
+      themes: [],
+    });
+  });
+
+  it('installs remote themes only when sha256 matches the downloaded package', async () => {
+    const area = createStorageArea();
+    const packageText = JSON.stringify({
+      id: 'ink-focus',
+      name: 'Ink Focus',
+      version: '1.0.0',
+      colorScheme: 'light',
+      tokens: {
+        '--reader-surface': '#ffffff',
+      },
+    });
+    const sha256 = await calculateTestSha256(packageText);
+    const fetcher = vi.fn(async () => new Response(packageText, { status: 200 }));
+
+    const result = await installRemoteTheme({
+      entry: {
+        id: 'ink-focus',
+        name: 'Ink Focus',
+        version: '1.0.0',
+        colorScheme: 'light',
+        compatible: true,
+        downloadUrl: 'https://example.com/themes/ink-focus.mdv-theme.json',
+        sha256,
+        tags: [],
+      },
+      fetcher,
+      area,
+    });
+
+    expect(fetcher).toHaveBeenCalledWith('https://example.com/themes/ink-focus.mdv-theme.json', expect.objectContaining({
+      cache: 'no-store',
+    }));
+    expect(result.theme.id).toBe('ink-focus');
+    await expect(loadInstalledThemes(area)).resolves.toEqual([
+      expect.objectContaining({ id: 'ink-focus' }),
+    ]);
+  });
+
+  it('rejects remote theme downloads with mismatched sha256 hashes', async () => {
+    const area = createStorageArea();
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      id: 'ink-focus',
+      name: 'Ink Focus',
+      version: '1.0.0',
+      colorScheme: 'light',
+      tokens: {
+        '--reader-surface': '#ffffff',
+      },
+    }), { status: 200 }));
+
+    await expect(installRemoteTheme({
+      entry: {
+        id: 'ink-focus',
+        name: 'Ink Focus',
+        version: '1.0.0',
+        colorScheme: 'light',
+        compatible: true,
+        downloadUrl: 'https://example.com/themes/ink-focus.mdv-theme.json',
+        sha256: '0'.repeat(64),
+        tags: [],
+      },
+      fetcher,
+      area,
+    })).rejects.toThrow('远程主题校验失败');
+
+    await expect(loadInstalledThemes(area)).resolves.toEqual([]);
+  });
 });
 
 function createStorageArea(): chrome.storage.StorageArea {
@@ -222,4 +373,11 @@ function createStorageArea(): chrome.storage.StorageArea {
       }
     }),
   } as unknown as chrome.storage.StorageArea;
+}
+
+async function calculateTestSha256(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
 }

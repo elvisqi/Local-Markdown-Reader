@@ -322,6 +322,69 @@ describe('options App', () => {
     expect(screen.getByText('已安装主题：Ink Focus。')).toBeInTheDocument();
   });
 
+  it('refreshes the remote theme source and installs a remote theme package', async () => {
+    const user = userEvent.setup();
+    const packageText = JSON.stringify({
+      id: 'ink-focus',
+      name: 'Ink Focus',
+      version: '1.0.0',
+      colorScheme: 'light',
+      tokens: {
+        '--reader-surface': '#ffffff',
+      },
+    });
+    const sha256 = await calculateTestSha256(packageText);
+    const fetchSpy = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        version: 1,
+        updatedAt: '2026-07-06T00:00:00.000Z',
+        themes: [
+          {
+            id: 'ink-focus',
+            name: 'Ink Focus',
+            version: '1.0.0',
+            colorScheme: 'light',
+            downloadUrl: 'https://elvisqi.github.io/Local-Markdown-Reader/themes/packages/ink-focus.mdv-theme.json',
+            sha256,
+            tags: ['light'],
+          },
+        ],
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(packageText, { status: 200 }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(<App />);
+
+    await user.click(await screen.findByRole('button', { name: '刷新远程主题' }));
+
+    expect(await screen.findByText('已更新远程主题源：1 个主题。')).toBeInTheDocument();
+    const remoteList = screen.getByRole('list', { name: '远程主题' });
+    const inkFocusRow = within(remoteList).getByText('Ink Focus').closest('li')!;
+
+    await user.click(within(inkFocusRow).getByRole('button', { name: '安装' }));
+
+    await waitFor(() =>
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        readerThemePackages: [
+          expect.objectContaining({
+            id: 'ink-focus',
+            version: '1.0.0',
+          }),
+        ],
+      }),
+    );
+    await waitFor(() =>
+      expect(chrome.storage.sync.set).toHaveBeenCalledWith({
+        readerSettings: expect.objectContaining({
+          reading: expect.objectContaining({
+            themeId: 'installed:ink-focus',
+          }),
+        }),
+      }),
+    );
+    expect(screen.getByText('已安装远程主题：Ink Focus。')).toBeInTheDocument();
+  });
+
   it('marks recommended themes as installed when the same version exists', async () => {
     const localGet = chrome.storage.local.get as unknown as ReturnType<typeof vi.fn>;
     localGet.mockResolvedValue({
@@ -498,3 +561,10 @@ describe('options App', () => {
     expect(screen.getByText('已删除主题：Paper Pro。')).toBeInTheDocument();
   });
 });
+
+async function calculateTestSha256(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}

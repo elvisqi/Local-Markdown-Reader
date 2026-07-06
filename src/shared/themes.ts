@@ -1,12 +1,25 @@
-import type { BuiltinReaderThemeId, InstalledReaderThemeId, ReaderThemePackage, ReadingStyle, ThemeColorScheme } from './types';
+import type {
+  BuiltinReaderThemeId,
+  InstalledReaderThemeId,
+  ReaderThemePackage,
+  ReadingStyle,
+  RemoteThemeIndex,
+  RemoteThemeIndexEntry,
+  ThemeColorScheme,
+} from './types';
 import { APP_VERSION } from './version';
 
 const THEMES_KEY = 'readerThemePackages';
+const REMOTE_THEME_INDEX_CACHE_KEY = 'readerRemoteThemeIndex';
+export const DEFAULT_REMOTE_THEME_INDEX_URL = 'https://elvisqi.github.io/Local-Markdown-Reader/themes/index.json';
 const MAX_THEME_CSS_LENGTH = 64 * 1024;
 const MAX_THEME_TOKEN_COUNT = 80;
 const MAX_THEME_TOKEN_VALUE_LENGTH = 500;
 const MAX_THEME_FIELD_LENGTH = 160;
+const MAX_REMOTE_THEME_TAGS = 12;
+const MAX_REMOTE_THEME_INDEX_ITEMS = 200;
 const THEME_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{1,63}$/i;
+const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
 const TOKEN_NAME_PATTERN = /^--(?:reader|markdown)-[a-z0-9-]+$/;
 const SAFE_CSS_VALUE_PATTERN = /^(?!.*(?:url\s*\(|@import|expression\s*\(|javascript:|behavior\s*:))[^;{}]+$/i;
 const UNSAFE_CSS_PATTERN = /@import|url\s*\(|expression\s*\(|javascript:|behavior\s*:|@font-face/i;
@@ -135,6 +148,40 @@ type NormalizeThemePackageOptions = {
   allowInstalledAt?: boolean;
 };
 
+type RemoteThemeIndexInput = {
+  version?: unknown;
+  updatedAt?: unknown;
+  themes?: unknown;
+};
+
+type RemoteThemeIndexEntryInput = {
+  id?: unknown;
+  name?: unknown;
+  version?: unknown;
+  author?: unknown;
+  description?: unknown;
+  minAppVersion?: unknown;
+  colorScheme?: unknown;
+  downloadUrl?: unknown;
+  sha256?: unknown;
+  previewUrl?: unknown;
+  tags?: unknown;
+  deprecated?: unknown;
+  replacementThemeId?: unknown;
+};
+
+type FetchRemoteThemeIndexOptions = {
+  indexUrl?: string;
+  fetcher?: typeof fetch;
+  area?: chrome.storage.StorageArea;
+};
+
+type InstallRemoteThemeOptions = {
+  entry: RemoteThemeIndexEntry;
+  fetcher?: typeof fetch;
+  area?: chrome.storage.StorageArea;
+};
+
 export async function loadInstalledThemes(
   area: chrome.storage.StorageArea | undefined = globalThis.chrome?.storage?.local,
 ): Promise<ReaderThemePackage[]> {
@@ -144,6 +191,48 @@ export async function loadInstalledThemes(
 
   const stored = await area.get(THEMES_KEY);
   return parseStoredThemePackages(stored[THEMES_KEY]);
+}
+
+export async function loadCachedRemoteThemeIndex(
+  area: chrome.storage.StorageArea | undefined = globalThis.chrome?.storage?.local,
+): Promise<RemoteThemeIndex | null> {
+  if (!area?.get) {
+    return null;
+  }
+
+  const stored = await area.get(REMOTE_THEME_INDEX_CACHE_KEY);
+  return parseCachedRemoteThemeIndex(stored[REMOTE_THEME_INDEX_CACHE_KEY]);
+}
+
+export async function saveCachedRemoteThemeIndex(
+  index: RemoteThemeIndex,
+  area: chrome.storage.StorageArea | undefined = globalThis.chrome?.storage?.local,
+): Promise<void> {
+  if (!area?.set) {
+    return;
+  }
+
+  await area.set({ [REMOTE_THEME_INDEX_CACHE_KEY]: index });
+}
+
+export async function fetchRemoteThemeIndex({
+  indexUrl = DEFAULT_REMOTE_THEME_INDEX_URL,
+  fetcher = globalThis.fetch,
+  area = globalThis.chrome?.storage?.local,
+}: FetchRemoteThemeIndexOptions = {}): Promise<RemoteThemeIndex> {
+  if (!fetcher) {
+    throw new Error('当前环境不支持获取远程主题源。');
+  }
+
+  assertHttpsUrl(indexUrl, '远程主题源地址');
+  const response = await fetcher(indexUrl, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`无法获取远程主题源：HTTP ${response.status}。`);
+  }
+
+  const index = normalizeRemoteThemeIndex(await response.json(), indexUrl, Date.now());
+  await saveCachedRemoteThemeIndex(index, area);
+  return index;
 }
 
 export function createBuiltinReaderThemeId(style: ReadingStyle): BuiltinReaderThemeId {
@@ -198,6 +287,39 @@ export async function installThemePackage(
   await saveInstalledThemes(themes, area);
 
   return { theme, themes };
+}
+
+export async function installRemoteTheme({
+  entry,
+  fetcher = globalThis.fetch,
+  area = globalThis.chrome?.storage?.local,
+}: InstallRemoteThemeOptions): Promise<{ theme: ReaderThemePackage; themes: ReaderThemePackage[] }> {
+  if (!entry.compatible) {
+    throw new Error(`主题 ${entry.name} 与当前应用版本不兼容。`);
+  }
+
+  if (!fetcher) {
+    throw new Error('当前环境不支持下载远程主题。');
+  }
+
+  assertHttpsUrl(entry.downloadUrl, '远程主题下载地址');
+  const response = await fetcher(entry.downloadUrl, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`无法下载远程主题：HTTP ${response.status}。`);
+  }
+
+  const text = await response.text();
+  const actualHash = await calculateSha256(text);
+  if (actualHash !== entry.sha256.toLowerCase()) {
+    throw new Error('远程主题校验失败，文件可能已损坏或被篡改。');
+  }
+
+  const theme = parseThemePackageText(text);
+  if (theme.id !== entry.id || theme.version !== entry.version) {
+    throw new Error('远程主题包与索引声明不一致。');
+  }
+
+  return installThemePackage(theme, area);
 }
 
 export async function deleteInstalledTheme(
@@ -347,6 +469,92 @@ function normalizeThemePackage(
   };
 }
 
+function normalizeRemoteThemeIndex(input: unknown, sourceUrl: string, fetchedAt: number): RemoteThemeIndex {
+  if (!isPlainObject(input)) {
+    throw new Error('远程主题索引必须是一个 JSON 对象。');
+  }
+
+  const indexInput = input as RemoteThemeIndexInput;
+  const version = normalizeRemoteIndexVersion(indexInput.version);
+  const updatedAt = normalizeOptionalString(indexInput.updatedAt, 'updatedAt');
+  if (!Array.isArray(indexInput.themes)) {
+    throw new Error('远程主题索引 themes 字段必须是数组。');
+  }
+
+  if (indexInput.themes.length > MAX_REMOTE_THEME_INDEX_ITEMS) {
+    throw new Error(`远程主题索引不能超过 ${MAX_REMOTE_THEME_INDEX_ITEMS} 个主题。`);
+  }
+
+  const themes = indexInput.themes
+    .map((item) => normalizeRemoteThemeIndexEntry(item))
+    .sort(compareRemoteThemeEntries);
+
+  return {
+    sourceUrl,
+    fetchedAt,
+    version,
+    ...(updatedAt ? { updatedAt } : {}),
+    themes,
+  };
+}
+
+function normalizeRemoteThemeIndexEntry(input: unknown): RemoteThemeIndexEntry {
+  if (!isPlainObject(input)) {
+    throw new Error('远程主题条目必须是一个 JSON 对象。');
+  }
+
+  const entryInput = input as RemoteThemeIndexEntryInput;
+  const id = normalizeRequiredString(entryInput.id, 'id').toLowerCase();
+  if (!THEME_ID_PATTERN.test(id)) {
+    throw new Error('远程主题 id 只能包含字母、数字、点、下划线和短横线，长度为 2 到 64 个字符。');
+  }
+
+  const name = normalizeRequiredString(entryInput.name, 'name');
+  const version = normalizeRequiredString(entryInput.version, 'version');
+  const colorScheme = normalizeColorScheme(entryInput.colorScheme);
+  const minAppVersion = normalizeOptionalString(entryInput.minAppVersion, 'minAppVersion');
+  const downloadUrl = normalizeRequiredUrl(entryInput.downloadUrl, 'downloadUrl');
+  const sha256 = normalizeSha256(entryInput.sha256);
+  const previewUrl = normalizeOptionalUrl(entryInput.previewUrl, 'previewUrl');
+  const tags = normalizeRemoteThemeTags(entryInput.tags);
+  const deprecated = entryInput.deprecated === true;
+  const replacementThemeId = normalizeOptionalString(entryInput.replacementThemeId, 'replacementThemeId');
+  if (replacementThemeId && !THEME_ID_PATTERN.test(replacementThemeId)) {
+    throw new Error('远程主题 replacementThemeId 格式无效。');
+  }
+
+  return {
+    id,
+    name,
+    version,
+    author: normalizeOptionalString(entryInput.author, 'author'),
+    description: normalizeOptionalString(entryInput.description, 'description'),
+    minAppVersion,
+    colorScheme,
+    downloadUrl,
+    sha256,
+    previewUrl,
+    tags,
+    deprecated,
+    replacementThemeId,
+    compatible: isThemeCompatible({ name, minAppVersion }),
+  };
+}
+
+function parseCachedRemoteThemeIndex(value: unknown): RemoteThemeIndex | null {
+  try {
+    if (!isPlainObject(value)) {
+      return null;
+    }
+
+    const sourceUrl = normalizeRequiredUrl(value.sourceUrl, 'sourceUrl');
+    const fetchedAt = typeof value.fetchedAt === 'number' ? value.fetchedAt : 0;
+    return normalizeRemoteThemeIndex(value, sourceUrl, fetchedAt);
+  } catch {
+    return null;
+  }
+}
+
 function assertSupportedThemePackageFields(input: Record<string, unknown>, supportedFields: Set<string>): void {
   const unsupportedFields = Object.keys(input)
     .filter((field) => !supportedFields.has(field))
@@ -391,6 +599,65 @@ function normalizeOptionalString(value: unknown, fieldName: string): string | un
   }
 
   return normalized;
+}
+
+function normalizeRemoteIndexVersion(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 1) {
+    throw new Error('远程主题索引 version 字段必须是正整数。');
+  }
+
+  return value;
+}
+
+function normalizeRequiredUrl(value: unknown, fieldName: string): string {
+  const url = normalizeRequiredString(value, fieldName);
+  assertHttpsUrl(url, `远程主题 ${fieldName}`);
+  return url;
+}
+
+function normalizeOptionalUrl(value: unknown, fieldName: string): string | undefined {
+  const url = normalizeOptionalString(value, fieldName);
+  if (!url) {
+    return undefined;
+  }
+
+  assertHttpsUrl(url, `远程主题 ${fieldName}`);
+  return url;
+}
+
+function normalizeSha256(value: unknown): string {
+  if (typeof value !== 'string' || !SHA256_PATTERN.test(value.trim())) {
+    throw new Error('远程主题 sha256 必须是 64 位十六进制字符串。');
+  }
+
+  return value.trim().toLowerCase();
+}
+
+function normalizeRemoteThemeTags(value: unknown): string[] {
+  if (value === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error('远程主题 tags 字段必须是数组。');
+  }
+
+  if (value.length > MAX_REMOTE_THEME_TAGS) {
+    throw new Error(`远程主题 tags 不能超过 ${MAX_REMOTE_THEME_TAGS} 个。`);
+  }
+
+  return value.map((tag) => {
+    if (typeof tag !== 'string' || !tag.trim()) {
+      throw new Error('远程主题 tags 只能包含非空字符串。');
+    }
+
+    const normalized = tag.trim().toLowerCase();
+    if (!/^[a-z0-9][a-z0-9-]{0,31}$/i.test(normalized)) {
+      throw new Error(`远程主题 tag 格式无效：${tag}。`);
+    }
+
+    return normalized;
+  });
 }
 
 function normalizeColorScheme(value: unknown): ThemeColorScheme {
@@ -642,6 +909,18 @@ function compareThemes(a: ReaderThemePackage, b: ReaderThemePackage): number {
   return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) || a.id.localeCompare(b.id);
 }
 
+function compareRemoteThemeEntries(a: RemoteThemeIndexEntry, b: RemoteThemeIndexEntry): number {
+  return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) || a.id.localeCompare(b.id);
+}
+
+function isThemeCompatible(theme: Pick<ReaderThemePackage, 'name' | 'minAppVersion'>, appVersion = APP_VERSION): boolean {
+  if (!theme.minAppVersion) {
+    return true;
+  }
+
+  return compareSemver(theme.minAppVersion, appVersion) <= 0;
+}
+
 function compareSemver(a: string, b: string): number {
   const left = parseSemver(a);
   const right = parseSemver(b);
@@ -671,4 +950,28 @@ function parseSemver(version: string): [number, number, number] {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function assertHttpsUrl(value: string, label: string): void {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`${label} 格式无效。`);
+  }
+
+  if (url.protocol !== 'https:') {
+    throw new Error(`${label} 必须使用 https。`);
+  }
+}
+
+async function calculateSha256(text: string): Promise<string> {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('当前环境不支持远程主题校验。');
+  }
+
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
 }

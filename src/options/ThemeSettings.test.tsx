@@ -5,6 +5,7 @@ import {
   InstalledThemePackageList,
   PendingThemePackagePreview,
   ReadingSettingsForm,
+  RemoteThemeList,
   ThemeCatalogList,
   ThemePackageImportControls,
 } from './ThemeSettingsSections';
@@ -14,7 +15,7 @@ import {
   nightStudyTheme,
 } from './testThemeFixtures';
 import { DEFAULT_SETTINGS } from '../shared/settings';
-import type { ReaderSettings } from '../shared/types';
+import type { ReaderSettings, RemoteThemeIndex } from '../shared/types';
 
 describe('ThemeSettings sections', () => {
   it('renders theme package import controls and forwards selected files', async () => {
@@ -113,6 +114,38 @@ describe('ThemeSettings sections', () => {
     expect(installTheme).toHaveBeenCalledWith(nightStudyTheme);
   });
 
+  it('renders remote theme install states and forwards refresh and install actions', async () => {
+    const user = userEvent.setup();
+    const refreshRemoteThemes = vi.fn(async () => undefined);
+    const installRemoteTheme = vi.fn(async () => undefined);
+    const remoteIndex = createRemoteThemeIndex();
+
+    render(
+      <RemoteThemeList
+        index={remoteIndex}
+        installedThemes={[inkFocusTheme, { ...nightStudyTheme, version: '0.9.0' }]}
+        onRefresh={refreshRemoteThemes}
+        onInstall={installRemoteTheme}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: '刷新远程主题' }));
+    expect(refreshRemoteThemes).toHaveBeenCalledTimes(1);
+
+    const remoteList = screen.getByRole('list', { name: '远程主题' });
+    const inkFocusRow = within(remoteList).getByText('Ink Focus').closest('li')!;
+    const nightStudyRow = within(remoteList).getByText('Night Study').closest('li')!;
+    const futureRow = within(remoteList).getByText('Future Theme').closest('li')!;
+
+    expect(within(inkFocusRow).getByRole('button', { name: '已安装' })).toBeDisabled();
+    expect(within(nightStudyRow).getByRole('button', { name: '更新' })).toBeEnabled();
+    expect(within(futureRow).getByRole('button', { name: '不兼容' })).toBeDisabled();
+
+    await user.click(within(nightStudyRow).getByRole('button', { name: '更新' }));
+
+    expect(installRemoteTheme).toHaveBeenCalledWith(remoteIndex.themes[1]);
+  });
+
   it('renders installed theme package actions with the active theme disabled', async () => {
     const user = userEvent.setup();
     const applyTheme = vi.fn();
@@ -173,3 +206,45 @@ describe('ThemeSettings sections', () => {
     expect(cancelTheme).toHaveBeenCalledTimes(1);
   });
 });
+
+function createRemoteThemeIndex(): RemoteThemeIndex {
+  return {
+    sourceUrl: 'https://example.com/themes/index.json',
+    fetchedAt: 123,
+    version: 1,
+    updatedAt: '2026-07-06T00:00:00.000Z',
+    themes: [
+      {
+        id: 'ink-focus',
+        name: 'Ink Focus',
+        version: '1.0.0',
+        colorScheme: 'light',
+        compatible: true,
+        downloadUrl: 'https://example.com/themes/ink-focus.mdv-theme.json',
+        sha256: 'a'.repeat(64),
+        tags: ['light'],
+      },
+      {
+        id: 'night-study',
+        name: 'Night Study',
+        version: '1.0.0',
+        colorScheme: 'dark',
+        compatible: true,
+        downloadUrl: 'https://example.com/themes/night-study.mdv-theme.json',
+        sha256: 'b'.repeat(64),
+        tags: ['dark'],
+      },
+      {
+        id: 'future-theme',
+        name: 'Future Theme',
+        version: '1.0.0',
+        colorScheme: 'system',
+        compatible: false,
+        minAppVersion: '9.0.0',
+        downloadUrl: 'https://example.com/themes/future-theme.mdv-theme.json',
+        sha256: 'c'.repeat(64),
+        tags: [],
+      },
+    ],
+  };
+}

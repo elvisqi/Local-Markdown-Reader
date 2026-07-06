@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-06T00:00:00.000Z",
+  "themes": [
+    {
+      "id": "ink-focus",
+      "name": "Ink Focus",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Neutral contrast for long technical documents.",
+      "minAppVersion": "2.3.0",
+      "colorScheme": "light",
+      "downloadUrl": "https://elvisqi.github.io/Local-Markdown-Reader/themes/packages/ink-focus.mdv-theme.json",
+      "sha256": "18b1bd357e5f7f7834e065ffe6a9fa9b052c90a65d832b1f8ccb090ff38da413",
+      "tags": [
+        "technical",
+        "light",
+        "neutral"
+      ]
+    },
+    {
+      "id": "night-study",
+      "name": "Night Study",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Dark reading theme with restrained contrast.",
+      "minAppVersion": "2.3.0",
+      "colorScheme": "dark",
+      "downloadUrl": "https://elvisqi.github.io/Local-Markdown-Reader/themes/packages/night-study.mdv-theme.json",
+      "sha256": "f304ed5f80fb753e534e413eab40c24e5739f053b2aa91c3515290e33c02e192",
+      "tags": [
+        "dark",
+        "longform",
+        "low-contrast"
+      ]
+    },
+    {
+      "id": "report-grid",
+      "name": "Report Grid",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Compact report style for tables and structured notes.",
+      "minAppVersion": "2.3.0",
+      "colorScheme": "system",
+      "downloadUrl": "https://elvisqi.github.io/Local-Markdown-Reader/themes/packages/report-grid.mdv-theme.json",
+      "sha256": "b8b9fc14e1e924ccf3e277482d5e4f08faa6a0369390516cddb8419f37ff7c1b",
+      "tags": [
+        "tables",
+        "compact",
+        "report"
+      ]
+    }
+  ]
+}

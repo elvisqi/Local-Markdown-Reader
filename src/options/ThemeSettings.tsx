@@ -4,6 +4,7 @@ import {
   InstalledThemePackageList,
   PendingThemePackagePreview,
   ReadingSettingsForm,
+  RemoteThemeList,
   ThemeCatalogList,
   ThemePackageCurrentSummary,
   ThemePackageImportControls,
@@ -21,6 +22,8 @@ export function ThemeSettings({ settings, onSettingsChange }: ThemeSettingsProps
   const {
     installedThemes,
     themeStatus,
+    remoteThemeStatus,
+    remoteThemeIndex,
     pendingTheme,
     selectedTheme,
     pendingExistingTheme,
@@ -28,6 +31,8 @@ export function ThemeSettings({ settings, onSettingsChange }: ThemeSettingsProps
     confirmThemeInstall,
     previewTheme,
     installCatalogTheme,
+    refreshRemoteThemes,
+    installRemoteThemeEntry,
     applyInstalledTheme,
     removeInstalledTheme,
     cancelThemeInstall,
@@ -57,6 +62,12 @@ export function ThemeSettings({ settings, onSettingsChange }: ThemeSettingsProps
           onPreview={previewTheme}
           onInstall={installCatalogTheme}
         />
+        <RemoteThemeList
+          index={remoteThemeIndex}
+          installedThemes={installedThemes}
+          onRefresh={refreshRemoteThemes}
+          onInstall={installRemoteThemeEntry}
+        />
         {selectedTheme && <ThemePackageCurrentSummary theme={selectedTheme} />}
         <InstalledThemePackageList
           installedThemes={installedThemes}
@@ -74,6 +85,7 @@ export function ThemeSettings({ settings, onSettingsChange }: ThemeSettingsProps
             onCancel={cancelThemeInstall}
           />
         )}
+        {remoteThemeStatus && <p className="options-status">{remoteThemeStatus}</p>}
         {themeStatus && <p className="options-status">{themeStatus}</p>}
       </section>
     </>

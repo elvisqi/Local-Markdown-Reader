@@ -7,6 +7,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "themes:index": "node scripts/build-theme-index.mjs",
+    "themes:verify": "node scripts/build-theme-index.mjs --check",
+    "themes:references:verify": "node scripts/verify-theme-references.mjs",
+    "preflight": "npm run themes:verify && npm run themes:references:verify && npm run typecheck && npm test -- --run && npm run build && npm run verify:dist",
     "verify:dist": "node scripts/verify-dist.mjs",
     "test": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"

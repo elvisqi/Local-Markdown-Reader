@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-06T00:00:00.000Z",
+  "packageBaseUrl": "https://elvisqi.github.io/Local-Markdown-Reader/themes/packages/",
+  "themes": {
+    "ink-focus": {
+      "tags": ["technical", "light", "neutral"]
+    },
+    "night-study": {
+      "tags": ["dark", "longform", "low-contrast"]
+    },
+    "report-grid": {
+      "tags": ["tables", "compact", "report"]
+    }
+  }
+}

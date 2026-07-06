@@ -4,15 +4,23 @@ import { DEFAULT_SETTINGS } from '../shared/settings';
 import {
   createInstalledReaderThemeId,
   deleteInstalledTheme,
+  fetchRemoteThemeIndex,
   getInstalledThemePackageId,
+  installRemoteTheme,
   installThemePackage,
+  loadCachedRemoteThemeIndex,
   loadInstalledThemes,
   parseThemePackageText,
   serializeThemePackage,
   assertThemeCompatible,
   subscribeInstalledThemes,
 } from '../shared/themes';
-import type { ReaderSettings, ReaderThemePackage } from '../shared/types';
+import type {
+  ReaderSettings,
+  ReaderThemePackage,
+  RemoteThemeIndex,
+  RemoteThemeIndexEntry,
+} from '../shared/types';
 
 type UseInstalledThemePackagesParams = {
   settings: ReaderSettings;
@@ -25,6 +33,8 @@ export function useInstalledThemePackages({
 }: UseInstalledThemePackagesParams) {
   const [installedThemes, setInstalledThemes] = useState<ReaderThemePackage[]>([]);
   const [themeStatus, setThemeStatus] = useState<string | null>(null);
+  const [remoteThemeStatus, setRemoteThemeStatus] = useState<string | null>(null);
+  const [remoteThemeIndex, setRemoteThemeIndex] = useState<RemoteThemeIndex | null>(null);
   const [pendingTheme, setPendingTheme] = useState<ReaderThemePackage | null>(null);
 
   useEffect(() => {
@@ -32,6 +42,11 @@ export function useInstalledThemePackages({
     void loadInstalledThemes().then((themes) => {
       if (active) {
         setInstalledThemes(themes);
+      }
+    });
+    void loadCachedRemoteThemeIndex().then((index) => {
+      if (active) {
+        setRemoteThemeIndex(index);
       }
     });
 
@@ -120,6 +135,33 @@ export function useInstalledThemePackages({
     }
   }
 
+  async function refreshRemoteThemes() {
+    setRemoteThemeStatus('正在更新远程主题源...');
+
+    try {
+      const index = await fetchRemoteThemeIndex();
+      setRemoteThemeIndex(index);
+      setRemoteThemeStatus(`已更新远程主题源：${index.themes.length} 个主题。`);
+    } catch (err) {
+      setRemoteThemeStatus(err instanceof Error ? err.message : '无法更新远程主题源。');
+    }
+  }
+
+  async function installRemoteThemeEntry(entry: RemoteThemeIndexEntry) {
+    try {
+      const result = await installRemoteTheme({ entry });
+      setInstalledThemes(result.themes);
+      setPendingTheme(null);
+      setRemoteThemeStatus(`已安装远程主题：${result.theme.name}。`);
+      await onSettingsChange({
+        ...settings,
+        reading: { ...settings.reading, themeId: createInstalledReaderThemeId(result.theme.id) },
+      });
+    } catch (err) {
+      setRemoteThemeStatus(err instanceof Error ? err.message : `无法安装远程主题：${entry.name}。`);
+    }
+  }
+
   async function applyInstalledTheme(theme: ReaderThemePackage) {
     await onSettingsChange({
       ...settings,
@@ -166,6 +208,8 @@ export function useInstalledThemePackages({
   return {
     installedThemes,
     themeStatus,
+    remoteThemeStatus,
+    remoteThemeIndex,
     pendingTheme,
     selectedTheme,
     pendingExistingTheme,
@@ -173,6 +217,8 @@ export function useInstalledThemePackages({
     confirmThemeInstall,
     previewTheme,
     installCatalogTheme,
+    refreshRemoteThemes,
+    installRemoteThemeEntry,
     applyInstalledTheme,
     removeInstalledTheme,
     cancelThemeInstall,
