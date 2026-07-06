@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updatedAt": "2026-07-06T00:00:00.000Z",
-  "packageBaseUrl": "https://elvisqi.github.io/Local-Markdown-Reader/themes/packages/",
+  "packageBaseUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/",
   "themes": {
     "ink-focus": {
       "tags": ["technical", "light", "neutral"]

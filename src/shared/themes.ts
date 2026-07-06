@@ -11,7 +11,7 @@ import { APP_VERSION } from './version';
 
 const THEMES_KEY = 'readerThemePackages';
 const REMOTE_THEME_INDEX_CACHE_KEY = 'readerRemoteThemeIndex';
-export const DEFAULT_REMOTE_THEME_INDEX_URL = 'https://elvisqi.github.io/Local-Markdown-Reader/themes/index.json';
+export const DEFAULT_REMOTE_THEME_INDEX_URL = 'https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/index.json';
 const MAX_THEME_CSS_LENGTH = 64 * 1024;
 const MAX_THEME_TOKEN_COUNT = 80;
 const MAX_THEME_TOKEN_VALUE_LENGTH = 500;

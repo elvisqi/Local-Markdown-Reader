@@ -344,7 +344,7 @@ describe('options App', () => {
             name: 'Ink Focus',
             version: '1.0.0',
             colorScheme: 'light',
-            downloadUrl: 'https://elvisqi.github.io/Local-Markdown-Reader/themes/packages/ink-focus.mdv-theme.json',
+            downloadUrl: 'https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/ink-focus.mdv-theme.json',
             sha256,
             tags: ['light'],
           },

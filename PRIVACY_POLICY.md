@@ -98,9 +98,9 @@ The extension does not include analytics tracking, advertising SDKs, remote logg
 
 本扩展不包含分析追踪、广告 SDK、远程日志、支付处理、账号登录或营销像素。
 
-When the user refreshes or installs remote themes, the extension fetches the remote theme catalog and selected theme package files from `https://elvisqi.github.io/Local-Markdown-Reader/`. These requests do not include Markdown or HTML document contents. Remote theme packages are verified before installation using SHA-256 hashes published in the theme catalog.
+When the user refreshes or installs remote themes, the extension fetches the remote theme catalog and selected theme package files from `https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/`. These requests do not include Markdown or HTML document contents. Remote theme packages are verified before installation using SHA-256 hashes published in the theme catalog.
 
-当用户刷新或安装远程主题时，扩展会从 `https://elvisqi.github.io/Local-Markdown-Reader/` 获取远程主题目录和用户选择的主题包文件。这些请求不会包含 Markdown 或 HTML 文档内容。远程主题包安装前会通过主题目录中发布的 SHA-256 哈希进行校验。
+当用户刷新或安装远程主题时，扩展会从 `https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/` 获取远程主题目录和用户选择的主题包文件。这些请求不会包含 Markdown 或 HTML 文档内容。远程主题包安装前会通过主题目录中发布的 SHA-256 哈希进行校验。
 
 The extension's use of information is limited to providing or improving its local document reading functionality. The extension's use of information received from Chrome APIs adheres to the Chrome Web Store User Data Policy, including the Limited Use requirements.
 
@@ -119,12 +119,12 @@ The extension requests the following permissions:
 - `storage`: used to save reader settings such as theme, style, width, outline visibility, and raw Markdown mode.
 - `scripting`: used by the extension's Manifest V3 architecture when opening and coordinating extension pages.
 - `file:///*` host permission: used to support local file compatibility and allow the extension to provide a reader entry for local Markdown files. This permission does not by itself allow the extension to enumerate arbitrary local folders. Folder enumeration occurs only after the user explicitly grants folder access through the browser folder picker.
-- `https://elvisqi.github.io/*` host permission: used to fetch the remote theme catalog and selected remote theme packages from the project GitHub Pages site.
+- `https://raw.githubusercontent.com/*` host permission: used to fetch the remote theme catalog and selected remote theme packages from the project GitHub repository.
 
 - `storage`：用于保存阅读器设置，例如主题、样式、正文宽度、大纲显示状态和 Raw Markdown 模式。
 - `scripting`：用于扩展 Manifest V3 架构下打开和协调扩展页面。
 - `file:///*` 主机权限：用于支持本地文件兼容性，并为本地 Markdown 文件提供阅读入口。该权限本身不会让扩展枚举任意本地文件夹；只有用户通过浏览器文件夹选择器明确授权后，扩展才会枚举该文件夹。
-- `https://elvisqi.github.io/*` 主机权限：用于从项目 GitHub Pages 站点获取远程主题目录和用户选择的远程主题包。
+- `https://raw.githubusercontent.com/*` 主机权限：用于从项目 GitHub 仓库获取远程主题目录和用户选择的远程主题包。
 
 ## 9. Data Retention / 数据保留
 
