@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "themes:obsidian-css": "node scripts/build-obsidian-theme-css.mjs",
     "themes:previews": "node scripts/build-theme-previews.mjs",
     "themes:index": "node scripts/build-theme-index.mjs",
     "themes:verify": "node scripts/build-theme-index.mjs --check",

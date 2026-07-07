@@ -4,8 +4,7 @@ import {
   InstalledThemePackageList,
   PendingThemePackagePreview,
   ReadingSettingsForm,
-  RemoteThemeList,
-  ThemeCatalogList,
+  ThemeLibraryList,
   ThemePackageCurrentSummary,
   ThemePackageImportControls,
   ThemePreview,
@@ -57,27 +56,27 @@ export function ThemeSettings({ settings, onSettingsChange }: ThemeSettingsProps
         <h2>主题包</h2>
         <p className="options-note">导入本地主题包后，它会出现在“阅读主题”里。</p>
         <ThemePackageImportControls onThemePackageFile={previewThemePackage} />
-        <ThemeCatalogList
-          themes={RECOMMENDED_THEME_PACKAGES}
-          installedThemes={installedThemes}
-          onPreview={previewTheme}
-          onInstall={installCatalogTheme}
-        />
-        <RemoteThemeList
-          index={remoteThemeIndex}
-          installedThemes={installedThemes}
-          hiddenThemeIds={RECOMMENDED_THEME_PACKAGES.map((theme) => theme.id)}
-          onRefresh={refreshRemoteThemes}
-          onPreview={previewRemoteThemeEntry}
-          onInstall={installRemoteThemeEntry}
-        />
         {selectedTheme && <ThemePackageCurrentSummary theme={selectedTheme} />}
         <InstalledThemePackageList
+          settings={settings}
           installedThemes={installedThemes}
           activeThemeId={settings.reading.themeId}
+          onPreview={previewTheme}
           onApply={applyInstalledTheme}
           onExport={exportInstalledTheme}
           onRemove={removeInstalledTheme}
+        />
+        <ThemeLibraryList
+          settings={settings}
+          bundledThemes={RECOMMENDED_THEME_PACKAGES}
+          index={remoteThemeIndex}
+          installedThemes={installedThemes}
+          hiddenRemoteThemeIds={RECOMMENDED_THEME_PACKAGES.map((theme) => theme.id)}
+          onRefresh={refreshRemoteThemes}
+          onPreviewBundled={previewTheme}
+          onInstallBundled={installCatalogTheme}
+          onPreviewRemote={previewRemoteThemeEntry}
+          onInstallRemote={installRemoteThemeEntry}
         />
         {pendingTheme && (
           <PendingThemePackagePreview

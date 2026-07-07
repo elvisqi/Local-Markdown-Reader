@@ -5,8 +5,8 @@ import {
   InstalledThemePackageList,
   PendingThemePackagePreview,
   ReadingSettingsForm,
-  RemoteThemeList,
-  ThemeCatalogList,
+  ThemePreview,
+  ThemeLibraryList,
   ThemePackageImportControls,
 } from './ThemeSettingsSections';
 import {
@@ -86,95 +86,35 @@ describe('ThemeSettings sections', () => {
     );
   });
 
-  it('renders recommended theme install states and forwards catalog actions', async () => {
+  it('renders a rich theme preview sample for visible theme personality checks', () => {
+    render(<ThemePreview settings={DEFAULT_SETTINGS} installedTheme={installedPaperTheme} />);
+
+    const preview = screen.getByLabelText('阅读主题预览');
+
+    expect(within(preview).getByRole('heading', { name: '主题预览', level: 1 })).toBeInTheDocument();
+    expect(preview.querySelector('.markdown-heading--h2')).not.toBeNull();
+    expect(preview.querySelector('.markdown-heading--h3')).not.toBeNull();
+    expect(preview.querySelector('.markdown-heading--h4')).not.toBeNull();
+    expect(preview.querySelector('.callout-info')).not.toBeNull();
+    expect(preview.querySelector('.callout-warning')).not.toBeNull();
+    expect(preview.querySelector('.callout-success')).not.toBeNull();
+    expect(preview.querySelector('.markdown-tag[data-tag="theme"]')).not.toBeNull();
+    expect(preview.querySelector('.markdown-code-block .line')).not.toBeNull();
+    expect(preview.querySelector('.markdown-code-block .token.keyword')).not.toBeNull();
+    expect(preview.querySelector('.markdown-code-block .token.string')).not.toBeNull();
+    expect(preview.querySelectorAll('.markdown-table-body .markdown-table-row')).toHaveLength(3);
+    expect(preview.querySelector('.markdown-image')).not.toBeNull();
+    expect(preview.querySelector('.mermaid')).not.toBeNull();
+    expect(preview.querySelector('.markdown-rule')).not.toBeNull();
+  });
+
+  it('merges bundled and remote themes into one preview library', async () => {
     const user = userEvent.setup();
     const previewTheme = vi.fn();
     const installTheme = vi.fn();
-
-    render(
-      <ThemeCatalogList
-        themes={[inkFocusTheme, nightStudyTheme]}
-        installedThemes={[inkFocusTheme, { ...nightStudyTheme, version: '0.9.0' }]}
-        onPreview={previewTheme}
-        onInstall={installTheme}
-      />,
-    );
-
-    const catalog = screen.getByRole('list', { name: '推荐主题' });
-    const inkFocusRow = within(catalog).getByText('Ink Focus').closest('li')!;
-    const nightStudyRow = within(catalog).getByText('Night Study').closest('li')!;
-
-    expect(within(inkFocusRow).getByRole('button', { name: '已安装' })).toBeDisabled();
-    expect(within(nightStudyRow).getByRole('button', { name: '更新' })).toBeEnabled();
-
-    await user.click(within(nightStudyRow).getByRole('button', { name: '预览' }));
-    await user.click(within(nightStudyRow).getByRole('button', { name: '更新' }));
-
-    expect(previewTheme).toHaveBeenCalledWith(nightStudyTheme);
-    expect(installTheme).toHaveBeenCalledWith(nightStudyTheme);
-  });
-
-  it('renders remote theme install states and forwards refresh and install actions', async () => {
-    const user = userEvent.setup();
     const refreshRemoteThemes = vi.fn(async () => undefined);
     const previewRemoteTheme = vi.fn(async () => undefined);
     const installRemoteTheme = vi.fn(async () => undefined);
-    const remoteIndex = createRemoteThemeIndex();
-
-    render(
-      <RemoteThemeList
-        index={remoteIndex}
-        installedThemes={[inkFocusTheme, { ...nightStudyTheme, version: '0.9.0' }]}
-        onRefresh={refreshRemoteThemes}
-        onPreview={previewRemoteTheme}
-        onInstall={installRemoteTheme}
-      />,
-    );
-
-    await user.click(screen.getByRole('button', { name: '刷新远程主题' }));
-    expect(refreshRemoteThemes).toHaveBeenCalledTimes(1);
-
-    const remoteList = screen.getByRole('list', { name: '远程主题' });
-    const inkFocusRow = within(remoteList).getByText('Ink Focus').closest('li')!;
-    const nightStudyRow = within(remoteList).getByText('Night Study').closest('li')!;
-    const futureRow = within(remoteList).getByText('Future Theme').closest('li')!;
-
-    expect(within(inkFocusRow).getByRole('button', { name: '已安装' })).toBeDisabled();
-    expect(within(inkFocusRow).getByText('已安装', { selector: '.theme-package-state' })).toBeInTheDocument();
-    expect(within(nightStudyRow).getByRole('button', { name: '更新' })).toBeEnabled();
-    expect(within(nightStudyRow).getByText('已安装旧版', { selector: '.theme-package-state' })).toBeInTheDocument();
-    expect(within(futureRow).getByRole('button', { name: '不兼容' })).toBeDisabled();
-
-    await user.click(within(nightStudyRow).getByRole('button', { name: '预览' }));
-    await user.click(within(nightStudyRow).getByRole('button', { name: '更新' }));
-
-    expect(previewRemoteTheme).toHaveBeenCalledWith(remoteIndex.themes[1]);
-    expect(installRemoteTheme).toHaveBeenCalledWith(remoteIndex.themes[1]);
-  });
-
-  it('hides bundled themes from the remote list and keeps installed labels visible', () => {
-    const remoteIndex = createRemoteThemeIndex();
-
-    render(
-      <RemoteThemeList
-        index={remoteIndex}
-        installedThemes={[nightStudyTheme]}
-        hiddenThemeIds={['ink-focus']}
-        onRefresh={vi.fn()}
-        onPreview={vi.fn()}
-        onInstall={vi.fn()}
-      />,
-    );
-
-    const remoteList = screen.getByRole('list', { name: '远程主题' });
-    expect(within(remoteList).queryByText('Ink Focus')).not.toBeInTheDocument();
-
-    const nightStudyRow = within(remoteList).getByText('Night Study').closest('li')!;
-    expect(within(nightStudyRow).getByText('已安装', { selector: '.theme-package-state' })).toBeInTheDocument();
-    expect(within(nightStudyRow).getByRole('button', { name: '已安装' })).toBeDisabled();
-  });
-
-  it('renders remote theme preview images from the remote index', () => {
     const remoteIndex = createRemoteThemeIndex();
     remoteIndex.themes[1] = {
       ...remoteIndex.themes[1],
@@ -182,33 +122,73 @@ describe('ThemeSettings sections', () => {
     };
 
     render(
-      <RemoteThemeList
+      <ThemeLibraryList
+        settings={DEFAULT_SETTINGS}
+        bundledThemes={[inkFocusTheme]}
         index={remoteIndex}
-        installedThemes={[]}
-        onRefresh={vi.fn()}
-        onPreview={vi.fn()}
-        onInstall={vi.fn()}
+        installedThemes={[inkFocusTheme, { ...nightStudyTheme, version: '0.9.0' }]}
+        hiddenRemoteThemeIds={['ink-focus']}
+        onRefresh={refreshRemoteThemes}
+        onPreviewBundled={previewTheme}
+        onInstallBundled={installTheme}
+        onPreviewRemote={previewRemoteTheme}
+        onInstallRemote={installRemoteTheme}
       />,
     );
 
-    const remoteList = screen.getByRole('list', { name: '远程主题' });
-    const nightStudyRow = within(remoteList).getByText('Night Study').closest('li')!;
-    const previewImage = within(nightStudyRow).getByRole('img', { name: 'Night Study 预览图' });
+    await user.click(screen.getByRole('button', { name: '刷新远程主题' }));
+    expect(refreshRemoteThemes).toHaveBeenCalledTimes(1);
 
-    expect(previewImage).toHaveAttribute('src', 'https://example.com/previews/night-study.svg');
-    expect(previewImage).toHaveAttribute('loading', 'lazy');
+    expect(screen.queryByRole('list', { name: '推荐主题' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: '远程主题' })).not.toBeInTheDocument();
+
+    const themeLibrary = screen.getByRole('list', { name: '主题库' });
+    const inkFocusRow = within(themeLibrary).getByText('Ink Focus').closest('li')!;
+    const nightStudyRow = within(themeLibrary).getByText('Night Study').closest('li')!;
+    const futureRow = within(themeLibrary).getByText('Future Theme').closest('li')!;
+
+    expect(within(inkFocusRow).getByRole('button', { name: '已安装' })).toBeDisabled();
+    expect(within(inkFocusRow).getByText('已安装', { selector: '.theme-package-state' })).toBeInTheDocument();
+    expect(within(inkFocusRow).getByText('内置', { selector: '.theme-package-source' })).toBeInTheDocument();
+    expect(within(inkFocusRow).getByLabelText('Ink Focus 预览')).toBeInTheDocument();
+    expect(within(nightStudyRow).getByRole('button', { name: '更新' })).toBeEnabled();
+    expect(within(nightStudyRow).getByText('已安装旧版', { selector: '.theme-package-state' })).toBeInTheDocument();
+    expect(within(nightStudyRow).getByText('在线', { selector: '.theme-package-source' })).toBeInTheDocument();
+    expect(within(nightStudyRow).getByRole('img', { name: 'Night Study 预览图' })).toHaveAttribute(
+      'src',
+      'https://example.com/previews/night-study.svg',
+    );
+    expect(within(futureRow).getByRole('button', { name: '不兼容' })).toBeDisabled();
+
+    await user.click(within(inkFocusRow).getByRole('button', { name: '预览' }));
+    await user.click(within(nightStudyRow).getByRole('button', { name: '预览' }));
+    await user.click(within(nightStudyRow).getByRole('button', { name: '更新' }));
+
+    expect(previewTheme).toHaveBeenCalledWith(inkFocusTheme);
+    expect(previewRemoteTheme).toHaveBeenCalledWith(remoteIndex.themes[1]);
+    expect(installRemoteTheme).toHaveBeenCalledWith(remoteIndex.themes[1]);
+    expect(installTheme).not.toHaveBeenCalled();
   });
 
-  it('renders installed theme package actions with the active theme disabled', async () => {
+  it('renders installed theme package previews and actions with the active theme disabled', async () => {
     const user = userEvent.setup();
+    const previewTheme = vi.fn();
     const applyTheme = vi.fn();
     const exportTheme = vi.fn();
     const removeTheme = vi.fn();
 
     render(
       <InstalledThemePackageList
-        installedThemes={[installedPaperTheme, nightStudyTheme]}
+        settings={DEFAULT_SETTINGS}
+        installedThemes={[
+          {
+            ...installedPaperTheme,
+            css: '.markdown-heading { color: red; }\n.markdown-table { border-collapse: collapse; }',
+          },
+          nightStudyTheme,
+        ]}
         activeThemeId="installed:paper-pro"
+        onPreview={previewTheme}
         onApply={applyTheme}
         onExport={exportTheme}
         onRemove={removeTheme}
@@ -218,13 +198,29 @@ describe('ThemeSettings sections', () => {
     const installedList = screen.getByRole('list', { name: '已安装主题' });
     const paperRow = within(installedList).getByText('Paper Pro · 使用中').closest('li')!;
     const nightRow = within(installedList).getByText('Night Study').closest('li')!;
+    const installedPreviews = within(installedList).getAllByLabelText(/预览$/);
 
+    expect(within(paperRow).getByRole('button', { name: '预览' })).toBeInTheDocument();
     expect(within(paperRow).getByRole('button', { name: '应用' })).toBeDisabled();
+    expect(installedPreviews).toHaveLength(2);
+    expect(within(paperRow).getByLabelText('Paper Pro 预览').closest('.theme-preview')).toHaveAttribute(
+      'data-reader-theme-id',
+      'installed:paper-pro',
+    );
+    expect(within(paperRow).getByText('CSS 80 B')).toBeInTheDocument();
+    expect(within(paperRow).getByText('2 条规则')).toBeInTheDocument();
+    expect(within(paperRow).getByText(/^指纹 [a-f0-9]{8}$/)).toBeInTheDocument();
+    expect(within(nightRow).getByLabelText('Night Study 预览').closest('.theme-preview')).toHaveAttribute(
+      'data-reader-theme-id',
+      'installed:night-study',
+    );
 
+    await user.click(within(nightRow).getByRole('button', { name: '预览' }));
     await user.click(within(nightRow).getByRole('button', { name: '应用' }));
     await user.click(within(nightRow).getByRole('button', { name: '导出' }));
     await user.click(within(nightRow).getByRole('button', { name: '删除' }));
 
+    expect(previewTheme).toHaveBeenCalledWith(nightStudyTheme);
     expect(applyTheme).toHaveBeenCalledWith(nightStudyTheme);
     expect(exportTheme).toHaveBeenCalledWith(nightStudyTheme);
     expect(removeTheme).toHaveBeenCalledWith(nightStudyTheme);
@@ -245,15 +241,17 @@ describe('ThemeSettings sections', () => {
       />,
     );
 
-    expect(screen.getByText('Paper Pro')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '确认更新' })).toBeInTheDocument();
-    expect(screen.getByLabelText('阅读主题预览').closest('.theme-preview')).toHaveAttribute(
+    const dialog = screen.getByRole('dialog', { name: 'Paper Pro 主题预览' });
+    expect(within(dialog).getByRole('heading', { name: 'Paper Pro 主题预览' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: '确认更新' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: '关闭' })).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('阅读主题预览').closest('.theme-preview')).toHaveAttribute(
       'data-reader-theme-id',
       'installed:paper-pro',
     );
 
-    await user.click(screen.getByRole('button', { name: '确认更新' }));
-    await user.click(screen.getByRole('button', { name: '取消' }));
+    await user.click(within(dialog).getByRole('button', { name: '确认更新' }));
+    await user.click(within(dialog).getByRole('button', { name: '关闭' }));
 
     expect(confirmTheme).toHaveBeenCalledTimes(1);
     expect(cancelTheme).toHaveBeenCalledTimes(1);

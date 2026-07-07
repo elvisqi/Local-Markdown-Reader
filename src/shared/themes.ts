@@ -11,7 +11,7 @@ import { APP_VERSION } from './version';
 
 const THEMES_KEY = 'readerThemePackages';
 const REMOTE_THEME_INDEX_CACHE_KEY = 'readerRemoteThemeIndex';
-export const DEFAULT_REMOTE_THEME_INDEX_URL = 'https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/index.json';
+export const DEFAULT_REMOTE_THEME_INDEX_URL = 'https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/index.json';
 const MAX_THEME_CSS_LENGTH = 64 * 1024;
 const MAX_THEME_TOKEN_COUNT = 160;
 const MAX_THEME_TOKEN_VALUE_LENGTH = 500;
@@ -432,7 +432,8 @@ export async function fetchRemoteThemeIndex({
   }
 
   assertHttpsUrl(indexUrl, '远程主题源地址');
-  const response = await fetcher(indexUrl, { cache: 'no-store' });
+  const requestUrl = buildRemoteThemeIndexRequestUrl(indexUrl, Date.now());
+  const response = await fetcher(requestUrl, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`无法获取远程主题源：HTTP ${response.status}。`);
   }
@@ -440,6 +441,18 @@ export async function fetchRemoteThemeIndex({
   const index = normalizeRemoteThemeIndex(await response.json(), indexUrl, Date.now());
   await saveCachedRemoteThemeIndex(index, area);
   return index;
+}
+
+function buildRemoteThemeIndexRequestUrl(indexUrl: string, timestamp: number): string {
+  const url = new URL(indexUrl);
+  url.searchParams.set('t', String(timestamp));
+  return url.toString();
+}
+
+function buildRemoteThemePackageRequestUrl(downloadUrl: string, sha256: string): string {
+  const url = new URL(downloadUrl);
+  url.searchParams.set('sha256', sha256.toLowerCase());
+  return url.toString();
 }
 
 export function createBuiltinReaderThemeId(style: ReadingStyle): BuiltinReaderThemeId {
@@ -519,7 +532,8 @@ export async function loadRemoteTheme({
   }
 
   assertHttpsUrl(entry.downloadUrl, '远程主题下载地址');
-  const response = await fetcher(entry.downloadUrl, { cache: 'no-store' });
+  const requestUrl = buildRemoteThemePackageRequestUrl(entry.downloadUrl, entry.sha256);
+  const response = await fetcher(requestUrl, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`无法下载远程主题：HTTP ${response.status}。`);
   }

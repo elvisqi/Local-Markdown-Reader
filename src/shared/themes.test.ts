@@ -16,9 +16,9 @@ import {
 } from './themes';
 
 describe('themes', () => {
-  it('uses the raw GitHub remote theme index by default', () => {
+  it('uses the hosted remote theme index by default', () => {
     expect(DEFAULT_REMOTE_THEME_INDEX_URL).toBe(
-      'https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/index.json',
+      'https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/index.json',
     );
   });
 
@@ -154,6 +154,31 @@ describe('themes', () => {
   it('scopes selectors inside supported conditional at-rules', () => {
     expect(scopeCss('@media (max-width: 700px) { h1 { font-size: 22px; } }', '.reader-app')).toBe(
       '@media (max-width: 700px) {\n.reader-app h1 { font-size: 22px; }\n}',
+    );
+  });
+
+  it('scopes semantic markdown selectors used by richer remote themes', () => {
+    const theme = parseThemePackageText(JSON.stringify({
+      id: 'semantic-hooks',
+      name: 'Semantic Hooks',
+      version: '1.0.0',
+      css: [
+        '.markdown-heading::before { content: ""; position: absolute; }',
+        '.markdown-tag[data-tag="theme"] { text-transform: uppercase; }',
+        '.markdown-table-row:nth-child(even) .markdown-table-cell { background: var(--reader-table-stripe); }',
+      ].join(' '),
+    }), 123);
+
+    const stylesheet = buildInstalledThemeStylesheet(theme);
+
+    expect(stylesheet).toContain(
+      '[data-reader-theme-id="installed:semantic-hooks"][data-reader-theme-id] .markdown-heading::before',
+    );
+    expect(stylesheet).toContain(
+      '[data-reader-theme-id="installed:semantic-hooks"][data-reader-theme-id] .markdown-tag[data-tag="theme"]',
+    );
+    expect(stylesheet).toContain(
+      '[data-reader-theme-id="installed:semantic-hooks"][data-reader-theme-id] .markdown-table-row:nth-child(even) .markdown-table-cell',
     );
   });
 
@@ -323,9 +348,10 @@ describe('themes', () => {
       area,
     });
 
-    expect(fetcher).toHaveBeenCalledWith('https://example.com/themes/index.json', expect.objectContaining({
-      cache: 'no-store',
-    }));
+    expect(fetcher).toHaveBeenCalledWith(
+      expect.stringMatching(/^https:\/\/example\.com\/themes\/index\.json\?t=\d+$/),
+      expect.objectContaining({ cache: 'no-store' }),
+    );
     expect(index.themes).toHaveLength(1);
     expect(index.themes[0]).toMatchObject({
       id: 'ink-focus',
@@ -335,6 +361,33 @@ describe('themes', () => {
       sourceUrl: 'https://example.com/themes/index.json',
       themes: [expect.objectContaining({ id: 'ink-focus' })],
     });
+  });
+
+  it('adds a timestamp query when fetching the remote theme index without changing the cached source url', async () => {
+    const area = createStorageArea();
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1783500000000);
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      version: 1,
+      themes: [],
+    }), { status: 200 }));
+
+    try {
+      await fetchRemoteThemeIndex({
+        indexUrl: 'https://example.com/themes/index.json?channel=stable',
+        fetcher,
+        area,
+      });
+
+      expect(fetcher).toHaveBeenCalledWith(
+        'https://example.com/themes/index.json?channel=stable&t=1783500000000',
+        expect.objectContaining({ cache: 'no-store' }),
+      );
+      await expect(loadCachedRemoteThemeIndex(area)).resolves.toMatchObject({
+        sourceUrl: 'https://example.com/themes/index.json?channel=stable',
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 
   it('rejects malformed remote theme indexes without overwriting cached data', async () => {
@@ -402,7 +455,7 @@ describe('themes', () => {
       area,
     });
 
-    expect(fetcher).toHaveBeenCalledWith('https://example.com/themes/ink-focus.mdv-theme.json', expect.objectContaining({
+    expect(fetcher).toHaveBeenCalledWith(`https://example.com/themes/ink-focus.mdv-theme.json?sha256=${sha256}`, expect.objectContaining({
       cache: 'no-store',
     }));
     expect(result.theme.id).toBe('ink-focus');

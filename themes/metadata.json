@@ -1,55 +1,55 @@
 {
   "version": 1,
-  "updatedAt": "2026-07-06T00:00:00.000Z",
-  "packageBaseUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/packages/",
+  "updatedAt": "2026-07-07T00:00:00.000Z",
+  "packageBaseUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/",
   "themes": {
     "atom-one-reader": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/atom-one-reader.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/atom-one-reader.svg",
       "tags": ["obsidian-inspired", "atom-one", "dark", "code"]
     },
     "ink-focus": {
       "tags": ["technical", "light", "neutral"]
     },
     "its-readable": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/its-readable.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/its-readable.svg",
       "tags": ["obsidian-inspired", "its", "system", "readable"]
     },
     "minimal-focus": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/minimal-focus.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/minimal-focus.svg",
       "tags": ["obsidian-inspired", "minimal", "system", "neutral"]
     },
     "nord-notes": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/nord-notes.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/nord-notes.svg",
       "tags": ["obsidian-inspired", "nord", "dark", "cool"]
     },
     "night-study": {
       "tags": ["dark", "longform", "low-contrast"]
     },
     "obsidianite-dark": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/obsidianite-dark.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/obsidianite-dark.svg",
       "tags": ["obsidian-inspired", "obsidianite", "dark", "contrast"]
     },
     "pastel-puccin": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/pastel-puccin.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/pastel-puccin.svg",
       "tags": ["obsidian-inspired", "anup-puccin", "dark", "pastel"]
     },
     "things-flow": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/things-flow.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/things-flow.svg",
       "tags": ["obsidian-inspired", "things", "light", "tasks"]
     },
     "report-grid": {
       "tags": ["tables", "compact", "report"]
     },
     "topaz-blue": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/topaz-blue.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/topaz-blue.svg",
       "tags": ["obsidian-inspired", "blue-topaz", "light", "blue"]
     },
     "typewriter-desk": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/typewriter-desk.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/typewriter-desk.svg",
       "tags": ["obsidian-inspired", "typewriter", "light", "writing"]
     },
     "wasp-highlight": {
-      "previewUrl": "https://raw.githubusercontent.com/elvisqi/Local-Markdown-Reader/2.0/themes/previews/wasp-highlight.svg",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/wasp-highlight.svg",
       "tags": ["obsidian-inspired", "wasp", "dark", "amber"]
     }
   }

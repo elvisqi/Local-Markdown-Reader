@@ -267,7 +267,7 @@ describe('useInstalledThemePackages', () => {
       });
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('https://example.com/themes/ink-focus.mdv-theme.json', expect.objectContaining({
+    expect(fetchSpy).toHaveBeenCalledWith(`https://example.com/themes/ink-focus.mdv-theme.json?sha256=${sha256}`, expect.objectContaining({
       cache: 'no-store',
     }));
     expect(result.current.pendingTheme).toEqual(expect.objectContaining({

@@ -290,13 +290,13 @@ describe('options App', () => {
     expect(screen.getByText('已更新主题：Paper Pro。')).toBeInTheDocument();
   });
 
-  it('installs a recommended theme package from the catalog', async () => {
+  it('installs a bundled theme package from the theme library', async () => {
     const user = userEvent.setup();
 
     render(<App />);
 
-    const catalog = await screen.findByRole('list', { name: '推荐主题' });
-    const inkFocusRow = within(catalog).getByText('Ink Focus').closest('li')!;
+    const themeLibrary = await screen.findByRole('list', { name: '主题库' });
+    const inkFocusRow = within(themeLibrary).getByText('Ink Focus').closest('li')!;
 
     await user.click(within(inkFocusRow).getByRole('button', { name: '安装' }));
 
@@ -367,11 +367,19 @@ describe('options App', () => {
     await user.click(await screen.findByRole('button', { name: '刷新远程主题' }));
 
     expect(await screen.findByText('已更新远程主题源：2 个主题。')).toBeInTheDocument();
-    const remoteList = screen.getByRole('list', { name: '远程主题' });
-    expect(within(remoteList).queryByText('Ink Focus')).not.toBeInTheDocument();
-    const remoteFocusRow = within(remoteList).getByText('Remote Focus').closest('li')!;
+    const themeLibrary = screen.getByRole('list', { name: '主题库' });
+    expect(within(themeLibrary).getAllByText('Ink Focus')).toHaveLength(1);
+    const remoteFocusRow = within(themeLibrary).getByText('Remote Focus').closest('li')!;
 
-    await user.click(within(remoteFocusRow).getByRole('button', { name: '安装' }));
+    await user.click(within(remoteFocusRow).getByRole('button', { name: '预览' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Remote Focus 主题预览' });
+    expect(within(dialog).getByLabelText('阅读主题预览').closest('.theme-preview')).toHaveAttribute(
+      'data-reader-theme-id',
+      'installed:remote-focus',
+    );
+
+    await user.click(within(dialog).getByRole('button', { name: '确认安装' }));
 
     await waitFor(() =>
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
@@ -392,10 +400,10 @@ describe('options App', () => {
         }),
       }),
     );
-    expect(screen.getByText('已安装远程主题：Remote Focus。')).toBeInTheDocument();
+    expect(screen.getByText('已安装主题：Remote Focus。')).toBeInTheDocument();
   });
 
-  it('marks recommended themes as installed when the same version exists', async () => {
+  it('marks bundled themes as installed when the same version exists', async () => {
     const localGet = chrome.storage.local.get as unknown as ReturnType<typeof vi.fn>;
     localGet.mockResolvedValue({
       readerThemePackages: [
@@ -415,13 +423,13 @@ describe('options App', () => {
 
     render(<App />);
 
-    const catalog = await screen.findByRole('list', { name: '推荐主题' });
-    const inkFocusRow = within(catalog).getByText('Ink Focus').closest('li')!;
+    const themeLibrary = await screen.findByRole('list', { name: '主题库' });
+    const inkFocusRow = within(themeLibrary).getByText('Ink Focus').closest('li')!;
 
     expect(within(inkFocusRow).getByRole('button', { name: '已安装' })).toBeDisabled();
   });
 
-  it('asks for confirmation before updating a recommended theme package', async () => {
+  it('asks for confirmation before updating a bundled theme package', async () => {
     const user = userEvent.setup();
     const localGet = chrome.storage.local.get as unknown as ReturnType<typeof vi.fn>;
     localGet.mockResolvedValue({
@@ -442,8 +450,8 @@ describe('options App', () => {
 
     render(<App />);
 
-    const catalog = await screen.findByRole('list', { name: '推荐主题' });
-    const inkFocusRow = within(catalog).getByText('Ink Focus').closest('li')!;
+    const themeLibrary = await screen.findByRole('list', { name: '主题库' });
+    const inkFocusRow = within(themeLibrary).getByText('Ink Focus').closest('li')!;
 
     await user.click(within(inkFocusRow).getByRole('button', { name: '更新' }));
 
@@ -569,6 +577,32 @@ describe('options App', () => {
 
     await waitFor(() => expect(chrome.storage.local.set).toHaveBeenCalled());
     expect(screen.getByText('已删除主题：Paper Pro。')).toBeInTheDocument();
+  });
+
+  it('shows installed theme previews above the theme library', async () => {
+    const localGet = chrome.storage.local.get as unknown as ReturnType<typeof vi.fn>;
+    localGet.mockResolvedValue({
+      readerThemePackages: [
+        {
+          id: 'paper-pro',
+          name: 'Paper Pro',
+          version: '1.0.0',
+          colorScheme: 'light',
+          tokens: {
+            '--reader-surface': '#fffefa',
+          },
+          css: '',
+          installedAt: 123,
+        },
+      ],
+    });
+
+    render(<App />);
+
+    const installedList = await screen.findByRole('list', { name: '已安装主题' });
+    const themeLibrary = screen.getByRole('list', { name: '主题库' });
+
+    expect(installedList.compareDocumentPosition(themeLibrary) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
 
