@@ -1,207 +1,227 @@
-# Local Markdown Reader Theme Redesign Design
+# Local Markdown Reader 主题重建设计规格
 
-## Context
+## 背景
 
-The current remote Obsidian-inspired draft themes were removed because they were too structurally similar. Local analysis of the current top 40 Obsidian community themes by downloads showed that popular Obsidian themes are not primarily differentiated by color. Their strongest differences come from selector coverage, typography rhythm, application chrome, tables, callouts, code blocks, plugin-like content, and component density.
+之前做过的 Obsidian 风格远程主题草稿已经删除，原因是它们在结构上过于相似，实际观感更像同一套样式换颜色。我们重新分析了 Obsidian 社区当前下载量前 40 的主题，结论很明确：热门 Obsidian 主题的差异并不主要来自配色，而是来自选择器覆盖、排版节奏、应用框架、表格、callout、代码块、类插件内容和组件密度。
 
-Local Markdown Reader currently supports reader theme packages with `tokens` and scoped `css`. The core token set covers base colors, typography, headings, code, tables, quotes, callouts, tasks, tags, toolbar, file tree, outline, and a small syntax palette. This is a good base for normal reading styles, but it is too flat for 10 strongly differentiated themes.
+Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有 token 已经覆盖基础颜色、字体、标题、代码、表格、引用、callout、任务、标签、toolbar、文件树、outline 和少量语法高亮颜色。这个基础足够支撑普通阅读样式，但不足以支撑 10 套特征明显、观感差异足够大的主题。
 
-## Goals
+## 目标
 
-- Create 10 distinctive theme families based on feature differences, not download ranking alone.
-- Keep themes designed for Local Markdown Reader instead of copying Obsidian CSS.
-- Expand theme tokens and safe theme CSS only where they unlock visible differences.
-- Preserve the existing reading width setting; themes may change internal density and spacing but must not force fixed document width.
-- Make remote theme previews show the actual style differences clearly.
-- Add repeatable similarity checks so future theme sets do not regress into near-duplicates.
+- 基于特征差异设计 10 套主题，而不是简单按下载量前 10 复制。
+- 主题要为 Local Markdown Reader 重新设计，不直接搬运 Obsidian CSS。
+- 只在能够带来明显视觉差异的地方扩展 token 和安全 CSS 能力。
+- 保留现有“阅读宽度”设置；主题可以改变内部密度和间距，但不能强行固定正文宽度。
+- 远程主题预览要能清楚展示实际差异。
+- 增加可重复执行的相似度检查，避免以后再次出现主题近似重复的问题。
 
-## Non-Goals
+## 非目标
 
-- Do not import full upstream Obsidian theme CSS into Local Markdown Reader.
-- Do not support remote font loading or arbitrary `url(...)` resources in theme CSS.
-- Do not replace the existing built-in color mode preference with a "theme" concept.
-- Do not make these themes depend on Obsidian-only plugin DOM structures.
+- 不导入完整的 Obsidian 上游主题 CSS。
+- 不支持远程字体加载，也不允许主题 CSS 使用任意 `url(...)` 资源。
+- 不把现有的“跟随系统 / 浅色 / 深色”颜色模式替换成“主题”概念。
+- 不让这些主题依赖 Obsidian 专属插件 DOM 结构。
 
-## Theme Positioning
+## 主题定位
 
 ### 1. Minimal Focus
 
-Reference direction: Minimal, Shimmering Focus.
+参考方向：Minimal、Shimmering Focus。
 
-Visual target: a low-noise technical reading style with weak borders, restrained headings, high legibility, and quiet navigation chrome.
+视觉目标：低干扰的技术文档阅读风格，边框弱、标题克制、可读性高，导航框架尽量安静。
 
-Distinctive traits:
-- Document surface is calm and mostly flat.
-- Headings use size and whitespace more than decoration.
-- Tables and code blocks are readable but not visually heavy.
-- File tree and outline active states are subtle.
+核心特征：
 
-Required support:
-- Document padding and border strength tokens.
-- Heading margin and border width tokens.
-- Outline active background and text tokens.
-- Scrollbar and resize handle tokens for quiet chrome.
+- 正文容器平静、扁平、低噪音。
+- 标题主要依靠字号和留白建立层级，而不是强装饰。
+- 表格和代码块清晰，但不抢正文注意力。
+- 文件树和大纲的激活状态要克制。
+
+需要的支持：
+
+- 正文内距、边框强度 token。
+- 标题 margin 和 border width token。
+- outline 激活背景和文字 token。
+- 滚动条和 resize handle token，用于弱化应用框架。
 
 ### 2. Typewriter Desk
 
-Reference direction: Typewriter, Red Graphite, Typomagical.
+参考方向：Typewriter、Red Graphite、Typomagical。
 
-Visual target: long-form writing, paper texture feel without images, serif or slab-serif headings, generous line height, and strong paragraph rhythm.
+视觉目标：长文写作、纸张质感、类打字机体验，标题可使用衬线或 slab-serif 气质，行高更舒展，段落节奏更强。
 
-Distinctive traits:
-- Paper-like surface and warmer neutrals.
-- More editorial heading rhythm.
-- Blockquotes feel like pull quotes.
-- Code and tables remain functional but secondary.
+核心特征：
 
-Required support:
-- Paragraph spacing, optional first-line indent, and list rhythm tokens.
-- Blockquote padding, border, background, and typography tokens.
-- Heading family, margin, decoration, and letter-case tokens.
-- Mark and link decoration tokens.
+- 纸张式表面和偏暖的中性色。
+- 更像文章排版的标题节奏。
+- blockquote 更接近 pull quote。
+- 代码和表格保持功能可读，但不作为视觉主角。
+
+需要的支持：
+
+- 段落间距、可选首行缩进、列表节奏 token。
+- blockquote padding、border、background、typography token。
+- 标题字体、margin、装饰、大小写 token。
+- mark 和 link 装饰 token。
 
 ### 3. Topaz Lab
 
-Reference direction: Blue Topaz, Pink Topaz.
+参考方向：Blue Topaz、Pink Topaz。
 
-Visual target: colorful, customizable, component-rich style with strong callouts, tags, tables, and interactive controls.
+视觉目标：多彩、高定制、组件感强，callout、标签、表格和交互控件都要有明显存在感。
 
-Distinctive traits:
-- Strong accent palette with multiple semantic colors.
-- Callouts and tags are visually prominent.
-- Tables have clear header, zebra, hover, and control affordances.
-- Fullscreen table and Mermaid controls match the theme.
+核心特征：
 
-Required support:
-- Semantic callout type tokens for note, info, tip, warning, danger, quote, todo, and abstract.
-- Tag and badge variants.
-- Table toolbar, statistic badge, fullscreen button, and scroll-shadow tokens.
-- Higher CSS/token package limits.
+- 强 accent palette，拥有多个语义颜色。
+- callout 和 tag 的视觉权重要高。
+- 表格的表头、斑马纹、hover、控件都要清楚。
+- 全屏表格和 Mermaid 控件需要融入主题。
+
+需要的支持：
+
+- 语义 callout 类型 token：note、info、tip、warning、danger、quote、todo、abstract。
+- tag 和 badge 变体。
+- 表格 toolbar、统计徽章、全屏按钮、滚动阴影 token。
+- 更高的 CSS 和 token 包容量限制。
 
 ### 4. ITS Atlas
 
-Reference direction: ITS Theme.
+参考方向：ITS Theme。
 
-Visual target: knowledge-base and reference-document reading, optimized for dense content, tables, metadata, YAML, callouts, and structured notes.
+视觉目标：知识库和参考文档阅读，适合高密度内容、表格、metadata、YAML、callout 和结构化笔记。
 
-Distinctive traits:
-- High information density without becoming cramped.
-- Tables, YAML summaries, JSON summaries, and block sections have strong hierarchy.
-- Callouts and blockquotes are part of the document structure.
-- Code blocks and inline code remain distinct in dense pages.
+核心特征：
 
-Required support:
-- YAML/JSON reader summary tokens.
-- Section/card surface tokens for generated readers.
-- Table density and full-screen table panel tokens.
-- Callout type tokens and block title tokens.
+- 信息密度高，但不能显得拥挤。
+- 表格、YAML 摘要、JSON 摘要和块级区域要有强层级。
+- callout 和 blockquote 是文档结构的一部分，而不只是装饰。
+- 在密集页面里，代码块和 inline code 仍然要清楚。
+
+需要的支持：
+
+- YAML / JSON reader summary token。
+- 生成型 reader 的 section/card surface token。
+- 表格密度和全屏表格面板 token。
+- callout 类型 token 和 block title token。
 
 ### 5. Primary Soft
 
-Reference direction: Primary.
+参考方向：Primary。
 
-Visual target: friendly, rounded, soft, creative reading environment with a stronger design-system feel.
+视觉目标：友好、圆润、柔和、轻松，有更强的设计系统感。
 
-Distinctive traits:
-- Rounded controls and panels.
-- Softer shadows and gentle color surfaces.
-- File tree, toolbar, outline, and document components feel cohesive.
-- Tags and task checkboxes are visibly styled.
+核心特征：
 
-Required support:
-- Radius scale tokens: small, medium, large, pill.
-- Shadow scale tokens: small, medium, elevated.
-- Button/control hover, active, focus, and disabled tokens.
-- Checkbox radius and checked mark tokens.
+- 控件和面板更圆润。
+- 阴影柔和，色彩表面轻。
+- 文件树、toolbar、outline 和正文组件要统一。
+- tag 和任务 checkbox 需要有明显风格。
+
+需要的支持：
+
+- 圆角尺度 token：small、medium、large、pill。
+- 阴影尺度 token：small、medium、elevated。
+- button/control 的 hover、active、focus、disabled token。
+- checkbox radius 和 checked mark token。
 
 ### 6. Palette Port
 
-Reference direction: Catppuccin, Tokyo Night, Nord, Dracula.
+参考方向：Catppuccin、Tokyo Night、Nord、Dracula。
 
-Visual target: faithful palette-driven dark/light reading themes where code and semantic colors are the main identity.
+视觉目标：忠实的流行配色移植，明暗模式下都要有完整体验，代码和语义色是主题身份的核心。
 
-Distinctive traits:
-- Color palette is coherent across text, code, callouts, links, tags, and chrome.
-- Syntax highlighting feels intentional, not generic.
-- Dark mode contrast is comfortable over long sessions.
+核心特征：
 
-Required support:
-- Expanded syntax tokens for number, operator, punctuation, variable, type, property, tag, attribute, regexp, inserted, and deleted.
-- Semantic palette tokens beyond red/orange/yellow/green/cyan/blue/purple/pink.
-- True light/dark token overrides in theme packages.
+- 文字、代码、callout、链接、标签和应用框架都使用同一套一致的色彩逻辑。
+- 语法高亮要像专门设计过，而不是通用默认色。
+- 深色模式长时间阅读要舒适，不能只有高饱和对比。
+
+需要的支持：
+
+- 更完整的语法 token：number、operator、punctuation、variable、type、property、tag、attribute、regexp、inserted、deleted。
+- 超出 red/orange/yellow/green/cyan/blue/purple/pink 的语义调色 token。
+- 主题包支持真正的 light/dark token override。
 
 ### 7. Desktop Native
 
-Reference direction: Cupertino, Border, GitHub Theme.
+参考方向：Cupertino、Border、GitHub Theme。
 
-Visual target: local desktop document app, where toolbar, file tree, outline, controls, and document surface all look native and deliberate.
+视觉目标：像本地桌面文档应用。toolbar、文件树、outline、控件和正文表面都要有完整应用感。
 
-Distinctive traits:
-- App chrome is as important as the markdown body.
-- File tree rows, disclosure icons, toolbar buttons, and resize handles are themed.
-- The document surface can be flat or panel-like depending on mode.
+核心特征：
 
-Required support:
-- Toolbar background, border, height, and blur tokens.
-- File tree row height, hover, active, icon, disclosure, and state tokens.
-- Outline button padding, active indicator, and border tokens.
-- Scrollbar and resize handle tokens.
+- 应用框架和 Markdown 正文同等重要。
+- 文件树行、展开箭头、toolbar 按钮、resize handle 都需要主题化。
+- 正文表面可以是扁平，也可以是面板式，但要和应用框架一致。
+
+需要的支持：
+
+- toolbar 背景、边框、高度、blur token。
+- 文件树 row height、hover、active、icon、disclosure、state token。
+- outline button padding、active indicator、border token。
+- 滚动条和 resize handle token。
 
 ### 8. Terminal Console
 
-Reference direction: Terminal, Ono Sendai.
+参考方向：Terminal、Ono Sendai。
 
-Visual target: monospace-first technical reading, terminal-like density, sharp edges, strong code identity, and command-line-inspired headings.
+视觉目标：等宽字体优先的技术阅读体验，终端式密度、锐利边框、强代码气质、命令行风格标题。
 
-Distinctive traits:
-- Monospace typography dominates headings, code, and optionally body.
-- Borders are sharp and grid-like.
-- Headings can show prefix-like decoration.
-- Tables and code blocks feel console-native.
+核心特征：
 
-Required support:
-- Heading prefix/decoration tokens or safe theme CSS selectors.
-- Code block border, header, and line-number-adjacent styling.
-- Table border and density tokens.
-- Focus ring and selection tokens.
+- 等宽字体主导标题、代码，也可以选择性影响正文。
+- 边框锐利，表格和代码区域有网格感。
+- 标题可以有命令行前缀式装饰。
+- 表格和代码块要有 console-native 的感觉。
+
+需要的支持：
+
+- 标题 prefix / decoration token，或可通过安全主题 CSS 实现的选择器。
+- 代码块 border、header、接近行号区域的样式。
+- 表格边框和密度 token。
+- focus ring 和 selection token。
 
 ### 9. Cyber Glow
 
-Reference direction: Cybertron, Cyber Glow.
+参考方向：Cybertron、Cyber Glow。
 
-Visual target: futuristic dark theme with controlled neon accents, glow effects, and high contrast.
+视觉目标：未来感深色主题，克制的霓虹 accent、发光效果和高对比。
 
-Distinctive traits:
-- Dark surfaces with glow on links, active controls, and important blocks.
-- Callouts and code blocks use accent borders or shadows.
-- Mermaid/table fullscreen controls should look integrated.
+核心特征：
 
-Required support:
-- Glow shadow tokens.
-- Focus ring tokens.
-- Control and floating action button tokens.
-- Mermaid wrapper, zoom button, fullscreen overlay, and diagram surface tokens.
+- 深色表面，链接、激活控件和重要块有 glow。
+- callout 和代码块使用 accent border 或 shadow。
+- Mermaid / 表格全屏控件要看起来属于同一主题。
+
+需要的支持：
+
+- glow shadow token。
+- focus ring token。
+- control 和 floating action button token。
+- Mermaid wrapper、zoom button、fullscreen overlay、diagram surface token。
 
 ### 10. Yin Editorial
 
-Reference direction: Yin and Yang, Red Graphite.
+参考方向：Yin and Yang、Red Graphite。
 
-Visual target: strong editorial contrast, black/white or red/graphite emphasis, magazine-like headings, and clean reading hierarchy.
+视觉目标：强编辑感对比，黑白或红/石墨强调，杂志式标题和清晰阅读层级。
 
-Distinctive traits:
-- Light and dark modes are intentionally different, not just inverted.
-- Headings have strong contrast and editorial spacing.
-- Links, marks, quotes, and horizontal rules carry the identity.
+核心特征：
 
-Required support:
-- `lightTokens` and `darkTokens` in theme packages.
-- Heading rule, text-transform, and margin tokens.
-- Link underline style, mark style, and horizontal rule tokens.
-- Blockquote typography tokens.
+- 浅色和深色模式不是简单反色，而是分别设计。
+- 标题有强对比和编辑式间距。
+- link、mark、quote、horizontal rule 承载主题身份。
 
-## Token Expansion
+需要的支持：
 
-### Layout Tokens
+- 主题包支持 `lightTokens` 和 `darkTokens`。
+- 标题 rule、text-transform、margin token。
+- 链接下划线、mark、horizontal rule token。
+- blockquote typography token。
+
+## Token 扩展
+
+### 布局 Token
 
 - `--reader-document-padding`
 - `--reader-document-border-width`
@@ -211,17 +231,17 @@ Required support:
 - `--reader-scrollbar-thumb`
 - `--reader-scrollbar-track`
 
-### Heading Tokens
+### 标题 Token
 
-- `--reader-h1-margin` through `--reader-h6-margin`
-- `--reader-h1-padding` through `--reader-h6-padding`
-- `--reader-h1-border-width` through `--reader-h6-border-width`
+- `--reader-h1-margin` 到 `--reader-h6-margin`
+- `--reader-h1-padding` 到 `--reader-h6-padding`
+- `--reader-h1-border-width` 到 `--reader-h6-border-width`
 - `--reader-heading-text-transform`
 - `--reader-heading-letter-spacing`
 - `--reader-heading-decoration-color`
 - `--reader-heading-decoration-width`
 
-### Typography Tokens
+### 排版 Token
 
 - `--reader-body-letter-spacing`
 - `--reader-paragraph-indent`
@@ -231,7 +251,7 @@ Required support:
 - `--reader-strong-color`
 - `--reader-em-color`
 
-### Chrome Tokens
+### 应用框架 Token
 
 - `--reader-toolbar-border`
 - `--reader-toolbar-height`
@@ -247,7 +267,7 @@ Required support:
 - `--reader-outline-active-color`
 - `--reader-resize-handle-color`
 
-### Table Tokens
+### 表格 Token
 
 - `--reader-table-font-size`
 - `--reader-table-header-text`
@@ -263,15 +283,17 @@ Required support:
 - `--reader-table-stat-color`
 - `--reader-table-scroll-shadow`
 
-### Callout Tokens
+### Callout Token
 
-Base:
+基础 token：
+
 - `--reader-callout-padding`
 - `--reader-callout-title-font`
 - `--reader-callout-title-weight`
 - `--reader-callout-icon-color`
 
-Typed:
+类型 token：
+
 - `--reader-callout-note-bg`
 - `--reader-callout-note-border`
 - `--reader-callout-note-title`
@@ -288,7 +310,7 @@ Typed:
 - `--reader-callout-danger-border`
 - `--reader-callout-danger-title`
 
-### Code And Syntax Tokens
+### 代码和语法 Token
 
 - `--reader-code-padding`
 - `--reader-code-block-shadow`
@@ -305,7 +327,7 @@ Typed:
 - `--reader-syntax-inserted`
 - `--reader-syntax-deleted`
 
-### Component Scale Tokens
+### 组件尺度 Token
 
 - `--reader-radius-sm`
 - `--reader-radius-md`
@@ -316,7 +338,7 @@ Typed:
 - `--reader-shadow-lg`
 - `--reader-shadow-glow`
 
-### Generated Reader Tokens
+### 生成型 Reader Token
 
 - `--reader-json-summary-bg`
 - `--reader-json-summary-border`
@@ -329,9 +351,9 @@ Typed:
 - `--reader-mermaid-control-bg`
 - `--reader-mermaid-control-color`
 
-## Theme Package Schema Changes
+## 主题包 Schema 变化
 
-The package shape should evolve from:
+当前结构：
 
 ```json
 {
@@ -340,7 +362,7 @@ The package shape should evolve from:
 }
 ```
 
-to:
+建议升级为：
 
 ```json
 {
@@ -353,90 +375,93 @@ to:
 }
 ```
 
-Compatibility rules:
-- Existing packages remain valid.
-- `tokens` are always applied.
-- `lightTokens` apply when the reader resolves to light mode.
-- `darkTokens` apply when the reader resolves to dark mode.
-- `features` are metadata for catalog filtering and preview badges.
-- `previewFixtures` declare which preview fixtures best show the theme.
+兼容规则：
 
-Limits:
-- Raise token limit from 160 to 320.
-- Raise CSS limit from 64KB to 128KB initially.
-- Keep rejecting `@import`, `url(...)`, `@font-face`, `javascript:`, `expression(...)`, and `behavior`.
+- 现有主题包继续有效。
+- `tokens` 始终应用。
+- `lightTokens` 在 reader 解析为浅色模式时应用。
+- `darkTokens` 在 reader 解析为深色模式时应用。
+- `features` 用于目录筛选和预览徽章。
+- `previewFixtures` 声明哪些预览样例最能展示该主题。
 
-## Preview Requirements
+限制调整：
 
-The remote theme preview must include a fixed, rich sample document:
+- token 上限从 160 提高到 320。
+- CSS 上限先从 64KB 提高到 128KB。
+- 继续拒绝 `@import`、`url(...)`、`@font-face`、`javascript:`、`expression(...)` 和 `behavior`。
 
-- H1 through H6
-- normal paragraphs and dense paragraphs
-- ordered and unordered lists
-- task list
+## 预览要求
+
+远程主题预览必须使用固定且足够丰富的样例文档：
+
+- H1 到 H6
+- 普通段落和密集段落
+- 有序列表和无序列表
+- 任务列表
 - blockquote
-- note, tip, warning, and danger callouts
-- inline code and fenced code
-- syntax-highlighted code
-- wide table and compact table
-- table row/column count badge
-- Mermaid block
-- tags and marks
-- JSON/YAML summary panels
-- file tree and outline chrome
+- note、tip、warning、danger callout
+- inline code 和 fenced code
+- 带语法高亮的代码
+- 宽表格和紧凑表格
+- 表格行列统计徽章
+- Mermaid 块
+- 标签和 mark
+- JSON / YAML 摘要面板
+- 文件树和 outline 应用框架
 
-This prevents themes from looking different only in the package but similar in the catalog.
+这样可以避免主题在包里看起来不同，但在目录预览里几乎一样。
 
-## Similarity Checks
+## 相似度检查
 
-Theme generation should produce a local report that compares:
+主题生成后需要输出本地报告，比较：
 
-- token key overlap
-- exact token value overlap
-- color bucket similarity
-- CSS selector similarity
-- category coverage for headings, tables, callouts, code, lists, chrome, generated readers, and controls
+- token key 重合度
+- token value 完全重合度
+- 颜色桶相似度
+- CSS selector 相似度
+- 类别覆盖：标题、表格、callout、代码、列表、应用框架、生成型 reader、控件
 
-Acceptance target for the 10-theme set:
-- Average overall similarity below 35%.
-- No pair above 65% unless intentionally part of the same family.
-- At least 8 of 10 themes must have a unique dominant feature category.
-- Each theme must use at least 3 component groups beyond base colors.
+10 套主题的验收目标：
 
-## Implementation Phases
+- 平均整体相似度低于 35%。
+- 除非刻意做同家族主题，否则任意一对主题相似度不应超过 65%。
+- 至少 8 套主题拥有独立的主导特征类别。
+- 每套主题至少使用 3 个基础颜色之外的组件组。
 
-### Phase 1: Foundation
+## 实施阶段
 
-- Add new token defaults to `DEFAULT_READER_THEME_TOKENS`.
-- Apply new tokens in `src/reader/App.css`.
-- Extend theme package parsing for `lightTokens`, `darkTokens`, `features`, and `previewFixtures`.
-- Preserve existing package compatibility.
-- Increase safe token and CSS limits.
+### Phase 1：基础能力
 
-### Phase 2: Built-In And Existing Themes
+- 给 `DEFAULT_READER_THEME_TOKENS` 增加新 token 默认值。
+- 在 `src/reader/App.css` 中应用新 token。
+- 扩展主题包解析，支持 `lightTokens`、`darkTokens`、`features` 和 `previewFixtures`。
+- 保持现有主题包兼容。
+- 提高安全 token 和 CSS 限制。
 
-- Update built-in reading styles to use the new tokens.
-- Update the existing remote themes `ink-focus`, `night-study`, and `report-grid`.
-- Update schema documentation and tests.
+### Phase 2：内置主题和现有主题
 
-### Phase 3: Theme Profiles
+- 更新内置阅读样式，让它们使用新 token。
+- 更新现有远程主题 `ink-focus`、`night-study` 和 `report-grid`。
+- 更新 schema 文档和测试。
 
-- Replace the removed Obsidian draft generator with 10 style profiles.
-- Each profile must define typography, layout, table, callout, code, chrome, and generated-reader behavior.
-- Generate packages and previews from the profiles.
+### Phase 3：主题 Profile
 
-### Phase 4: Validation
+- 用 10 个风格 profile 替代已经删除的 Obsidian 草稿生成器。
+- 每个 profile 必须定义 typography、layout、table、callout、code、chrome 和 generated-reader 行为。
+- 根据 profile 生成主题包和预览图。
 
-- Run unit tests, typecheck, build, theme index generation, and distribution verification.
-- Run the similarity report.
-- Review generated preview output before publishing.
+### Phase 4：验证
 
-### Phase 5: Release
+- 运行单元测试、typecheck、build、主题索引生成和 dist 验证。
+- 运行相似度报告。
+- 发布前人工检查生成的预览效果。
 
-- Publish the 10 remote theme packages and previews.
-- Update remote theme index.
-- Prepare release notes describing the theme system expansion.
+### Phase 5：发布
 
-## Open Decision
+- 发布 10 个远程主题包和预览。
+- 更新远程主题 index。
+- 准备发布说明，说明主题系统扩展内容。
 
-The recommended first implementation step is Phase 1. It should be completed before rebuilding the 10 themes; otherwise the new themes will again depend on ad hoc CSS and will be harder to keep distinct.
+## 待确认决策
+
+推荐的第一步是先实施 Phase 1。只有先扩充基础 token 和主题包 schema，再重建 10 套主题，才能避免新主题继续依赖零散 CSS，也能避免再次出现“主题只是换颜色”的问题。
