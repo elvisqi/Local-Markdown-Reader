@@ -22,6 +22,17 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - 不把现有的“跟随系统 / 浅色 / 深色”颜色模式替换成“主题”概念。
 - 不让这些主题依赖 Obsidian 专属插件 DOM 结构。
 
+## 核心判断
+
+本次重建不能只理解为“扩充 token”。如果只有更多颜色、间距和圆角变量，10 套主题仍然可能看起来只是轻微换肤。要稳定做出差异明显的主题，必须同时具备四类能力：
+
+1. **组件级 token**：主题必须能控制正文、标题、表格、代码、callout、标签、任务、文件树、outline、toolbar、Mermaid、JSON/YAML 摘要等区域。
+2. **稳定 DOM 语义钩子**：主题需要根据内容类型和组件状态写样式，不能只能笼统选择 `table`、`pre`、`.callout`。
+3. **风格 profile**：每套主题必须有明确的密度、圆角、标题、表格、callout、代码和应用框架策略，不能从颜色表直接生成。
+4. **视觉与相似度验收**：发布前必须同时通过机器相似度报告和人工预览检查。
+
+因此，Phase 1 的目标不是“把 token 数量做大”，而是建立一个能表达结构差异的主题系统。
+
 ## 主题定位
 
 ### 1. Minimal Focus
@@ -221,6 +232,23 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 
 ## Token 扩展
 
+### 分批策略
+
+Token 扩展需要分批落地，但 Phase 1 必须覆盖能拉开主题差异的最小能力集。不能只先做颜色 token，否则后续 10 套主题仍然会接近换色。
+
+Phase 1 必须实现的最小能力集：
+
+- 正文结构：document padding、document border、document shadow、section gap。
+- 标题节奏：H1-H6 margin、padding、border width、text transform、letter spacing。
+- 排版细节：paragraph indent、link decoration、strong/em color。
+- 应用框架：toolbar、control、file tree、outline、resize handle。
+- 表格：font size、cell min/max width、header text/shadow、fullscreen panel、action/stat badge、scroll shadow。
+- Callout：基础 callout token 和全部 typed callout token。
+- 代码：code padding、block shadow、line height、扩展 syntax token。
+- 生成型 reader：JSON/YAML summary、大文件 reader、Mermaid wrapper/control。
+
+Phase 2 以后可以继续补充更细的 badge、图标、特殊状态和高级装饰 token。
+
 ### 布局 Token
 
 - `--reader-document-padding`
@@ -309,6 +337,15 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - `--reader-callout-danger-bg`
 - `--reader-callout-danger-border`
 - `--reader-callout-danger-title`
+- `--reader-callout-quote-bg`
+- `--reader-callout-quote-border`
+- `--reader-callout-quote-title`
+- `--reader-callout-todo-bg`
+- `--reader-callout-todo-border`
+- `--reader-callout-todo-title`
+- `--reader-callout-abstract-bg`
+- `--reader-callout-abstract-border`
+- `--reader-callout-abstract-title`
 
 ### 代码和语法 Token
 
@@ -351,6 +388,88 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - `--reader-mermaid-control-bg`
 - `--reader-mermaid-control-color`
 
+## 稳定 DOM 语义钩子
+
+主题要有明显差异，必须先补稳定的 class / data 属性。否则主题只能通过宽泛选择器覆盖元素，表达力会很弱，也容易被渲染结构变动破坏。
+
+### Markdown 正文钩子
+
+- 标题：`data-heading-level="1"` 到 `data-heading-level="6"`。
+- 链接：区分外链、内部相对链接、hash 锚点链接，例如 `data-link-kind="external|relative|hash"`。
+- 代码块：`data-language="ts"`、`data-language="json"` 等语言属性。
+- 任务项：`data-task-state="todo|done"`；如果后续支持更多 Markdown 任务语法，再扩展为 `cancelled|scheduled|important`。
+- 标签：保留稳定 `.tag` / `a[data-tag]`，并允许主题区分 tag 文本。
+
+### Callout 钩子
+
+callout 类型需要统一为：
+
+- `note`
+- `info`
+- `tip`
+- `warning`
+- `danger`
+- `quote`
+- `todo`
+- `abstract`
+
+渲染后的 DOM 应提供稳定属性，例如：
+
+```html
+<div class="callout" data-callout="warning">
+  <div class="callout-title">Warning</div>
+  <div class="callout-content">...</div>
+</div>
+```
+
+主题 CSS 和 typed callout token 都基于 `data-callout` 生效。
+
+### 表格钩子
+
+- 表格 wrapper：`data-table-size="small|medium|large|wide"`。
+- 行列统计：`data-row-count`、`data-column-count`。
+- 宽表格：`data-table-overflow="true"`。
+- 全屏表格面板：稳定 class 保留，并允许通过 table fullscreen token 控制。
+
+### 生成型 Reader 钩子
+
+- JSON summary：稳定 `.json-reader__summary` 和 summary item class。
+- YAML summary：与 JSON summary 对齐的稳定 class。
+- 大文件 reader：行号、虚拟行、搜索结果、工具栏都要有稳定 class。
+- Mermaid：diagram wrapper、zoom controls、fullscreen overlay 都要有稳定 class，并使用对应 token。
+
+这些钩子是主题差异化的前置能力。没有它们，Topaz Lab、ITS Atlas、Terminal Console、Cyber Glow 这几类主题很难真正成立。
+
+## 主题 Profile 模型
+
+10 套主题不能从颜色配置直接生成，必须从风格 profile 生成。每个 profile 至少包含以下维度：
+
+```ts
+type ThemeProfile = {
+  density: 'compact' | 'comfortable' | 'editorial';
+  radius: 'sharp' | 'soft' | 'round';
+  chrome: 'quiet' | 'native' | 'glow' | 'terminal';
+  heading: 'minimal' | 'editorial' | 'terminal' | 'decorated';
+  table: 'plain' | 'data-grid' | 'paper' | 'colorful';
+  callout: 'subtle' | 'semantic' | 'card' | 'glow';
+  code: 'plain' | 'ide' | 'terminal';
+  contentFocus: 'longform' | 'technical' | 'knowledge-base' | 'data-heavy';
+};
+```
+
+每套主题必须定义：
+
+- 主导特征：用户一眼能记住的视觉点。
+- 次级特征：至少两个支撑主导特征的组件区域。
+- 禁止项：避免和其他主题重叠的样式策略。
+- 预览重点：该主题最应该展示的预览 fixture。
+
+示例：
+
+- Minimal Focus 的主导特征是低噪音和弱边框，禁止使用强色块 callout。
+- Typewriter Desk 的主导特征是纸张和文章排版，禁止做高饱和彩色控件。
+- Cyber Glow 的主导特征是深色 glow，禁止使用大面积亮色背景。
+
 ## 主题包 Schema 变化
 
 当前结构：
@@ -384,6 +503,19 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - `features` 用于目录筛选和预览徽章。
 - `previewFixtures` 声明哪些预览样例最能展示该主题。
 
+明暗 token 合并顺序固定为：
+
+```text
+DEFAULT_READER_THEME_TOKENS
+→ theme.tokens
+→ theme.lightTokens 或 theme.darkTokens
+→ theme.css
+```
+
+resolved color mode 来自 reader 的颜色模式计算结果：当用户选择浅色或深色时直接使用该模式；当用户选择跟随系统时，使用当前系统匹配结果。options 预览和 reader 实际渲染必须使用同一套 resolved color mode 逻辑。
+
+`features` 和 `previewFixtures` 不只存在于主题包，也必须同步进入远程 `themes/index.json`。原因是远程目录在下载主题包之前就需要展示筛选、徽章和预览信息。
+
 限制调整：
 
 - token 上限从 160 提高到 320。
@@ -399,7 +531,7 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - 有序列表和无序列表
 - 任务列表
 - blockquote
-- note、tip、warning、danger callout
+- note、info、tip、warning、danger、quote、todo、abstract callout
 - inline code 和 fenced code
 - 带语法高亮的代码
 - 宽表格和紧凑表格
@@ -411,6 +543,18 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 
 这样可以避免主题在包里看起来不同，但在目录预览里几乎一样。
 
+预览输出至少包含：
+
+- 主题目录卡片预览。
+- 真实弹窗预览。
+- 桌面宽度 reader 截图。
+- 窄屏 reader 截图。
+- 浅色和深色 resolved mode 截图；只支持单模式的主题需要明确展示单模式效果。
+- 表格全屏截图。
+- Mermaid 全屏截图。
+
+预览检查不是可选项。只要某套主题在固定预览中无法一眼看出主导特征，就不能进入发布。
+
 ## 相似度检查
 
 主题生成后需要输出本地报告，比较：
@@ -421,12 +565,41 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - CSS selector 相似度
 - 类别覆盖：标题、表格、callout、代码、列表、应用框架、生成型 reader、控件
 
+相似度公式固定为：
+
+```text
+overall =
+  0.25 * tokenKeySimilarity +
+  0.20 * tokenValueSimilarity +
+  0.20 * selectorSimilarity +
+  0.15 * colorBucketSimilarity +
+  0.20 * featureCoverageSimilarity
+```
+
+报告输出到 `themes/previews/theme-similarity-report.json`，并在命令行输出最相似的 10 对主题、最相异的 10 对主题、每套主题的主导特征覆盖。
+
 10 套主题的验收目标：
 
 - 平均整体相似度低于 35%。
 - 除非刻意做同家族主题，否则任意一对主题相似度不应超过 65%。
 - 至少 8 套主题拥有独立的主导特征类别。
-- 每套主题至少使用 3 个基础颜色之外的组件组。
+- 每套主题至少覆盖 6 个组件区域。
+- 每套主题至少包含 3 个非颜色差异点。
+- 每套主题至少有 1 个主题专属视觉记忆点。
+- 每套主题在预览首屏内必须能识别出主导特征。
+
+主题专属视觉记忆点示例：
+
+- Minimal Focus：极弱边框和安静标题。
+- Typewriter Desk：纸张感和文章排版。
+- Topaz Lab：彩色 callout 和标签。
+- ITS Atlas：高密度知识库卡片。
+- Primary Soft：圆润柔和组件。
+- Palette Port：完整语法配色。
+- Desktop Native：文件树和 toolbar 像原生应用。
+- Terminal Console：等宽字体、终端边框、命令行标题。
+- Cyber Glow：霓虹 glow。
+- Yin Editorial：黑白强对比和杂志标题。
 
 ## 实施阶段
 
@@ -435,26 +608,30 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - 给 `DEFAULT_READER_THEME_TOKENS` 增加新 token 默认值。
 - 在 `src/reader/App.css` 中应用新 token。
 - 扩展主题包解析，支持 `lightTokens`、`darkTokens`、`features` 和 `previewFixtures`。
+- 扩展远程主题 index，支持 `features` 和 `previewFixtures`。
+- 补充稳定 DOM 语义钩子，至少覆盖 heading、link、code block、callout、table、generated reader。
 - 保持现有主题包兼容。
 - 提高安全 token 和 CSS 限制。
+- 同阶段更新类型、schema 文档、导入/导出逻辑和测试。
 
 ### Phase 2：内置主题和现有主题
 
 - 更新内置阅读样式，让它们使用新 token。
 - 更新现有远程主题 `ink-focus`、`night-study` 和 `report-grid`。
-- 更新 schema 文档和测试。
+- 为现有主题补齐 `features` 和 `previewFixtures`。
 
 ### Phase 3：主题 Profile
 
 - 用 10 个风格 profile 替代已经删除的 Obsidian 草稿生成器。
 - 每个 profile 必须定义 typography、layout、table、callout、code、chrome 和 generated-reader 行为。
 - 根据 profile 生成主题包和预览图。
+- 生成后立即运行相似度报告，未达标时必须调整 profile，而不是只改颜色。
 
 ### Phase 4：验证
 
 - 运行单元测试、typecheck、build、主题索引生成和 dist 验证。
 - 运行相似度报告。
-- 发布前人工检查生成的预览效果。
+- 发布前人工检查生成的预览效果，包括桌面、窄屏、表格全屏和 Mermaid 全屏。
 
 ### Phase 5：发布
 
