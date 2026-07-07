@@ -392,6 +392,16 @@ Phase 2 以后可以继续补充更细的 badge、图标、特殊状态和高级
 
 主题要有明显差异，必须先补稳定的 class / data 属性。否则主题只能通过宽泛选择器覆盖元素，表达力会很弱，也容易被渲染结构变动破坏。
 
+### 实现边界
+
+DOM 钩子按信息来源分两类实现：
+
+- **Markdown 渲染阶段生成**：标题级别、链接类型、代码语言、任务状态、callout 类型。这些信息来自 Markdown AST 或渲染器上下文，应该在 HTML 生成时写入，避免后处理猜测。
+- **DOM 后处理阶段生成**：表格尺寸、行列统计、overflow 状态、全屏表格 wrapper。这些信息依赖真实 DOM 或布局测量，应该由 table fullscreen / table stats 后处理逻辑写入。
+- **组件直接输出**：JSON/YAML reader、大文件 reader、Mermaid wrapper、文件树、outline、toolbar 这类 React 组件应直接输出稳定 class 和 data 属性。
+
+这个边界需要写入测试。后续如果渲染器替换或 DOM 结构调整，稳定钩子必须保持兼容。
+
 ### Markdown 正文钩子
 
 - 标题：`data-heading-level="1"` 到 `data-heading-level="6"`。
@@ -516,11 +526,65 @@ resolved color mode 来自 reader 的颜色模式计算结果：当用户选择�
 
 `features` 和 `previewFixtures` 不只存在于主题包，也必须同步进入远程 `themes/index.json`。原因是远程目录在下载主题包之前就需要展示筛选、徽章和预览信息。
 
+字段约束：
+
+- `features` 和 `previewFixtures` 都是受控字符串数组。
+- 解析时必须去重、排序，并限制最大数量。
+- 未识别值应在导入或 index 生成时失败，不能静默忽略。
+
+`features` 允许值：
+
+- `minimal`
+- `editorial`
+- `tables`
+- `callouts`
+- `chrome`
+- `code`
+- `terminal`
+- `glow`
+- `palette`
+- `data-heavy`
+- `longform`
+- `knowledge-base`
+
+`previewFixtures` 允许值：
+
+- `longform`
+- `technical`
+- `data-table`
+- `fullscreen-table`
+- `mermaid`
+- `json-yaml`
+- `chrome`
+- `narrow-screen`
+
 限制调整：
 
 - token 上限从 160 提高到 320。
 - CSS 上限先从 64KB 提高到 128KB。
 - 继续拒绝 `@import`、`url(...)`、`@font-face`、`javascript:`、`expression(...)` 和 `behavior`。
+
+## Token 回退规则
+
+所有新增 token 都必须有明确回退链，避免主题包必须一次性定义全部变量。
+
+通用回退顺序：
+
+```text
+typed/component token
+→ base component token
+→ DEFAULT_READER_THEME_TOKENS
+→ CSS fallback literal
+```
+
+示例：
+
+- `--reader-callout-warning-bg` 未定义时，回退到 `--reader-callout-bg`。
+- `--reader-table-fullscreen-panel-bg` 未定义时，回退到 `--reader-surface`。
+- `--reader-control-hover-bg` 未定义时，回退到基于 `--reader-link` 和 `--reader-surface` 的 `color-mix(...)`。
+- `--reader-h3-margin` 未定义时，回退到现有 H3 默认 margin。
+
+主题生成脚本可以生成完整 token，但导入器和运行时不能要求第三方主题一次性覆盖全部 token。
 
 ## 预览要求
 
@@ -555,26 +619,57 @@ resolved color mode 来自 reader 的颜色模式计算结果：当用户选择�
 
 预览检查不是可选项。只要某套主题在固定预览中无法一眼看出主导特征，就不能进入发布。
 
+### 视觉验收工具链
+
+静态 SVG 预览只能作为目录卡片素材，不能作为唯一验收依据。主题发布前必须通过浏览器自动化生成真实页面截图。
+
+工具链要求：
+
+- 使用 Playwright 或等价浏览器自动化打开本地构建后的 options 和 reader 页面。
+- 输出目录为 `themes/previews/screenshots/<theme-id>/`。
+- 每个主题至少输出：
+  - `catalog-card.png`
+  - `options-preview-light.png`
+  - `options-preview-dark.png`
+  - `reader-desktop-light.png`
+  - `reader-desktop-dark.png`
+  - `reader-narrow.png`
+  - `table-fullscreen.png`
+  - `mermaid-fullscreen.png`
+- 单模式主题可以只输出自身支持的 light/dark 文件，但文件名和报告中必须说明原因。
+- 截图脚本需要生成 `themes/previews/theme-visual-report.json`，记录每张截图路径、viewport、resolved color mode、主题 id、是否成功。
+
+失败标准：
+
+- 截图为空白或核心区域未渲染。
+- 主题 CSS 未应用到 reader 或 options 预览。
+- 表格全屏或 Mermaid 全屏截图没有进入全屏状态。
+- 预览首屏无法展示该主题的主导视觉记忆点。
+
 ## 相似度检查
 
 主题生成后需要输出本地报告，比较：
 
-- token key 重合度
+- token key 覆盖率
 - token value 完全重合度
 - 颜色桶相似度
 - CSS selector 相似度
 - 类别覆盖：标题、表格、callout、代码、列表、应用框架、生成型 reader、控件
 
-相似度公式固定为：
+token key 不纳入整体相似度公式。原因是 10 套主题应该共同覆盖最小能力集，key 重合高是好事，不代表视觉相似。token key 只作为覆盖率检查：每套主题必须覆盖足够多的组件区域。
+
+整体相似度公式固定为：
 
 ```text
 overall =
-  0.25 * tokenKeySimilarity +
-  0.20 * tokenValueSimilarity +
+  0.25 * tokenValueSimilarity +
   0.20 * selectorSimilarity +
   0.15 * colorBucketSimilarity +
-  0.20 * featureCoverageSimilarity
+  0.25 * featureCoverageSimilarity +
+  0.15 * profileDistanceSimilarity
 ```
+
+`profileDistanceSimilarity` 根据 `ThemeProfile` 的维度计算。两个主题在 density、radius、chrome、heading、table、callout、code、contentFocus 上越一致，相似度越高。
 
 报告输出到 `themes/previews/theme-similarity-report.json`，并在命令行输出最相似的 10 对主题、最相异的 10 对主题、每套主题的主导特征覆盖。
 
