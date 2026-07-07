@@ -1,233 +1,307 @@
 {
   "version": 1,
-  "updatedAt": "2026-07-07T00:00:00.000Z",
+  "schemaVersion": 2,
+  "catalogVersion": "2026.07.08.official.1",
+  "updatedAt": "2026-07-08T00:00:00.000Z",
   "themes": [
     {
-      "id": "atom-one-reader",
-      "name": "Atom One Reader",
-      "version": "1.0.4",
-      "author": "Local Markdown Reader",
-      "description": "Atom One inspired dark theme for code-heavy Markdown notes.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "dark",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/atom-one-reader.mdv-theme.json",
-      "sha256": "52918cc3f9b2f73e1f8c3e104abc2d82a3206c36bed84b3449365dc3ac66b27e",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/atom-one-reader.svg",
-      "tags": [
-        "obsidian-inspired",
-        "atom-one",
-        "dark",
-        "code"
-      ]
-    },
-    {
-      "id": "ink-focus",
-      "name": "Ink Focus",
+      "id": "everforest-field",
+      "name": "Everforest Field",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Neutral contrast for long technical documents.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "light",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/ink-focus.mdv-theme.json",
-      "sha256": "aad55d6c9bd7a6c0506488b58c3b159dd3f0b8da7d9f870bec2e239234d27850",
-      "tags": [
-        "technical",
-        "light",
-        "neutral"
-      ]
-    },
-    {
-      "id": "its-readable",
-      "name": "ITS Readable",
-      "version": "1.0.4",
-      "author": "Local Markdown Reader",
-      "description": "Readable system theme for long reference documents and dense tables.",
+      "description": "Muted green field-note theme inspired by Everforest and Gruvbox.",
       "minAppVersion": "2.3.1",
       "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/its-readable.mdv-theme.json",
-      "sha256": "0ccff784e0a4f25531ec5cd55652bfb40922a63b5c849aeb92556fef2a5c2171",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/its-readable.svg",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/everforest-field.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/everforest-field.mdv-theme.json?v=1.0.0",
+      "sha256": "01443bb6a74e93e0c5bed98913d693718aae588ec62d80443a58d48582b94707",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/everforest-field.svg?v=1.0.0",
       "tags": [
-        "obsidian-inspired",
-        "its",
-        "system",
-        "readable"
-      ]
-    },
-    {
-      "id": "minimal-focus",
-      "name": "Minimal Focus",
-      "version": "1.0.4",
-      "author": "Local Markdown Reader",
-      "description": "Minimal inspired neutral theme with very quiet chrome.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/minimal-focus.mdv-theme.json",
-      "sha256": "53cc2466761dfcfa254b27630c56f1f4024425e0a8a84ee00975f62158fca294",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/minimal-focus.svg",
-      "tags": [
-        "obsidian-inspired",
-        "minimal",
-        "system",
-        "neutral"
-      ]
-    },
-    {
-      "id": "night-study",
-      "name": "Night Study",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Dark reading theme with restrained contrast.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "dark",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/night-study.mdv-theme.json",
-      "sha256": "9e129cbd76599821aacafdfcd54911de1090deb20c9dfc7ed2448529ec5260ca",
-      "tags": [
-        "dark",
-        "longform",
-        "low-contrast"
-      ]
-    },
-    {
-      "id": "nord-notes",
-      "name": "Nord Notes",
-      "version": "1.0.4",
-      "author": "Local Markdown Reader",
-      "description": "Nord inspired cool dark theme for calm technical reading.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "dark",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/nord-notes.mdv-theme.json",
-      "sha256": "ff72e7d69901abb2cbca108022024d31cb145b3fb2cbf3235c3ca5dfbf823088",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/nord-notes.svg",
-      "tags": [
-        "obsidian-inspired",
-        "nord",
-        "dark",
-        "cool"
-      ]
-    },
-    {
-      "id": "obsidianite-dark",
-      "name": "Obsidianite Dark",
-      "version": "1.0.4",
-      "author": "Local Markdown Reader",
-      "description": "Obsidianite inspired dark theme with crisp contrast and vivid links.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "dark",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/obsidianite-dark.mdv-theme.json",
-      "sha256": "38aa6850d69628e464acb7ffb2531094c85a4af954feb647398ac08956338b57",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/obsidianite-dark.svg",
-      "tags": [
-        "obsidian-inspired",
-        "obsidianite",
-        "dark",
-        "contrast"
-      ]
-    },
-    {
-      "id": "pastel-puccin",
-      "name": "Pastel Puccin",
-      "version": "1.0.4",
-      "author": "Local Markdown Reader",
-      "description": "AnuPpuccin inspired pastel dark theme with soft lavender accents.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "dark",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/pastel-puccin.mdv-theme.json",
-      "sha256": "cd884bee38eae0b563b8feb39e878e0d9a8e3be1d3bd1763240571e49180e689",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/pastel-puccin.svg",
-      "tags": [
-        "obsidian-inspired",
-        "anup-puccin",
-        "dark",
-        "pastel"
-      ]
-    },
-    {
-      "id": "report-grid",
-      "name": "Report Grid",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Compact report style for tables and structured notes.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/report-grid.mdv-theme.json",
-      "sha256": "27e58c1c8381da0455c50e0246fad2ff6c7ec58c6cbc7a34cd476ecac9257816",
-      "tags": [
+        "green",
+        "field-notes",
+        "warm"
+      ],
+      "features": [
+        "callouts",
         "tables",
-        "compact",
-        "report"
+        "code",
+        "tasks",
+        "outline"
+      ],
+      "previewFixtures": [
+        "note",
+        "tasks",
+        "table"
       ]
     },
     {
-      "id": "things-flow",
-      "name": "Things Flow",
-      "version": "1.0.4",
+      "id": "github-workbench",
+      "name": "GitHub Workbench",
+      "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Things inspired light theme for task lists and clean daily notes.",
+      "description": "Developer documentation theme inspired by Gitsidian and GitHub Theme.",
       "minAppVersion": "2.3.1",
-      "colorScheme": "light",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/things-flow.mdv-theme.json",
-      "sha256": "f670946ffea3a0c2b55eca217b23489f0bb640bccbc1fc274a6e15c8e24eb7a9",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/things-flow.svg",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/github-workbench.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/github-workbench.mdv-theme.json?v=1.0.0",
+      "sha256": "92a9e6ef911849ebdf6a6d656b97d31943781097931d12df018016a49936379c",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/github-workbench.svg?v=1.0.0",
       "tags": [
-        "obsidian-inspired",
-        "things",
-        "light",
-        "tasks"
+        "developer",
+        "github",
+        "documentation"
+      ],
+      "features": [
+        "tables",
+        "code",
+        "file-tree",
+        "toolbar",
+        "json-yaml"
+      ],
+      "previewFixtures": [
+        "code",
+        "table",
+        "file-tree"
       ]
     },
     {
-      "id": "topaz-blue",
-      "name": "Topaz Blue",
-      "version": "1.0.4",
+      "id": "minimal-manuscript",
+      "name": "Minimal Manuscript",
+      "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Blue Topaz inspired airy theme with saturated blue headings.",
+      "description": "Quiet long-form writing surface inspired by Minimal and Shimmering Focus.",
       "minAppVersion": "2.3.1",
-      "colorScheme": "light",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/topaz-blue.mdv-theme.json",
-      "sha256": "2425d494b0ee8c5eaa208cbbdd7df69c2fdd2f1baf0370bd153b3e257fc8172c",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/topaz-blue.svg",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/minimal-manuscript.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/minimal-manuscript.mdv-theme.json?v=1.0.0",
+      "sha256": "38561b801818558bb22d444cac3f4e7a27680f869f709fab0401a29e34d02e2a",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/minimal-manuscript.svg?v=1.0.0",
       "tags": [
-        "obsidian-inspired",
-        "blue-topaz",
-        "light",
-        "blue"
+        "writing",
+        "minimal",
+        "longform"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "outline",
+        "toolbar"
+      ],
+      "previewFixtures": [
+        "longform",
+        "code",
+        "callouts"
       ]
     },
     {
-      "id": "typewriter-desk",
-      "name": "Typewriter Desk",
-      "version": "1.0.4",
+      "id": "nord-research",
+      "name": "Nord Research",
+      "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Typewriter inspired warm writing theme with serif document rhythm.",
+      "description": "Cool research reading theme inspired by Obsidian Nord and Noctis.",
       "minAppVersion": "2.3.1",
-      "colorScheme": "light",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/typewriter-desk.mdv-theme.json",
-      "sha256": "c25f111758b6c3c37046d663177c1f681db39112ee7cddaa9ac3ea404cd71cbc",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/typewriter-desk.svg",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/nord-research.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/nord-research.mdv-theme.json?v=1.0.0",
+      "sha256": "59c0b949711528516a1fc6e1bfa8ec44b6d022815e0a128d57c672f0bab2a960",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/nord-research.svg?v=1.0.0",
       "tags": [
-        "obsidian-inspired",
-        "typewriter",
-        "light",
-        "writing"
+        "cool",
+        "research",
+        "low-contrast"
+      ],
+      "features": [
+        "tables",
+        "code",
+        "mermaid",
+        "outline",
+        "file-tree"
+      ],
+      "previewFixtures": [
+        "table",
+        "mermaid",
+        "longform"
       ]
     },
     {
-      "id": "wasp-highlight",
-      "name": "Wasp Highlight",
-      "version": "1.0.4",
+      "id": "primary-soft",
+      "name": "Primary Soft",
+      "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Wasp inspired high-energy dark theme with sharp amber accents.",
+      "description": "Soft knowledge-base theme inspired by Primary and Sanctum.",
       "minAppVersion": "2.3.1",
-      "colorScheme": "dark",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/wasp-highlight.mdv-theme.json",
-      "sha256": "88b985679b07e83fd28582f25863dc5b3a9859477b49c149044dad53cdaa7a5e",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/wasp-highlight.svg",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/primary-soft.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/primary-soft.mdv-theme.json?v=1.0.0",
+      "sha256": "87f12c5d047277a5e277463062709ba7495d7eb6ea02e5a9a4c4da5aa69e269d",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/primary-soft.svg?v=1.0.0",
       "tags": [
-        "obsidian-inspired",
-        "wasp",
-        "dark",
-        "amber"
+        "soft",
+        "knowledge",
+        "clean"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "toolbar",
+        "outline"
+      ],
+      "previewFixtures": [
+        "note",
+        "longform",
+        "callouts"
+      ]
+    },
+    {
+      "id": "prism-spectrum",
+      "name": "Prism Spectrum",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Colorful structured notes inspired by Prism and AnuPpuccin.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/prism-spectrum.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/prism-spectrum.mdv-theme.json?v=1.0.0",
+      "sha256": "7ba52a25d28cad23324140a7543f6c3686ac455772114fdd52f34995d9659cdf",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/prism-spectrum.svg?v=1.0.0",
+      "tags": [
+        "colorful",
+        "notes",
+        "structured"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "mermaid",
+        "toolbar"
+      ],
+      "previewFixtures": [
+        "callouts",
+        "tasks",
+        "mermaid"
+      ]
+    },
+    {
+      "id": "sanctum-archive",
+      "name": "Sanctum Archive",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Paper archive theme inspired by Sanctum and Notation.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/sanctum-archive.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/sanctum-archive.mdv-theme.json?v=1.0.0",
+      "sha256": "1ccd4250746c42af14ea25a2080a4aafe207dfb87562ac0c72ec53e4ea47e267",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/sanctum-archive.svg?v=1.0.0",
+      "tags": [
+        "paper",
+        "archive",
+        "serif"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "outline"
+      ],
+      "previewFixtures": [
+        "longform",
+        "note",
+        "callouts"
+      ]
+    },
+    {
+      "id": "terminal-console",
+      "name": "Terminal Console",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Command-line reading surface inspired by Cybertron, Dracula, and popular terminal themes.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/terminal-console.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/terminal-console.mdv-theme.json?v=1.0.0",
+      "sha256": "7f3c9b6281b041512ff1e63cd3e7ea52165ff81376355328875219ec4010686b",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/terminal-console.svg?v=1.0.0",
+      "tags": [
+        "terminal",
+        "developer",
+        "contrast"
+      ],
+      "features": [
+        "code",
+        "tables",
+        "file-tree",
+        "toolbar",
+        "json-yaml"
+      ],
+      "previewFixtures": [
+        "code",
+        "json-yaml",
+        "file-tree"
+      ]
+    },
+    {
+      "id": "things-native",
+      "name": "Things Native",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Native productivity notes with crisp controls and compact navigation.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/things-native.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/things-native.mdv-theme.json?v=1.0.0",
+      "sha256": "482fbfa7f6e3a0bdc688995a6bed1701a3352d1658cb888077f0435bfcff487b",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/things-native.svg?v=1.0.0",
+      "tags": [
+        "productivity",
+        "native",
+        "notes"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "file-tree",
+        "toolbar",
+        "outline"
+      ],
+      "previewFixtures": [
+        "dashboard",
+        "tasks",
+        "file-tree"
+      ]
+    },
+    {
+      "id": "topaz-lab",
+      "name": "Topaz Lab",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Information-rich research theme inspired by Blue Topaz and ITS.",
+      "minAppVersion": "2.3.1",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/topaz-lab.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/topaz-lab.mdv-theme.json?v=1.0.0",
+      "sha256": "77fad536fa81f5d24c0f18b9552e9f1d2cde1df64a67624678aa100aa09f85a0",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/topaz-lab.svg?v=1.0.0",
+      "tags": [
+        "research",
+        "feature-rich",
+        "tables"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "json-yaml",
+        "mermaid",
+        "outline"
+      ],
+      "previewFixtures": [
+        "table",
+        "dashboard",
+        "mermaid"
       ]
     }
   ]

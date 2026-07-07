@@ -62,7 +62,12 @@ describe('useInstalledThemePackages', () => {
 
     await waitFor(() => expect(result.current.installedThemes).toHaveLength(1));
 
-    expect(result.current.selectedTheme).toEqual(installedPaperTheme);
+    expect(result.current.selectedTheme).toMatchObject(installedPaperTheme);
+    expect(result.current.selectedTheme).toMatchObject({
+      features: [],
+      previewFixtures: [],
+      sanitizerVersion: 'theme-css-ast-v1',
+    });
 
     const updatedTheme = { ...installedPaperTheme, version: '1.1.0', installedAt: 789 };
     act(() => {
@@ -70,7 +75,12 @@ describe('useInstalledThemePackages', () => {
     });
 
     expect(result.current.pendingTheme).toEqual(updatedTheme);
-    expect(result.current.pendingExistingTheme).toEqual(installedPaperTheme);
+    expect(result.current.pendingExistingTheme).toMatchObject(installedPaperTheme);
+    expect(result.current.pendingExistingTheme).toMatchObject({
+      features: [],
+      previewFixtures: [],
+      sanitizerVersion: 'theme-css-ast-v1',
+    });
     expect(result.current.themeStatus).toBe('检测到已安装主题：Paper Pro 1.0.0，将更新为 1.1.0。');
   });
 
@@ -175,7 +185,7 @@ describe('useInstalledThemePackages', () => {
     });
 
     expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('/themes/index.json'), expect.objectContaining({
-      cache: 'no-store',
+      cache: 'no-cache',
     }));
     expect(result.current.remoteThemeIndex?.themes[0].id).toBe('night-study');
     expect(result.current.remoteThemeStatus).toBe('已更新远程主题源：1 个主题。');

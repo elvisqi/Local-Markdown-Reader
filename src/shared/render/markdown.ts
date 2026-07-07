@@ -63,26 +63,32 @@ export async function renderMarkdown(
       h1: [
         ...(defaultSchema.attributes?.h1 ?? []),
         ['className', /^markdown-/],
+        ['dataHeadingLevel', /^[1-6]$/],
       ],
       h2: [
         ...(defaultSchema.attributes?.h2 ?? []),
         ['className', /^markdown-/],
+        ['dataHeadingLevel', /^[1-6]$/],
       ],
       h3: [
         ...(defaultSchema.attributes?.h3 ?? []),
         ['className', /^markdown-/],
+        ['dataHeadingLevel', /^[1-6]$/],
       ],
       h4: [
         ...(defaultSchema.attributes?.h4 ?? []),
         ['className', /^markdown-/],
+        ['dataHeadingLevel', /^[1-6]$/],
       ],
       h5: [
         ...(defaultSchema.attributes?.h5 ?? []),
         ['className', /^markdown-/],
+        ['dataHeadingLevel', /^[1-6]$/],
       ],
       h6: [
         ...(defaultSchema.attributes?.h6 ?? []),
         ['className', /^markdown-/],
+        ['dataHeadingLevel', /^[1-6]$/],
       ],
       p: [
         ...(defaultSchema.attributes?.p ?? []),
@@ -91,6 +97,7 @@ export async function renderMarkdown(
       a: [
         ...withoutClassNameRules(defaultSchema.attributes?.a),
         ['className', /^markdown-/],
+        ['dataLinkKind', 'external', 'relative', 'hash'],
       ],
       blockquote: [
         ...(defaultSchema.attributes?.blockquote ?? []),
@@ -109,6 +116,7 @@ export async function renderMarkdown(
       li: [
         ...withoutClassNameRules(defaultSchema.attributes?.li),
         ['className', /^markdown-/, 'task-list-item'],
+        ['dataTaskState', 'checked', 'open'],
       ],
       pre: [
         ...(defaultSchema.attributes?.pre ?? []),
@@ -117,6 +125,7 @@ export async function renderMarkdown(
       code: [
         ...withoutClassNameRules(defaultSchema.attributes?.code),
         ['className', /^language-/, /^markdown-/],
+        ['dataLanguage', /^[a-z0-9_+.-]{1,40}$/i],
       ],
       input: [
         ...(defaultSchema.attributes?.input ?? []),
@@ -128,10 +137,15 @@ export async function renderMarkdown(
       div: [
         ...(defaultSchema.attributes?.div ?? []),
         ['className', 'table-fullscreen', 'table-fullscreen__table', 'table-fullscreen__actions', 'callout-title', 'callout-content'],
+        ['dataThemeLayoutScope', 'table-actions'],
       ],
       table: [
         ...(defaultSchema.attributes?.table ?? []),
         ['className', /^markdown-/],
+        ['dataRowCount', /^\d+$/],
+        ['dataColumnCount', /^\d+$/],
+        ['dataTableSize', 'compact', 'regular', 'large'],
+        ['dataTableOverflow', 'fit', 'wide'],
       ],
       thead: [
         ...(defaultSchema.attributes?.thead ?? []),
@@ -295,6 +309,10 @@ const addMarkdownSemanticClasses: Plugin<[], HastRoot> = () => {
 function addSemanticClass(node: Element): void {
   if (/^h[1-6]$/.test(node.tagName)) {
     addClasses(node, ['markdown-heading', `markdown-heading--${node.tagName}`]);
+    node.properties = {
+      ...node.properties,
+      dataHeadingLevel: node.tagName.slice(1),
+    };
     return;
   }
 
@@ -304,6 +322,10 @@ function addSemanticClass(node: Element): void {
       break;
     case 'a':
       addClasses(node, ['markdown-link', classifyLink(node)]);
+      node.properties = {
+        ...node.properties,
+        dataLinkKind: getLinkKind(node),
+      };
       break;
     case 'blockquote':
       addClasses(node, ['markdown-quote']);
@@ -337,6 +359,7 @@ function addSemanticClass(node: Element): void {
       break;
     case 'table':
       addClasses(node, ['markdown-table']);
+      decorateTableStats(node);
       break;
     case 'thead':
       addClasses(node, ['markdown-table-head']);
@@ -444,11 +467,16 @@ function addListItemClasses(node: Element): void {
     return;
   }
 
+  const state = checkbox.properties?.checked ? 'checked' : 'open';
   addClasses(node, [
     'markdown-list-item',
     'markdown-task',
-    checkbox.properties?.checked ? 'markdown-task--checked' : 'markdown-task--open',
+    state === 'checked' ? 'markdown-task--checked' : 'markdown-task--open',
   ]);
+  node.properties = {
+    ...node.properties,
+    dataTaskState: state,
+  };
 }
 
 function findDirectCheckbox(node: Element): Element | null {
@@ -465,18 +493,47 @@ function addBlockCodeClass(pre: Element): void {
   if (code && isElementWithTag(code, 'code')) {
     removeClass(code, 'markdown-code--inline');
     addClasses(code, ['markdown-code', 'markdown-code--block']);
+    const language = getCodeLanguage(code);
+    if (language) {
+      code.properties = {
+        ...code.properties,
+        dataLanguage: language,
+      };
+    }
   }
 }
 
 function classifyLink(node: Element): string {
+  return `markdown-link--${getLinkKind(node) === 'hash' ? 'anchor' : getLinkKind(node) === 'relative' ? 'internal' : 'external'}`;
+}
+
+function getLinkKind(node: Element): 'external' | 'relative' | 'hash' {
   const href = typeof node.properties?.href === 'string' ? node.properties.href : '';
   if (href.startsWith('#')) {
-    return 'markdown-link--anchor';
+    return 'hash';
   }
   if (/^[a-z][a-z0-9+.-]*:/i.test(href)) {
-    return 'markdown-link--external';
+    return 'external';
   }
-  return 'markdown-link--internal';
+  return 'relative';
+}
+
+function getCodeLanguage(node: Element): string | null {
+  const languageClass = normalizeClassName(node.properties?.className)
+    .find((className) => className.startsWith('language-'));
+  return languageClass ? languageClass.slice('language-'.length).toLowerCase() : null;
+}
+
+function decorateTableStats(table: Element): void {
+  const rowCount = countTableBodyRows(table);
+  const columnCount = countTableColumns(table);
+  table.properties = {
+    ...table.properties,
+    dataRowCount: String(rowCount),
+    dataColumnCount: String(columnCount),
+    dataTableSize: rowCount > 40 || columnCount > 8 ? 'large' : rowCount > 12 || columnCount > 5 ? 'regular' : 'compact',
+    dataTableOverflow: columnCount > 6 ? 'wide' : 'fit',
+  };
 }
 
 function splitTextIntoTagNodes(node: Text): Array<Text | Element> {
@@ -586,6 +643,7 @@ function createTableFullscreenWrapper(table: Element): Element {
         tagName: 'div',
         properties: {
           className: ['table-fullscreen__actions'],
+          dataThemeLayoutScope: 'table-actions',
         },
         children: [
           {
@@ -629,6 +687,21 @@ function countTableBodyRows(table: Element): number {
   }
 
   return countDescendantRows(table);
+}
+
+function countTableColumns(table: Element): number {
+  const headRows = table.children
+    ?.filter((child) => isElementWithTag(child, 'thead'))
+    .flatMap((head) => head.children?.filter((child) => isElementWithTag(child, 'tr')) ?? []) ?? [];
+  const bodyRows = table.children
+    ?.filter((child) => isElementWithTag(child, 'tbody'))
+    .flatMap((body) => body.children?.filter((child) => isElementWithTag(child, 'tr')) ?? []) ?? [];
+  const firstRow = headRows[0] ?? bodyRows[0];
+  if (!isElementWithTag(firstRow, 'tr')) {
+    return 0;
+  }
+
+  return firstRow.children?.filter((child) => isElementWithTag(child, 'th') || isElementWithTag(child, 'td')).length ?? 0;
 }
 
 function countDescendantRows(node: Element): number {

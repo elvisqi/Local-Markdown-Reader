@@ -1,0 +1,51 @@
+{
+  "id": "terminal-console",
+  "name": "Terminal Console",
+  "version": "1.0.0",
+  "status": "official",
+  "lightDarkRequirement": "both-required",
+  "references": [
+    "obsidian:cybertron",
+    "obsidian:dracula",
+    "vscode:dracula"
+  ],
+  "usage": "inspiration-only",
+  "designIntent": "Command-line reading surface inspired by Cybertron, Dracula, and popular terminal themes.",
+  "visualIdentity": "Monospace rhythm, compact chrome, strong code and JSON/YAML affordances.",
+  "nonColorDifferentiators": [
+    "monospace document identity",
+    "22px compact tree rows",
+    "square controls",
+    "terminal code panels"
+  ],
+  "requiredComponentCoverage": [
+    "code",
+    "json-yaml",
+    "toolbar",
+    "file-tree",
+    "tables",
+    "headings"
+  ],
+  "tokenStrategy": {
+    "rowHeight": "22px",
+    "toolbarHeight": "46px",
+    "radius": "2px",
+    "headingFont": "\"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, monospace",
+    "typography": "15px / 1.66"
+  },
+  "cssEvidence": [
+    ".document-reader { font-variant-numeric: tabular-nums; }",
+    ".document-reader .markdown-heading { font-family: var(--reader-heading-font); }",
+    ".document-reader .markdown-code-block { border-left: 3px solid var(--reader-accent); }",
+    ".document-reader .markdown-inline-code { border: 1px solid var(--reader-code-border); }",
+    "[data-theme-layout-scope=\"toolbar-group\"] { gap: 6px; }",
+    "[data-theme-layout-scope=\"toolbar-group\"] button { border-radius: 2px; min-height: 28px; }",
+    "[data-theme-layout-scope=\"file-tree-indicator\"] { border-radius: 2px; }"
+  ],
+  "acceptanceCriteria": [
+    "Light and dark modes are both present and independently tokenized.",
+    "Document width is not overridden by theme CSS.",
+    "File tree row height is controlled only through --reader-file-tree-row-height.",
+    "At least three non-color differentiators are visible in preview fixtures."
+  ]
+}

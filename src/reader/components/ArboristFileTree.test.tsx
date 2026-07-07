@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { CSSProperties } from 'react';
 
 import { ArboristFileTree } from './ArboristFileTree';
 import type { LazyFileTreeNode } from '../../shared/types';
@@ -124,6 +125,78 @@ describe('ArboristFileTree', () => {
 
     expect(readmeRow.querySelector('.file-tree__disclosure')).not.toBeInTheDocument();
     expect(readmeRow.querySelector('.file-tree__icon')).toHaveAttribute('data-file-icon', 'markdown');
+  });
+
+  it('uses the themed file tree row height for virtualized rows', () => {
+    const { rerender } = render(
+      <section style={{ '--reader-file-tree-row-height': '22px' } as CSSProperties}>
+        <ArboristFileTree
+          nodes={tree}
+          activePath={null}
+          expandedPaths={new Set(['docs'])}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </section>,
+    );
+
+    expect(screen.getByRole('treeitem', { name: 'README.md' })).toHaveStyle({ height: '22px' });
+
+    rerender(
+      <section style={{ '--reader-file-tree-row-height': '28px' } as CSSProperties}>
+        <ArboristFileTree
+          nodes={tree}
+          activePath={null}
+          expandedPaths={new Set(['docs'])}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </section>,
+    );
+
+    expect(screen.getByRole('treeitem', { name: 'README.md' })).toHaveStyle({ height: '28px' });
+
+    rerender(
+      <section style={{ '--reader-file-tree-row-height': '36px' } as CSSProperties}>
+        <ArboristFileTree
+          nodes={tree}
+          activePath={null}
+          expandedPaths={new Set(['docs'])}
+          onExpandedPathsChange={vi.fn()}
+          onLoadDirectory={vi.fn()}
+          onSelectFile={vi.fn()}
+        />
+      </section>,
+    );
+
+    expect(screen.getByRole('treeitem', { name: 'README.md' })).toHaveStyle({ height: '36px' });
+  });
+
+  it('exposes file tree indicator layout hooks on row controls', () => {
+    render(
+      <ArboristFileTree
+        nodes={tree}
+        activePath={null}
+        expandedPaths={new Set(['docs'])}
+        onExpandedPathsChange={vi.fn()}
+        onLoadDirectory={vi.fn()}
+        onSelectFile={vi.fn()}
+      />,
+    );
+
+    const docsRow = screen.getByRole('treeitem', { name: 'docs' });
+    const readmeRow = screen.getByRole('treeitem', { name: 'README.md' });
+
+    expect(docsRow.querySelector('.file-tree__disclosure')).toHaveAttribute(
+      'data-theme-layout-scope',
+      'file-tree-indicator',
+    );
+    expect(readmeRow.querySelector('.file-tree__icon')).toHaveAttribute(
+      'data-theme-layout-scope',
+      'file-tree-indicator',
+    );
   });
 
   it('renders VS Code style directory chevrons and file icons by type', () => {

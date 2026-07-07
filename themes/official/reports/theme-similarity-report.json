@@ -1,0 +1,420 @@
+{
+  "generatedAt": "2026-07-08T00:00:00.000Z",
+  "passed": true,
+  "thresholds": {
+    "maxTokenSimilarity": 0.96,
+    "maxCssSelectorSimilarity": 0.9
+  },
+  "summary": {
+    "themeCount": 10,
+    "maxTokenSimilarity": 0.256,
+    "maxCssSelectorSimilarity": 0.625
+  },
+  "pairs": [
+    {
+      "themes": [
+        "minimal-manuscript",
+        "things-native"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.167,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "minimal-manuscript",
+        "topaz-lab"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "minimal-manuscript",
+        "primary-soft"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.333,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "minimal-manuscript",
+        "prism-spectrum"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.167,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "minimal-manuscript",
+        "sanctum-archive"
+      ],
+      "tokenSimilarity": 0.244,
+      "cssSelectorSimilarity": 0.333,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "minimal-manuscript",
+        "terminal-console"
+      ],
+      "tokenSimilarity": 0.154,
+      "cssSelectorSimilarity": 0.273,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "minimal-manuscript",
+        "nord-research"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.2,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "minimal-manuscript",
+        "everforest-field"
+      ],
+      "tokenSimilarity": 0.192,
+      "cssSelectorSimilarity": 0.2,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "minimal-manuscript",
+        "github-workbench"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.3,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "things-native",
+        "topaz-lab"
+      ],
+      "tokenSimilarity": 0.218,
+      "cssSelectorSimilarity": 0.083,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "things-native",
+        "primary-soft"
+      ],
+      "tokenSimilarity": 0.218,
+      "cssSelectorSimilarity": 0.333,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "things-native",
+        "prism-spectrum"
+      ],
+      "tokenSimilarity": 0.256,
+      "cssSelectorSimilarity": 0.077,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "things-native",
+        "sanctum-archive"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.091,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "things-native",
+        "terminal-console"
+      ],
+      "tokenSimilarity": 0.179,
+      "cssSelectorSimilarity": 0.273,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "things-native",
+        "nord-research"
+      ],
+      "tokenSimilarity": 0.218,
+      "cssSelectorSimilarity": 0.091,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "things-native",
+        "everforest-field"
+      ],
+      "tokenSimilarity": 0.205,
+      "cssSelectorSimilarity": 0.333,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "things-native",
+        "github-workbench"
+      ],
+      "tokenSimilarity": 0.192,
+      "cssSelectorSimilarity": 0.182,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "topaz-lab",
+        "primary-soft"
+      ],
+      "tokenSimilarity": 0.218,
+      "cssSelectorSimilarity": 0.1,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "topaz-lab",
+        "prism-spectrum"
+      ],
+      "tokenSimilarity": 0.218,
+      "cssSelectorSimilarity": 0.083,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "topaz-lab",
+        "sanctum-archive"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "topaz-lab",
+        "terminal-console"
+      ],
+      "tokenSimilarity": 0.179,
+      "cssSelectorSimilarity": 0,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "topaz-lab",
+        "nord-research"
+      ],
+      "tokenSimilarity": 0.218,
+      "cssSelectorSimilarity": 0.1,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "topaz-lab",
+        "everforest-field"
+      ],
+      "tokenSimilarity": 0.231,
+      "cssSelectorSimilarity": 0.222,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "topaz-lab",
+        "github-workbench"
+      ],
+      "tokenSimilarity": 0.192,
+      "cssSelectorSimilarity": 0.091,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "primary-soft",
+        "prism-spectrum"
+      ],
+      "tokenSimilarity": 0.218,
+      "cssSelectorSimilarity": 0.2,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "primary-soft",
+        "sanctum-archive"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.111,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "primary-soft",
+        "terminal-console"
+      ],
+      "tokenSimilarity": 0.179,
+      "cssSelectorSimilarity": 0.091,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "primary-soft",
+        "nord-research"
+      ],
+      "tokenSimilarity": 0.244,
+      "cssSelectorSimilarity": 0.111,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "primary-soft",
+        "everforest-field"
+      ],
+      "tokenSimilarity": 0.205,
+      "cssSelectorSimilarity": 0.25,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "primary-soft",
+        "github-workbench"
+      ],
+      "tokenSimilarity": 0.192,
+      "cssSelectorSimilarity": 0.1,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "prism-spectrum",
+        "sanctum-archive"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "prism-spectrum",
+        "terminal-console"
+      ],
+      "tokenSimilarity": 0.179,
+      "cssSelectorSimilarity": 0.077,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "prism-spectrum",
+        "nord-research"
+      ],
+      "tokenSimilarity": 0.218,
+      "cssSelectorSimilarity": 0,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "prism-spectrum",
+        "everforest-field"
+      ],
+      "tokenSimilarity": 0.205,
+      "cssSelectorSimilarity": 0.2,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "prism-spectrum",
+        "github-workbench"
+      ],
+      "tokenSimilarity": 0.192,
+      "cssSelectorSimilarity": 0.083,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "sanctum-archive",
+        "terminal-console"
+      ],
+      "tokenSimilarity": 0.154,
+      "cssSelectorSimilarity": 0.091,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "sanctum-archive",
+        "nord-research"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.111,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "sanctum-archive",
+        "everforest-field"
+      ],
+      "tokenSimilarity": 0.192,
+      "cssSelectorSimilarity": 0.111,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "sanctum-archive",
+        "github-workbench"
+      ],
+      "tokenSimilarity": 0.205,
+      "cssSelectorSimilarity": 0.1,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "terminal-console",
+        "nord-research"
+      ],
+      "tokenSimilarity": 0.179,
+      "cssSelectorSimilarity": 0.091,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "terminal-console",
+        "everforest-field"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.091,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "terminal-console",
+        "github-workbench"
+      ],
+      "tokenSimilarity": 0.179,
+      "cssSelectorSimilarity": 0.625,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "nord-research",
+        "everforest-field"
+      ],
+      "tokenSimilarity": 0.205,
+      "cssSelectorSimilarity": 0,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "nord-research",
+        "github-workbench"
+      ],
+      "tokenSimilarity": 0.192,
+      "cssSelectorSimilarity": 0.1,
+      "differentiatorOverlap": 0
+    },
+    {
+      "themes": [
+        "everforest-field",
+        "github-workbench"
+      ],
+      "tokenSimilarity": 0.167,
+      "cssSelectorSimilarity": 0.1,
+      "differentiatorOverlap": 0
+    }
+  ]
+}

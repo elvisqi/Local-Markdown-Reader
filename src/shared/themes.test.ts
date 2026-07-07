@@ -1,6 +1,7 @@
 import {
   BUILTIN_READER_THEMES,
   DEFAULT_REMOTE_THEME_INDEX_URL,
+  THEME_CSS_SANITIZER_VERSION,
   buildBuiltinThemeStylesheet,
   buildInstalledThemeStylesheet,
   deleteInstalledTheme,
@@ -138,8 +139,60 @@ describe('themes', () => {
     expect(buildInstalledThemeStylesheet(theme)).toContain('[data-reader-theme-id="installed:paper-pro"][data-reader-theme-id] {');
     expect(buildInstalledThemeStylesheet(theme)).toContain('--reader-surface: #fffefa;');
     expect(buildInstalledThemeStylesheet(theme)).toContain(
-      '[data-reader-theme-id="installed:paper-pro"][data-reader-theme-id] h1, [data-reader-theme-id="installed:paper-pro"][data-reader-theme-id] .document-reader h2',
+      '[data-reader-theme-id="installed:paper-pro"][data-reader-theme-id] h1,[data-reader-theme-id="installed:paper-pro"][data-reader-theme-id] .document-reader h2',
     );
+  });
+
+  it('parses dual-mode theme packages and stores sanitized scoped css metadata', () => {
+    const theme = parseThemePackageText(JSON.stringify({
+      id: 'dual-mode-lab',
+      name: 'Dual Mode Lab',
+      version: '1.0.0',
+      colorScheme: 'system',
+      tokens: {
+        '--reader-file-tree-row-height': '28px',
+        '--reader-surface': '#ffffff',
+      },
+      lightTokens: {
+        '--reader-page-bg': '#f8fafc',
+        '--reader-text': '#1f2937',
+      },
+      darkTokens: {
+        '--reader-page-bg': '#0f172a',
+        '--reader-text': '#e5e7eb',
+      },
+      features: ['callouts', 'file-tree', 'toolbar'],
+      previewFixtures: ['longform', 'table', 'code'],
+      css: '[data-theme-layout-scope="theme-preview-overlay"] .theme-preview__badge { position: absolute; z-index: 6; }',
+    }), 123);
+
+    expect(theme).toMatchObject({
+      id: 'dual-mode-lab',
+      colorScheme: 'system',
+      lightTokens: {
+        '--reader-page-bg': '#f8fafc',
+        '--reader-text': '#1f2937',
+      },
+      darkTokens: {
+        '--reader-page-bg': '#0f172a',
+        '--reader-text': '#e5e7eb',
+      },
+      features: ['callouts', 'file-tree', 'toolbar'],
+      previewFixtures: ['longform', 'table', 'code'],
+      sanitizerVersion: THEME_CSS_SANITIZER_VERSION,
+    });
+    expect(theme.sourceCssHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(theme.scopedCssHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(theme.scopedCss).toContain(
+      '[data-reader-theme-id="installed:dual-mode-lab"][data-reader-theme-id] [data-theme-layout-scope="theme-preview-overlay"] .theme-preview__badge',
+    );
+
+    const stylesheet = buildInstalledThemeStylesheet(theme);
+    expect(stylesheet).toContain('--reader-file-tree-row-height: 28px;');
+    expect(stylesheet).toContain('.theme-light[data-reader-theme-id="installed:dual-mode-lab"][data-reader-theme-id] {');
+    expect(stylesheet).toContain('.theme-dark[data-reader-theme-id="installed:dual-mode-lab"][data-reader-theme-id] {');
+    expect(stylesheet).toContain('@media (prefers-color-scheme: dark)');
+    expect(stylesheet).toContain(theme.scopedCss);
   });
 
   it('builds built-in reader themes from registered tokens and css', () => {
@@ -153,7 +206,7 @@ describe('themes', () => {
 
   it('scopes selectors inside supported conditional at-rules', () => {
     expect(scopeCss('@media (max-width: 700px) { h1 { font-size: 22px; } }', '.reader-app')).toBe(
-      '@media (max-width: 700px) {\n.reader-app h1 { font-size: 22px; }\n}',
+      '@media (max-width:700px){.reader-app h1{font-size:22px}}',
     );
   });
 
@@ -163,7 +216,7 @@ describe('themes', () => {
       name: 'Semantic Hooks',
       version: '1.0.0',
       css: [
-        '.markdown-heading::before { content: ""; position: absolute; }',
+        '.markdown-heading::before { content: ""; color: var(--reader-accent); }',
         '.markdown-tag[data-tag="theme"] { text-transform: uppercase; }',
         '.markdown-table-row:nth-child(even) .markdown-table-cell { background: var(--reader-table-stripe); }',
       ].join(' '),
@@ -202,6 +255,45 @@ describe('themes', () => {
         },
       })),
     ).toThrow('不支持的主题变量');
+  });
+
+  it('rejects unsafe theme css layout escapes and row-height values', () => {
+    expect(() =>
+      parseThemePackageText(JSON.stringify({
+        id: 'bad-row-height',
+        name: 'Bad Row Height',
+        version: '1.0.0',
+        tokens: {
+          '--reader-file-tree-row-height': '44px',
+        },
+      })),
+    ).toThrow('--reader-file-tree-row-height 必须是 22px 到 40px 之间的 px 数值。');
+
+    expect(() =>
+      parseThemePackageText(JSON.stringify({
+        id: 'bad-absolute',
+        name: 'Bad Absolute',
+        version: '1.0.0',
+        css: '.markdown-heading::before { position: absolute; }',
+      })),
+    ).toThrow('受限布局属性 position: absolute 必须作用在受控布局容器内。');
+
+    expect(() =>
+      parseThemePackageText(JSON.stringify({
+        id: 'bad-width',
+        name: 'Bad Width',
+        version: '1.0.0',
+        css: '.document-reader { max-width: 900px; }',
+      })),
+    ).toThrow('主题 CSS 不能覆盖正文阅读宽度。');
+
+    expect(() =>
+      scopeCss('[data-theme-layout-scope="mermaid-actions"] .zoom, .markdown-heading::before { position: absolute; }', '.reader-app'),
+    ).toThrow('受限布局属性 position: absolute 必须作用在受控布局容器内。');
+
+    expect(() =>
+      scopeCss('[data-theme-layout-scope="toolbar-group"] .primary { z-index: 21; }', '.reader-app'),
+    ).toThrow('主题 CSS z-index 必须在 0 到 20 之间。');
   });
 
   it('rejects unsupported package fields with a specific message', () => {
@@ -324,6 +416,8 @@ describe('themes', () => {
     const area = createStorageArea();
     const fetcher = vi.fn(async () => new Response(JSON.stringify({
       version: 1,
+      schemaVersion: 2,
+      catalogVersion: '2026.07.08.1',
       updatedAt: '2026-07-06T00:00:00.000Z',
       themes: [
         {
@@ -335,6 +429,8 @@ describe('themes', () => {
           downloadUrl: 'https://example.com/themes/ink-focus.mdv-theme.json',
           sha256: 'a'.repeat(64),
           tags: ['light', 'writing'],
+          features: ['callouts', 'file-tree'],
+          previewFixtures: ['longform', 'table'],
         },
       ],
     }), {
@@ -350,11 +446,13 @@ describe('themes', () => {
 
     expect(fetcher).toHaveBeenCalledWith(
       expect.stringMatching(/^https:\/\/example\.com\/themes\/index\.json\?t=\d+$/),
-      expect.objectContaining({ cache: 'no-store' }),
+      expect.objectContaining({ cache: 'no-cache' }),
     );
     expect(index.themes).toHaveLength(1);
     expect(index.themes[0]).toMatchObject({
       id: 'ink-focus',
+      features: ['callouts', 'file-tree'],
+      previewFixtures: ['longform', 'table'],
       compatible: true,
     });
     await expect(loadCachedRemoteThemeIndex(area)).resolves.toMatchObject({
@@ -380,11 +478,50 @@ describe('themes', () => {
 
       expect(fetcher).toHaveBeenCalledWith(
         'https://example.com/themes/index.json?channel=stable&t=1783500000000',
-        expect.objectContaining({ cache: 'no-store' }),
+        expect.objectContaining({ cache: 'no-cache' }),
       );
       await expect(loadCachedRemoteThemeIndex(area)).resolves.toMatchObject({
         sourceUrl: 'https://example.com/themes/index.json?channel=stable',
       });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('uses a ttl cache for automatic remote indexes and a timestamp for manual refresh', async () => {
+    const area = createStorageArea();
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1783500000000);
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      version: 1,
+      themes: [],
+    }), { status: 200 }));
+    await saveCachedRemoteThemeIndex({
+      sourceUrl: 'https://example.com/themes/index.json',
+      fetchedAt: 1783499999000,
+      version: 1,
+      themes: [],
+    }, area);
+
+    try {
+      const cached = await fetchRemoteThemeIndex({
+        indexUrl: 'https://example.com/themes/index.json',
+        fetcher,
+        area,
+      });
+      expect(cached.fetchedAt).toBe(1783499999000);
+      expect(fetcher).not.toHaveBeenCalled();
+
+      await fetchRemoteThemeIndex({
+        indexUrl: 'https://example.com/themes/index.json',
+        fetcher,
+        area,
+        refresh: true,
+      });
+
+      expect(fetcher).toHaveBeenCalledWith(
+        'https://example.com/themes/index.json?refresh=1783500000000',
+        expect.objectContaining({ cache: 'no-cache' }),
+      );
     } finally {
       nowSpy.mockRestore();
     }

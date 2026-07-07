@@ -165,7 +165,7 @@ describe('table layout styles', () => {
   });
 
   it('shows disclosure affordances for Arborist file tree directories', () => {
-    expect(getRule('.file-tree__disclosure')).toMatch(/flex:\s*0 0 16px/);
+    expect(getRule('.file-tree__disclosure')).toMatch(/flex:\s*0 0 var\(--reader-file-tree-disclosure-size,\s*16px\)/);
     expect(getRule('.file-tree__disclosure::before')).toMatch(/border-right:\s*2px solid currentColor/);
     expect(getRule('.file-tree__disclosure::before')).toMatch(/border-bottom:\s*2px solid currentColor/);
     expect(getRule('.file-tree__disclosure::before')).toMatch(/transform:\s*rotate\(-45deg\)/);
@@ -176,8 +176,8 @@ describe('table layout styles', () => {
   });
 
   it('uses VS Code style icons and hover indentation guides for the file tree', () => {
-    expect(getRule('.file-tree__icon')).toMatch(/width:\s*16px/);
-    expect(getRule('.file-tree__icon')).toMatch(/height:\s*16px/);
+    expect(getRule('.file-tree__icon')).toMatch(/width:\s*var\(--reader-file-tree-icon-size,\s*16px\)/);
+    expect(getRule('.file-tree__icon')).toMatch(/height:\s*var\(--reader-file-tree-icon-size,\s*16px\)/);
     expect(getRule('.file-tree__icon--folder')).toBe('');
     expect(getRule('.file-tree__icon--markdown')).toMatch(/--file-tree-icon-color:\s*#519aba/);
     expect(getRule('.file-tree__icon--html')).toMatch(/--file-tree-icon-color:\s*#e37933/);
@@ -199,7 +199,7 @@ describe('table layout styles', () => {
     expect(getRule('.file-tree--arborist')).toMatch(/flex:\s*1 1 0/);
     expect(getRule('.file-tree--arborist')).toMatch(/height:\s*auto/);
     expect(css).toMatch(/\.file-tree--arborist \[role="tree"\] > div\s*\{[^}]*overflow-x:\s*hidden/s);
-    expect(getRule('.file-tree__row')).toMatch(/height:\s*24px/);
+    expect(getRule('.file-tree__row')).toMatch(/height:\s*var\(--reader-file-tree-row-height,\s*24px\)/);
     expect(getRule('.file-tree__row')).toMatch(/display:\s*flex/);
     expect(getRule('.file-tree__row:active')).not.toMatch(/transform:\s*translateY/);
     expect(css).toMatch(/\.file-tree__row\.is-active,\n\.file-tree__row\[aria-current="page"\]\s*\{[^}]*background:/s);

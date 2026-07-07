@@ -6,18 +6,7 @@ const PREVIEW_DIR = 'themes/previews';
 const THEME_BASE_URL = 'https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/';
 const PREVIEW_BASE_URL = `${THEME_BASE_URL}previews/`;
 const PACKAGE_BASE_URL = `${THEME_BASE_URL}packages/`;
-const THEME_IDS = [
-  'minimal-focus',
-  'things-flow',
-  'pastel-puccin',
-  'topaz-blue',
-  'nord-notes',
-  'atom-one-reader',
-  'obsidianite-dark',
-  'wasp-highlight',
-  'typewriter-desk',
-  'its-readable',
-];
+const THEME_IDS = [];
 
 export async function buildThemePreviews({ rootDir = process.cwd() } = {}) {
   const outputDir = resolve(rootDir, PREVIEW_DIR);
@@ -85,7 +74,7 @@ function renderShowcaseSvg(themes) {
     body: `
       <rect width="${width}" height="${height}" fill="#f3f4f6"/>
       <text x="${padding}" y="70" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="700" fill="#111827">Local Markdown Reader ${RELEASE_VERSION} Themes</text>
-      <text x="${padding}" y="108" font-family="Inter, Arial, sans-serif" font-size="18" fill="#4b5563">10 Obsidian-inspired original theme previews generated from checked-in theme packages.</text>
+      <text x="${padding}" y="108" font-family="Inter, Arial, sans-serif" font-size="18" fill="#4b5563">${themes.length} Obsidian-inspired original theme previews generated from checked-in theme packages.</text>
       ${cards.join('\n')}
     `,
   });
@@ -250,12 +239,13 @@ ${scope} .markdown-preview-document {
 ${scope} .markdown-preview-document > div {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.86fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
   grid-template-areas:
-    "intro code"
-    "tasks quote"
+    "intro meta"
+    "tasks code"
+    "callouts media"
     "table table";
-  gap: ${large ? '16px 24px' : '12px 16px'};
+  gap: ${large ? '14px 22px' : '10px 14px'};
 }
 
 ${scope} .markdown-preview-intro {
@@ -271,12 +261,94 @@ ${scope} .markdown-preview-tasks {
 }
 
 ${scope} .markdown-preview-quote {
-  grid-area: quote;
+  grid-area: callouts;
 }
 
 ${scope} .markdown-preview-table-wrap {
   grid-area: table;
   min-width: 0;
+}
+
+${scope} .theme-preview__metadata {
+  grid-area: meta;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${large ? '8px' : '6px'};
+  padding: ${large ? '12px' : '8px'};
+  border: 1px solid var(--reader-border, #d1d5db);
+  border-radius: var(--reader-radius, 8px);
+  background: var(--reader-panel-bg, var(--reader-surface, #fff));
+}
+
+${scope} .theme-preview__metadata h3 {
+  grid-column: 1 / -1;
+}
+
+${scope} .theme-preview__metadata-item {
+  min-width: 0;
+  padding: ${large ? '8px 10px' : '5px 7px'};
+  border: 1px solid color-mix(in srgb, var(--reader-border, #d1d5db) 78%, transparent);
+  border-radius: var(--reader-radius, 8px);
+  background: color-mix(in srgb, var(--reader-surface, #fff) 88%, var(--reader-accent-muted, #dbeafe));
+}
+
+${scope} .theme-preview__metadata-label {
+  display: block;
+  color: var(--reader-muted, #6b7280);
+  font-size: var(--preview-small-font-size);
+}
+
+${scope} .theme-preview__metadata-value {
+  display: block;
+  margin-top: 0.18em;
+  color: var(--reader-text, #111827);
+  font-weight: 720;
+}
+
+${scope} .theme-preview__callouts {
+  grid-area: callouts;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: ${large ? '10px' : '7px'};
+}
+
+${scope} .theme-preview__callouts .callout {
+  min-width: 0;
+}
+
+${scope} .theme-preview__media-row {
+  grid-area: media;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${large ? '10px' : '7px'};
+}
+
+${scope} .markdown-image,
+${scope} .mermaid {
+  min-height: ${large ? '98px' : '62px'};
+  margin: 0;
+  padding: ${large ? '12px' : '8px'};
+  border: 1px solid var(--reader-border, #d1d5db);
+  border-radius: var(--reader-radius, 8px);
+  background: color-mix(in srgb, var(--reader-accent-muted, #dbeafe) 34%, var(--reader-surface, #fff));
+}
+
+${scope} .markdown-image-visual,
+${scope} .mermaid-visual {
+  height: ${large ? '54px' : '34px'};
+  border-radius: calc(var(--reader-radius, 8px) * 0.7);
+  background: linear-gradient(135deg, var(--reader-accent, #2563eb), color-mix(in srgb, var(--reader-accent, #2563eb) 22%, transparent));
+}
+
+${scope} .markdown-image-caption,
+${scope} .mermaid-caption {
+  display: block;
+  margin-top: 0.5em;
+  color: var(--reader-muted, #6b7280);
+  font-size: var(--preview-small-font-size);
+  line-height: 1.2;
 }
 
 ${scope} .markdown-heading {
@@ -477,12 +549,32 @@ function renderMarkdownPreviewSample() {
       <section class="markdown-preview-intro">
         <h1 class="markdown-heading markdown-heading--h1">Heading System</h1>
         <h2 class="markdown-heading markdown-heading--h2">Planning Notes</h2>
-        <p class="markdown-paragraph">Readable prose with <a class="markdown-link markdown-link--external" href="https://example.com">linked references</a>, <code class="markdown-code markdown-code--inline">inline code</code>, <mark>highlight</mark>, and <span class="markdown-tag" data-tag="theme">#theme</span>.</p>
+        <p class="markdown-paragraph">Readable prose with <a class="markdown-link markdown-link--external" href="https://example.com">linked references</a>, <code class="markdown-code markdown-code--inline">inline code</code>, <mark>highlight</mark>, <span class="markdown-tag" data-tag="theme">#theme</span>, <span class="markdown-tag" data-tag="status">#status</span>, and <span class="markdown-tag" data-tag="done">#done</span>.</p>
+      </section>
+      <section class="theme-preview__metadata">
+        <h3 class="markdown-heading markdown-heading--h3">Metadata</h3>
+        <div class="theme-preview__metadata-item">
+          <span class="theme-preview__metadata-label">Type</span>
+          <span class="theme-preview__metadata-value">Research</span>
+        </div>
+        <div class="theme-preview__metadata-item">
+          <span class="theme-preview__metadata-label">Status</span>
+          <span class="theme-preview__metadata-value">Active</span>
+        </div>
+        <div class="theme-preview__metadata-item">
+          <span class="theme-preview__metadata-label">Rows</span>
+          <span class="theme-preview__metadata-value">24</span>
+        </div>
+        <div class="theme-preview__metadata-item">
+          <span class="theme-preview__metadata-label">Owner</span>
+          <span class="theme-preview__metadata-value">Reader</span>
+        </div>
       </section>
       <section class="markdown-preview-code">
         <h3 class="markdown-heading markdown-heading--h3">Code Block</h3>
-        <pre class="markdown-code-block"><code class="language-js markdown-code markdown-code--block">const reader = &quot;focused&quot;;
-renderMarkdown(theme);</code></pre>
+        <pre class="markdown-code-block"><code class="language-js markdown-code markdown-code--block"><span class="line">const reader <span class="token operator">=</span> <span class="token string">&quot;focused&quot;</span>;</span>
+<span class="line"><span class="token function">renderMarkdown</span><span class="token punctuation">(</span>theme<span class="token punctuation">)</span>;</span>
+<span class="line"><span class="token keyword">return</span> <span class="token comment">// preview detail</span></span></code></pre>
       </section>
       <section class="markdown-preview-tasks">
         <h3 class="markdown-heading markdown-heading--h3">Task List</h3>
@@ -491,15 +583,40 @@ renderMarkdown(theme);</code></pre>
           <li class="markdown-list-item markdown-task"><input class="markdown-task-checkbox" type="checkbox" />Review callouts and tables</li>
         </ul>
       </section>
-      <blockquote class="markdown-quote callout callout-tip markdown-preview-quote" data-callout="tip">
-        <div class="callout-title">Tip callout</div>
-        <div class="callout-content">
-          <p class="markdown-paragraph">Preview rhythm, spacing, borders, and contrast.</p>
-        </div>
-      </blockquote>
+      <section class="theme-preview__callouts">
+        <blockquote class="markdown-quote callout callout-tip" data-callout="tip">
+          <div class="callout-title">Tip callout</div>
+          <div class="callout-content">
+            <p class="markdown-paragraph">Spacing and borders.</p>
+          </div>
+        </blockquote>
+        <blockquote class="markdown-quote callout callout-warning" data-callout="warning">
+          <div class="callout-title">Warning callout</div>
+          <div class="callout-content">
+            <p class="markdown-paragraph">Contrast check.</p>
+          </div>
+        </blockquote>
+        <blockquote class="markdown-quote callout callout-success" data-callout="success">
+          <div class="callout-title">Success callout</div>
+          <div class="callout-content">
+            <p class="markdown-paragraph">Completed state.</p>
+          </div>
+        </blockquote>
+      </section>
+      <section class="theme-preview__media-row">
+        <figure class="markdown-image">
+          <div class="markdown-image-visual"></div>
+          <figcaption class="markdown-image-caption">Image Frame</figcaption>
+        </figure>
+        <figure class="mermaid">
+          <div class="mermaid-visual"></div>
+          <figcaption class="mermaid-caption">Diagram Frame</figcaption>
+        </figure>
+      </section>
       <section class="markdown-preview-table-wrap">
         <h3 class="markdown-heading markdown-heading--h3">Status Table</h3>
         <table class="markdown-table markdown-preview-table">
+          <caption class="markdown-table-caption">Project signals</caption>
           <thead class="markdown-table-head">
             <tr class="markdown-table-row">
               <th class="markdown-table-cell markdown-table-cell--head">Block</th>
@@ -517,6 +634,11 @@ renderMarkdown(theme);</code></pre>
               <td class="markdown-table-cell">Tasks</td>
               <td class="markdown-table-cell">Checked rows</td>
               <td class="markdown-table-cell">Styled</td>
+            </tr>
+            <tr class="markdown-table-row">
+              <td class="markdown-table-cell">Media</td>
+              <td class="markdown-table-cell">Image + diagram</td>
+              <td class="markdown-table-cell">Framed</td>
             </tr>
           </tbody>
         </table>
@@ -591,7 +713,7 @@ function renderGalleryHtml(themes) {
   <body>
     <main>
       <h1>Local Markdown Reader ${RELEASE_VERSION} Theme Previews</h1>
-      <p class="intro">Generated previews for 10 Obsidian-inspired original remote theme packages.</p>
+      <p class="intro">Generated previews for ${themes.length} Obsidian-inspired original remote theme packages.</p>
       <img class="showcase" src="./theme-showcase-${RELEASE_VERSION}.svg" alt="Theme showcase">
       <section class="grid">
 ${cards}
@@ -613,18 +735,18 @@ function renderReleaseMarkdown(themes) {
     `主题包：[\`${theme.id}.mdv-theme.json\`](${PACKAGE_BASE_URL}${theme.id}.mdv-theme.json)`,
     '',
   ].join('\n')).join('\n');
+  const themeRows = rows ? `\n\n${rows}` : '';
 
   return `## Local Markdown Reader ${RELEASE_VERSION} 主题预览素材
 
 ![Local Markdown Reader ${RELEASE_VERSION} theme showcase](${PREVIEW_BASE_URL}theme-showcase-${RELEASE_VERSION}.svg)
 
-本次发布包含 10 个参考 Obsidian 流行风格方向制作的原创远程主题包，下面的预览图由仓库内主题 token 自动生成，可直接用于 GitHub Release 描述。
-
-${rows}`;
+本次发布包含 ${themes.length} 个参考 Obsidian 流行风格方向制作的原创远程主题包，下面的预览图由仓库内主题 token 自动生成，可直接用于 GitHub Release 描述。${themeRows}`;
 }
 
 function renderReadme(themes) {
   const themeList = themes.map((theme) => `- [${theme.name}](./${theme.id}.svg)`).join('\n');
+  const themeSection = themeList ? `\n${themeList}` : '';
   return `# Theme Previews
 
 Generated visual preview and release materials for Local Markdown Reader ${RELEASE_VERSION}.
@@ -641,9 +763,7 @@ Generated assets:
 - [Release Markdown](./release-${RELEASE_VERSION}.md)
 - [HTML gallery](./index.html)
 
-Themes:
-
-${themeList}
+Themes:${themeSection}
 `;
 }
 

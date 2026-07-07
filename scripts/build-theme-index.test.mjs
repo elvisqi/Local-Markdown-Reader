@@ -29,10 +29,19 @@ describe('build-theme-index', () => {
       author: 'Local Markdown Reader',
       description: 'Dark reading theme.',
       minAppVersion: '2.3.0',
-      colorScheme: 'dark',
+      colorScheme: 'system',
       tokens: {
         '--reader-surface': '#111827',
       },
+      lightTokens: {
+        '--reader-page-bg': '#f8fafc',
+      },
+      darkTokens: {
+        '--reader-page-bg': '#0f172a',
+      },
+      features: ['callouts', 'file-tree'],
+      previewFixtures: ['longform', 'table'],
+      css: '[data-theme-layout-scope="toolbar-group"] .reader-toolbar__actions { gap: 8px; }',
     });
     await writeThemePackage(root, 'ink-focus', {
       id: 'ink-focus',
@@ -45,15 +54,18 @@ describe('build-theme-index', () => {
     });
     await writeMetadata(root, {
       version: 1,
+      schemaVersion: 2,
+      catalogVersion: '2026.07.08.1',
       updatedAt: '2026-07-06T00:00:00.000Z',
       packageBaseUrl: 'https://example.com/themes/packages/',
+      previewBaseUrl: 'https://example.com/themes/previews/',
       themes: {
         'ink-focus': {
           tags: ['light', 'technical'],
+          previewFixtures: ['code'],
         },
         'night-study': {
           tags: ['dark'],
-          previewUrl: 'https://example.com/previews/night-study.png',
         },
       },
     });
@@ -62,19 +74,29 @@ describe('build-theme-index', () => {
 
     expect(index).toEqual({
       version: 1,
+      schemaVersion: 2,
+      catalogVersion: '2026.07.08.1',
       updatedAt: '2026-07-06T00:00:00.000Z',
       themes: [
         expect.objectContaining({
           id: 'ink-focus',
-          downloadUrl: 'https://example.com/themes/packages/ink-focus.mdv-theme.json',
+          downloadUrl: 'https://example.com/themes/packages/ink-focus.mdv-theme.json?v=1.0.0',
+          packageUrl: 'https://example.com/themes/packages/ink-focus.mdv-theme.json?v=1.0.0',
+          previewUrl: 'https://example.com/themes/previews/ink-focus.svg?v=1.0.0',
           sha256: await sha256File(join(root, 'themes', 'packages', 'ink-focus.mdv-theme.json')),
           tags: ['light', 'technical'],
+          features: [],
+          previewFixtures: ['code'],
         }),
         expect.objectContaining({
           id: 'night-study',
-          previewUrl: 'https://example.com/previews/night-study.png',
+          colorScheme: 'system',
+          downloadUrl: 'https://example.com/themes/packages/night-study.mdv-theme.json?v=1.0.0',
+          previewUrl: 'https://example.com/themes/previews/night-study.svg?v=1.0.0',
           sha256: await sha256File(join(root, 'themes', 'packages', 'night-study.mdv-theme.json')),
           tags: ['dark'],
+          features: ['callouts', 'file-tree'],
+          previewFixtures: ['longform', 'table'],
         }),
       ],
     });

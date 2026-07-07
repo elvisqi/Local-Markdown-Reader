@@ -20,7 +20,9 @@ type ArboristFileTreeProps = {
   onSelectFile: (path: string) => void;
 };
 
-const ROW_HEIGHT = 24;
+const DEFAULT_ROW_HEIGHT = 24;
+const MIN_ROW_HEIGHT = 22;
+const MAX_ROW_HEIGHT = 40;
 const INDENT = 18;
 const FALLBACK_TREE_HEIGHT = 500;
 const MAX_LAYOUT_MEASURE_FRAMES = 6;
@@ -39,6 +41,7 @@ export function ArboristFileTree({
   const containerRef = useRef<HTMLElement | null>(null);
   const syncingOpenStateRef = useRef(false);
   const [treeHeight, setTreeHeight] = useState(FALLBACK_TREE_HEIGHT);
+  const [rowHeight, setRowHeight] = useState(DEFAULT_ROW_HEIGHT);
   const initialOpenStateRef = useRef<Record<string, boolean> | null>(null);
   const layoutMeasureKey = `${createTreeLayoutKey(nodes)}|${[...expandedPaths].sort().join('\n')}`;
 
@@ -51,6 +54,20 @@ export function ArboristFileTree({
     if (!element) {
       return;
     }
+
+    setRowHeight((currentRowHeight) => {
+      const nextRowHeight = readFileTreeRowHeight(element);
+      return currentRowHeight === nextRowHeight ? currentRowHeight : nextRowHeight;
+    });
+  });
+
+  useLayoutEffect(() => {
+    const element = containerRef.current;
+    if (!element) {
+      return;
+    }
+
+    setRowHeight(readFileTreeRowHeight(element));
 
     const scheduledFrames = new Set<number>();
     const scheduleAnimationFrame = typeof requestAnimationFrame === 'function'
@@ -80,6 +97,7 @@ export function ArboristFileTree({
         heightMode,
         observedHeight,
         observedParentHeight,
+        rowHeight: readFileTreeRowHeight(element),
       });
       const nextHeight = result.height;
       setTreeHeight((currentHeight) => currentHeight === nextHeight ? currentHeight : nextHeight);
@@ -173,7 +191,7 @@ export function ArboristFileTree({
         data={nodes}
         idAccessor="id"
         childrenAccessor="children"
-        rowHeight={ROW_HEIGHT}
+        rowHeight={rowHeight}
         height={treeHeight}
         width="100%"
         indent={INDENT}
@@ -191,6 +209,7 @@ export function ArboristFileTree({
           <FileTreeRowContainer
             {...props}
             activePath={activePath}
+            rowHeight={rowHeight}
           />
         )}
       >
@@ -207,9 +226,10 @@ export function ArboristFileTree({
 
 type FileTreeRowContainerProps = RowRendererProps<LazyFileTreeNode> & {
   activePath: string | null;
+  rowHeight: number;
 };
 
-function FileTreeRowContainer({ node, attrs, innerRef, children, activePath }: FileTreeRowContainerProps) {
+function FileTreeRowContainer({ node, attrs, innerRef, children, activePath, rowHeight }: FileTreeRowContainerProps) {
   const active = node.data.type === 'file' && node.data.path === activePath;
   const depth = Math.max(0, node.level);
 
@@ -229,6 +249,7 @@ function FileTreeRowContainer({ node, attrs, innerRef, children, activePath }: F
       className={`file-tree__row file-tree__row--${node.data.type}${active ? ' is-active' : ''}${node.isSelected ? ' is-selected' : ''}`}
       style={{
         ...attrs.style,
+        height: rowHeight,
         '--file-tree-depth': depth,
       } as CSSProperties}
       onClick={handleClick}
@@ -263,12 +284,17 @@ function FileTreeNode({ node, style, getNodeTitle }: FileTreeNodeProps) {
       className="file-tree__node"
     >
       {data.type === 'directory' && (
-        <span className="file-tree__disclosure file-tree__disclosure--directory" aria-hidden="true" />
+        <span
+          className="file-tree__disclosure file-tree__disclosure--directory"
+          data-theme-layout-scope="file-tree-indicator"
+          aria-hidden="true"
+        />
       )}
       {fileIcon && (
         <span
           className={`file-tree__icon file-tree__icon--${fileIcon}`}
           data-file-icon={fileIcon}
+          data-theme-layout-scope="file-tree-indicator"
           aria-hidden="true"
         />
       )}
@@ -316,6 +342,7 @@ type TreeHeightMeasureOptions = {
   heightMode: 'content' | 'remaining-viewport' | 'scroll-container';
   observedHeight?: number;
   observedParentHeight?: number;
+  rowHeight?: number;
 };
 
 type TreeHeightMeasureSource = 'remaining-viewport' | 'scroll-container' | 'parent' | 'observed' | 'own' | 'fallback';
@@ -327,7 +354,7 @@ type TreeHeightMeasureResult = {
 
 function measureAvailableTreeHeight(
   element: HTMLElement,
-  { heightMode, observedHeight = 0, observedParentHeight = 0 }: TreeHeightMeasureOptions,
+  { heightMode, observedHeight = 0, observedParentHeight = 0, rowHeight = DEFAULT_ROW_HEIGHT }: TreeHeightMeasureOptions,
 ): TreeHeightMeasureResult {
   const parent = element.parentElement;
   const elementRect = element.getBoundingClientRect();
@@ -338,7 +365,7 @@ function measureAvailableTreeHeight(
     const viewportRemainingHeight = window.innerHeight - elementRect.top - getFileDrawerBottomInset(element);
 
     if (viewportRemainingHeight > 0) {
-      return { height: Math.max(ROW_HEIGHT, Math.floor(viewportRemainingHeight)), source: 'remaining-viewport' };
+      return { height: Math.max(rowHeight, Math.floor(viewportRemainingHeight)), source: 'remaining-viewport' };
     }
 
     return { height: FALLBACK_TREE_HEIGHT, source: 'fallback' };
@@ -348,7 +375,7 @@ function measureAvailableTreeHeight(
     const scrollContainerHeight = findNearestScrollContainerHeight(element);
 
     if (scrollContainerHeight > 0) {
-      return { height: Math.max(ROW_HEIGHT, Math.floor(scrollContainerHeight)), source: 'scroll-container' };
+      return { height: Math.max(rowHeight, Math.floor(scrollContainerHeight)), source: 'scroll-container' };
     }
   }
 
@@ -380,7 +407,18 @@ function measureAvailableTreeHeight(
     return { height: FALLBACK_TREE_HEIGHT, source: 'fallback' };
   }
 
-  return { height: Math.max(ROW_HEIGHT, Math.floor(measured.height)), source: measured.source };
+  return { height: Math.max(rowHeight, Math.floor(measured.height)), source: measured.source };
+}
+
+function readFileTreeRowHeight(element: HTMLElement): number {
+  const value = getComputedStyle(element).getPropertyValue('--reader-file-tree-row-height').trim();
+  const match = value.match(/^(\d+(?:\.\d+)?)px$/);
+  const next = match ? Number.parseFloat(match[1]) : DEFAULT_ROW_HEIGHT;
+  if (!Number.isFinite(next)) {
+    return DEFAULT_ROW_HEIGHT;
+  }
+
+  return Math.min(MAX_ROW_HEIGHT, Math.max(MIN_ROW_HEIGHT, next));
 }
 
 function getFileDrawerBottomInset(element: HTMLElement): number {

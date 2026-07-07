@@ -2,30 +2,66 @@ import type {
   BuiltinReaderThemeId,
   InstalledReaderThemeId,
   ReaderThemePackage,
+  ReaderThemeFeature,
+  ReaderThemePreviewFixture,
   ReadingStyle,
   RemoteThemeIndex,
   RemoteThemeIndexEntry,
   ThemeColorScheme,
 } from './types';
+import {
+  THEME_CSS_SANITIZER_VERSION,
+  sanitizeAndScopeThemeCss,
+  scopeThemeCss,
+} from './themeCss.js';
 import { APP_VERSION } from './version';
 
 const THEMES_KEY = 'readerThemePackages';
 const REMOTE_THEME_INDEX_CACHE_KEY = 'readerRemoteThemeIndex';
 export const DEFAULT_REMOTE_THEME_INDEX_URL = 'https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/index.json';
-const MAX_THEME_CSS_LENGTH = 64 * 1024;
-const MAX_THEME_TOKEN_COUNT = 160;
+export { THEME_CSS_SANITIZER_VERSION } from './themeCss.js';
+
+const MAX_THEME_CSS_LENGTH = 128 * 1024;
+const MAX_THEME_TOKEN_COUNT = 320;
 const MAX_THEME_TOKEN_VALUE_LENGTH = 500;
 const MAX_THEME_FIELD_LENGTH = 160;
+const REMOTE_THEME_INDEX_CACHE_TTL_MS = 10 * 60 * 1000;
 const MAX_REMOTE_THEME_TAGS = 12;
 const MAX_REMOTE_THEME_INDEX_ITEMS = 200;
 const THEME_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{1,63}$/i;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
 const TOKEN_NAME_PATTERN = /^--(?:reader|markdown)-[a-z0-9-]+$/;
 const SAFE_CSS_VALUE_PATTERN = /^(?!.*(?:url\s*\(|@import|expression\s*\(|javascript:|behavior\s*:))[^;{}]+$/i;
-const UNSAFE_CSS_PATTERN = /@import|url\s*\(|expression\s*\(|javascript:|behavior\s*:|@font-face/i;
-const SUPPORTED_CONDITIONAL_AT_RULE_PATTERN = /^@(media|supports|container)\b/i;
 const BUILTIN_READER_THEME_PREFIX = 'builtin:';
 const INSTALLED_READER_THEME_PREFIX = 'installed:';
+const SUPPORTED_THEME_FEATURES = new Set<ReaderThemeFeature>([
+  'callouts',
+  'tables',
+  'tasks',
+  'code',
+  'mermaid',
+  'json-yaml',
+  'file-tree',
+  'toolbar',
+  'outline',
+  'chrome',
+  'narrow-screen',
+]);
+const SUPPORTED_THEME_PREVIEW_FIXTURES = new Set<ReaderThemePreviewFixture>([
+  'longform',
+  'table',
+  'code',
+  'callouts',
+  'tasks',
+  'mermaid',
+  'json-yaml',
+  'file-tree',
+  'toolbar',
+  'outline',
+  'dashboard',
+  'ledger',
+  'note',
+]);
 const THEME_PACKAGE_FIELDS = new Set([
   'id',
   'name',
@@ -35,9 +71,20 @@ const THEME_PACKAGE_FIELDS = new Set([
   'minAppVersion',
   'colorScheme',
   'tokens',
+  'lightTokens',
+  'darkTokens',
+  'features',
+  'previewFixtures',
   'css',
 ]);
-const STORED_THEME_PACKAGE_FIELDS = new Set([...THEME_PACKAGE_FIELDS, 'installedAt']);
+const STORED_THEME_PACKAGE_FIELDS = new Set([
+  ...THEME_PACKAGE_FIELDS,
+  'installedAt',
+  'scopedCss',
+  'sanitizerVersion',
+  'sourceCssHash',
+  'scopedCssHash',
+]);
 
 export type BuiltinReaderTheme = {
   id: BuiltinReaderThemeId;
@@ -149,7 +196,15 @@ export const DEFAULT_READER_THEME_TOKENS: Record<string, string> = {
   '--reader-control-radius': '6px',
   '--reader-tree-row-hover': '#f0f4f8',
   '--reader-tree-row-active': '#e8f0ff',
+  '--reader-file-tree-row-height': '24px',
+  '--reader-file-tree-indent': '18px',
+  '--reader-file-tree-icon-size': '16px',
+  '--reader-file-tree-disclosure-size': '16px',
   '--reader-outline-active-bg': '#e8f0ff',
+  '--reader-outline-indent': '12px',
+  '--reader-toolbar-height': '52px',
+  '--reader-toolbar-button-size': '32px',
+  '--reader-toolbar-gap': '8px',
   '--reader-syntax-keyword': '#7c3aed',
   '--reader-syntax-string': '#15803d',
   '--reader-syntax-function': '#175ddc',
@@ -343,7 +398,15 @@ type ThemePackageInput = {
   minAppVersion?: unknown;
   colorScheme?: unknown;
   tokens?: unknown;
+  lightTokens?: unknown;
+  darkTokens?: unknown;
+  features?: unknown;
+  previewFixtures?: unknown;
   css?: unknown;
+  scopedCss?: unknown;
+  sanitizerVersion?: unknown;
+  sourceCssHash?: unknown;
+  scopedCssHash?: unknown;
 };
 
 type NormalizeThemePackageOptions = {
@@ -352,6 +415,8 @@ type NormalizeThemePackageOptions = {
 
 type RemoteThemeIndexInput = {
   version?: unknown;
+  schemaVersion?: unknown;
+  catalogVersion?: unknown;
   updatedAt?: unknown;
   themes?: unknown;
 };
@@ -365,9 +430,12 @@ type RemoteThemeIndexEntryInput = {
   minAppVersion?: unknown;
   colorScheme?: unknown;
   downloadUrl?: unknown;
+  packageUrl?: unknown;
   sha256?: unknown;
   previewUrl?: unknown;
   tags?: unknown;
+  features?: unknown;
+  previewFixtures?: unknown;
   deprecated?: unknown;
   replacementThemeId?: unknown;
 };
@@ -376,6 +444,8 @@ type FetchRemoteThemeIndexOptions = {
   indexUrl?: string;
   fetcher?: typeof fetch;
   area?: chrome.storage.StorageArea;
+  refresh?: boolean;
+  cacheTtlMs?: number;
 };
 
 type LoadRemoteThemeOptions = {
@@ -426,26 +496,36 @@ export async function fetchRemoteThemeIndex({
   indexUrl = DEFAULT_REMOTE_THEME_INDEX_URL,
   fetcher = globalThis.fetch,
   area = globalThis.chrome?.storage?.local,
+  refresh = false,
+  cacheTtlMs = REMOTE_THEME_INDEX_CACHE_TTL_MS,
 }: FetchRemoteThemeIndexOptions = {}): Promise<RemoteThemeIndex> {
   if (!fetcher) {
     throw new Error('当前环境不支持获取远程主题源。');
   }
 
   assertHttpsUrl(indexUrl, '远程主题源地址');
-  const requestUrl = buildRemoteThemeIndexRequestUrl(indexUrl, Date.now());
-  const response = await fetcher(requestUrl, { cache: 'no-store' });
+  const fetchedAt = Date.now();
+  if (!refresh) {
+    const cached = await loadCachedRemoteThemeIndex(area);
+    if (cached?.sourceUrl === indexUrl && fetchedAt - cached.fetchedAt < cacheTtlMs) {
+      return cached;
+    }
+  }
+
+  const requestUrl = buildRemoteThemeIndexRequestUrl(indexUrl, fetchedAt, refresh);
+  const response = await fetcher(requestUrl, { cache: 'no-cache' });
   if (!response.ok) {
     throw new Error(`无法获取远程主题源：HTTP ${response.status}。`);
   }
 
-  const index = normalizeRemoteThemeIndex(await response.json(), indexUrl, Date.now());
+  const index = normalizeRemoteThemeIndex(await response.json(), indexUrl, fetchedAt);
   await saveCachedRemoteThemeIndex(index, area);
   return index;
 }
 
-function buildRemoteThemeIndexRequestUrl(indexUrl: string, timestamp: number): string {
+function buildRemoteThemeIndexRequestUrl(indexUrl: string, timestamp: number, refresh: boolean): string {
   const url = new URL(indexUrl);
-  url.searchParams.set('t', String(timestamp));
+  url.searchParams.set(refresh ? 'refresh' : 't', String(timestamp));
   return url.toString();
 }
 
@@ -616,6 +696,10 @@ export function serializeThemePackage(theme: ReaderThemePackage): string {
     ...(theme.minAppVersion ? { minAppVersion: theme.minAppVersion } : {}),
     colorScheme: theme.colorScheme,
     tokens: theme.tokens,
+    ...(theme.lightTokens && Object.keys(theme.lightTokens).length ? { lightTokens: theme.lightTokens } : {}),
+    ...(theme.darkTokens && Object.keys(theme.darkTokens).length ? { darkTokens: theme.darkTokens } : {}),
+    ...(theme.features?.length ? { features: theme.features } : {}),
+    ...(theme.previewFixtures?.length ? { previewFixtures: theme.previewFixtures } : {}),
     ...(theme.css ? { css: theme.css } : {}),
   };
 
@@ -627,11 +711,10 @@ export function buildInstalledThemeStylesheet(theme: ReaderThemePackage | null):
     return '';
   }
 
-  return buildReaderThemeStylesheet({
-    id: createInstalledReaderThemeId(theme.id),
-    tokens: theme.tokens,
-    css: theme.css,
-  });
+  const scope = `[data-reader-theme-id="${createInstalledReaderThemeId(theme.id)}"][data-reader-theme-id]`;
+  const tokenCss = buildReaderThemeTokenStylesheet(scope, theme.tokens, theme.lightTokens, theme.darkTokens);
+  const scopedCss = theme.scopedCss?.trim() || (theme.css.trim() ? scopeCss(theme.css, scope) : '');
+  return [tokenCss, scopedCss].filter(Boolean).join('\n\n');
 }
 
 export function buildBuiltinThemeStylesheet(theme: BuiltinReaderTheme | null): string {
@@ -644,16 +727,43 @@ export function buildBuiltinThemeStylesheet(theme: BuiltinReaderTheme | null): s
 
 export function buildReaderThemeStylesheet(theme: { id: string; tokens: Record<string, string>; css: string }): string {
   const scope = `[data-reader-theme-id="${theme.id}"][data-reader-theme-id]`;
-  const tokenLines = Object.entries(theme.tokens).map(([name, value]) => `  ${name}: ${value};`);
-  const tokenCss = tokenLines.length ? `${scope} {\n${tokenLines.join('\n')}\n}` : '';
+  const tokenCss = buildReaderThemeTokenStylesheet(scope, theme.tokens);
   const scopedCss = theme.css.trim() ? scopeCss(theme.css, scope) : '';
   return [tokenCss, scopedCss].filter(Boolean).join('\n\n');
 }
 
 export function scopeCss(css: string, scope: string): string {
-  const sanitizedCss = sanitizeThemeCss(css);
+  return scopeThemeCss(css, scope);
+}
 
-  return scopeCssFragment(sanitizedCss, scope).trim();
+function buildReaderThemeTokenStylesheet(
+  scope: string,
+  tokens: Record<string, string>,
+  lightTokens: Record<string, string> = {},
+  darkTokens: Record<string, string> = {},
+): string {
+  const blocks: string[] = [];
+  const sharedBlock = buildTokenBlock(scope, tokens);
+  if (sharedBlock) {
+    blocks.push(sharedBlock);
+  }
+
+  if (Object.keys(lightTokens).length) {
+    blocks.push(buildTokenBlock(`.theme-light${scope}`, lightTokens));
+    blocks.push(buildTokenBlock(`.theme-system${scope}`, lightTokens));
+  }
+
+  if (Object.keys(darkTokens).length) {
+    blocks.push(buildTokenBlock(`.theme-dark${scope}`, darkTokens));
+    blocks.push(`@media (prefers-color-scheme: dark) {\n${buildTokenBlock(`.theme-system${scope}`, darkTokens)}\n}`);
+  }
+
+  return blocks.filter(Boolean).join('\n\n');
+}
+
+function buildTokenBlock(selector: string, tokens: Record<string, string>): string {
+  const tokenLines = Object.entries(tokens).map(([name, value]) => `  ${name}: ${value};`);
+  return tokenLines.length ? `${selector} {\n${tokenLines.join('\n')}\n}` : '';
 }
 
 function normalizeThemePackage(
@@ -677,12 +787,19 @@ function normalizeThemePackage(
   const version = normalizeRequiredString(themeInput.version, 'version');
   const colorScheme = normalizeColorScheme(themeInput.colorScheme);
   const tokens = normalizeThemeTokens(themeInput.tokens);
+  const lightTokens = normalizeThemeTokens(themeInput.lightTokens);
+  const darkTokens = normalizeThemeTokens(themeInput.darkTokens);
+  const features = normalizeThemeFeatures(themeInput.features);
+  const previewFixtures = normalizeThemePreviewFixtures(themeInput.previewFixtures);
   const css = normalizeThemeCss(themeInput.css);
-  if (css) {
-    scopeCss(css, '[data-reader-theme-id="theme-preview"]');
-  }
+  const cssState = buildThemeCssState(id, css, themeInput, options.allowInstalledAt === true);
 
-  if (!Object.keys(tokens).length && !css.trim()) {
+  if (
+    !Object.keys(tokens).length &&
+    !Object.keys(lightTokens).length &&
+    !Object.keys(darkTokens).length &&
+    !css.trim()
+  ) {
     throw new Error('主题包至少需要提供 tokens 或 css。');
   }
 
@@ -695,8 +812,71 @@ function normalizeThemePackage(
     minAppVersion: normalizeOptionalString(themeInput.minAppVersion, 'minAppVersion'),
     colorScheme,
     tokens,
+    ...(Object.keys(lightTokens).length ? { lightTokens } : {}),
+    ...(Object.keys(darkTokens).length ? { darkTokens } : {}),
+    features,
+    previewFixtures,
     css,
+    scopedCss: cssState.scopedCss,
+    sanitizerVersion: cssState.sanitizerVersion,
+    sourceCssHash: cssState.sourceCssHash,
+    scopedCssHash: cssState.scopedCssHash,
     installedAt,
+  };
+}
+
+function buildThemeCssState(
+  id: string,
+  css: string,
+  input: ThemePackageInput,
+  allowStoredCssMetadata: boolean,
+): Pick<ReaderThemePackage, 'scopedCss' | 'sanitizerVersion' | 'sourceCssHash' | 'scopedCssHash'> {
+  if (allowStoredCssMetadata) {
+    const stored = normalizeStoredCssState(input);
+    if (stored && stored.sanitizerVersion === THEME_CSS_SANITIZER_VERSION) {
+      return stored;
+    }
+  }
+
+  const result = sanitizeAndScopeThemeCss(
+    css,
+    `[data-reader-theme-id="${createInstalledReaderThemeId(id)}"][data-reader-theme-id]`,
+    { themeId: id },
+  );
+
+  return {
+    scopedCss: result.scopedCss,
+    sanitizerVersion: result.sanitizerVersion,
+    sourceCssHash: result.sourceCssHash,
+    scopedCssHash: result.scopedCssHash,
+  };
+}
+
+function normalizeStoredCssState(
+  input: ThemePackageInput,
+): Pick<ReaderThemePackage, 'scopedCss' | 'sanitizerVersion' | 'sourceCssHash' | 'scopedCssHash'> | null {
+  if (
+    typeof input.scopedCss !== 'string' ||
+    typeof input.sanitizerVersion !== 'string' ||
+    typeof input.sourceCssHash !== 'string' ||
+    typeof input.scopedCssHash !== 'string'
+  ) {
+    return null;
+  }
+
+  if (
+    input.scopedCss.length > MAX_THEME_CSS_LENGTH * 2 ||
+    !SHA256_PATTERN.test(input.sourceCssHash) ||
+    !SHA256_PATTERN.test(input.scopedCssHash)
+  ) {
+    return null;
+  }
+
+  return {
+    scopedCss: input.scopedCss.trim(),
+    sanitizerVersion: input.sanitizerVersion,
+    sourceCssHash: input.sourceCssHash.toLowerCase(),
+    scopedCssHash: input.scopedCssHash.toLowerCase(),
   };
 }
 
@@ -707,6 +887,8 @@ function normalizeRemoteThemeIndex(input: unknown, sourceUrl: string, fetchedAt:
 
   const indexInput = input as RemoteThemeIndexInput;
   const version = normalizeRemoteIndexVersion(indexInput.version);
+  const schemaVersion = normalizeOptionalPositiveInteger(indexInput.schemaVersion, 'schemaVersion');
+  const catalogVersion = normalizeOptionalString(indexInput.catalogVersion, 'catalogVersion');
   const updatedAt = normalizeOptionalString(indexInput.updatedAt, 'updatedAt');
   if (!Array.isArray(indexInput.themes)) {
     throw new Error('远程主题索引 themes 字段必须是数组。');
@@ -724,6 +906,8 @@ function normalizeRemoteThemeIndex(input: unknown, sourceUrl: string, fetchedAt:
     sourceUrl,
     fetchedAt,
     version,
+    ...(schemaVersion ? { schemaVersion } : {}),
+    ...(catalogVersion ? { catalogVersion } : {}),
     ...(updatedAt ? { updatedAt } : {}),
     themes,
   };
@@ -744,10 +928,13 @@ function normalizeRemoteThemeIndexEntry(input: unknown): RemoteThemeIndexEntry {
   const version = normalizeRequiredString(entryInput.version, 'version');
   const colorScheme = normalizeColorScheme(entryInput.colorScheme);
   const minAppVersion = normalizeOptionalString(entryInput.minAppVersion, 'minAppVersion');
-  const downloadUrl = normalizeRequiredUrl(entryInput.downloadUrl, 'downloadUrl');
+  const downloadUrl = normalizeRequiredUrl(entryInput.downloadUrl ?? entryInput.packageUrl, 'downloadUrl');
+  const packageUrl = normalizeOptionalUrl(entryInput.packageUrl, 'packageUrl');
   const sha256 = normalizeSha256(entryInput.sha256);
   const previewUrl = normalizeOptionalUrl(entryInput.previewUrl, 'previewUrl');
   const tags = normalizeRemoteThemeTags(entryInput.tags);
+  const features = normalizeThemeFeatures(entryInput.features);
+  const previewFixtures = normalizeThemePreviewFixtures(entryInput.previewFixtures);
   const deprecated = entryInput.deprecated === true;
   const replacementThemeId = normalizeOptionalString(entryInput.replacementThemeId, 'replacementThemeId');
   if (replacementThemeId && !THEME_ID_PATTERN.test(replacementThemeId)) {
@@ -763,9 +950,12 @@ function normalizeRemoteThemeIndexEntry(input: unknown): RemoteThemeIndexEntry {
     minAppVersion,
     colorScheme,
     downloadUrl,
+    ...(packageUrl ? { packageUrl } : {}),
     sha256,
     previewUrl,
     tags,
+    features,
+    previewFixtures,
     deprecated,
     replacementThemeId,
     compatible: isThemeCompatible({ name, minAppVersion }),
@@ -840,6 +1030,18 @@ function normalizeRemoteIndexVersion(value: unknown): number {
   return value;
 }
 
+function normalizeOptionalPositiveInteger(value: unknown, fieldName: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 1) {
+    throw new Error(`远程主题索引 ${fieldName} 字段必须是正整数。`);
+  }
+
+  return value;
+}
+
 function normalizeRequiredUrl(value: unknown, fieldName: string): string {
   const url = normalizeRequiredString(value, fieldName);
   assertHttpsUrl(url, `远程主题 ${fieldName}`);
@@ -891,6 +1093,54 @@ function normalizeRemoteThemeTags(value: unknown): string[] {
   });
 }
 
+function normalizeThemeFeatures(value: unknown): ReaderThemeFeature[] {
+  if (value === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error('主题 features 字段必须是数组。');
+  }
+
+  if (value.length > 12) {
+    throw new Error('主题 features 不能超过 12 个。');
+  }
+
+  const features = new Set<ReaderThemeFeature>();
+  for (const feature of value) {
+    if (typeof feature !== 'string' || !SUPPORTED_THEME_FEATURES.has(feature as ReaderThemeFeature)) {
+      throw new Error(`不支持的主题 feature：${String(feature)}。`);
+    }
+    features.add(feature as ReaderThemeFeature);
+  }
+
+  return [...features];
+}
+
+function normalizeThemePreviewFixtures(value: unknown): ReaderThemePreviewFixture[] {
+  if (value === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error('主题 previewFixtures 字段必须是数组。');
+  }
+
+  if (value.length > 12) {
+    throw new Error('主题 previewFixtures 不能超过 12 个。');
+  }
+
+  const fixtures = new Set<ReaderThemePreviewFixture>();
+  for (const fixture of value) {
+    if (typeof fixture !== 'string' || !SUPPORTED_THEME_PREVIEW_FIXTURES.has(fixture as ReaderThemePreviewFixture)) {
+      throw new Error(`不支持的主题 previewFixture：${String(fixture)}。`);
+    }
+    fixtures.add(fixture as ReaderThemePreviewFixture);
+  }
+
+  return [...fixtures];
+}
+
 function normalizeColorScheme(value: unknown): ThemeColorScheme {
   if (value === undefined) {
     return 'system';
@@ -936,10 +1186,22 @@ function normalizeThemeTokens(value: unknown): Record<string, string> {
       throw new Error(`主题变量 ${name} 的值不安全或过长。`);
     }
 
+    if (name === '--reader-file-tree-row-height') {
+      assertFileTreeRowHeightTokenValue(normalizedValue);
+    }
+
     tokens[name] = normalizedValue;
   }
 
   return tokens;
+}
+
+function assertFileTreeRowHeightTokenValue(value: string): void {
+  const match = value.match(/^(\d+(?:\.\d+)?)px$/);
+  const numericValue = match ? Number.parseFloat(match[1]) : NaN;
+  if (!match || !Number.isFinite(numericValue) || numericValue < 22 || numericValue > 40) {
+    throw new Error('--reader-file-tree-row-height 必须是 22px 到 40px 之间的 px 数值。');
+  }
 }
 
 function normalizeThemeCss(value: unknown): string {
@@ -951,163 +1213,11 @@ function normalizeThemeCss(value: unknown): string {
     throw new Error('主题包 css 字段必须是字符串。');
   }
 
-  return sanitizeThemeCss(value);
-}
-
-function sanitizeThemeCss(css: string): string {
-  if (css.length > MAX_THEME_CSS_LENGTH) {
-    throw new Error('主题 CSS 不能超过 64KB。');
+  if (value.length > MAX_THEME_CSS_LENGTH) {
+    throw new Error('主题 CSS 不能超过 128KB。');
   }
 
-  if (css.trim() && !css.includes('{')) {
-    throw new Error('主题 CSS 必须包含完整的 CSS 规则。');
-  }
-
-  if (UNSAFE_CSS_PATTERN.test(css)) {
-    throw new Error('主题 CSS 不能包含远程资源、@import 或不安全表达式。');
-  }
-
-  return css.trim();
-}
-
-function scopeCssFragment(css: string, scope: string): string {
-  let result = '';
-  let position = 0;
-
-  while (position < css.length) {
-    const braceIndex = css.indexOf('{', position);
-    if (braceIndex === -1) {
-      result += css.slice(position);
-      break;
-    }
-
-    const prelude = css.slice(position, braceIndex).trim();
-    const endIndex = findMatchingBrace(css, braceIndex);
-    if (endIndex === -1) {
-      throw new Error('主题 CSS 存在未闭合的规则。');
-    }
-
-    const body = css.slice(braceIndex + 1, endIndex);
-    if (prelude.startsWith('@')) {
-      if (!SUPPORTED_CONDITIONAL_AT_RULE_PATTERN.test(prelude)) {
-        throw new Error(`主题 CSS 暂不支持 ${prelude.split(/\s+/)[0]} 规则。`);
-      }
-
-      result += `${prelude} {\n${scopeCssFragment(body, scope).trim()}\n}\n`;
-    } else {
-      result += `${scopeSelectorList(prelude, scope)} {${body}}\n`;
-    }
-
-    position = endIndex + 1;
-  }
-
-  return result;
-}
-
-function scopeSelectorList(selectorList: string, scope: string): string {
-  return splitSelectorList(selectorList)
-    .map((selector) => scopeSelector(selector.trim(), scope))
-    .filter(Boolean)
-    .join(', ');
-}
-
-function splitSelectorList(selectorList: string): string[] {
-  const selectors: string[] = [];
-  let current = '';
-  let depth = 0;
-  let quote: '"' | "'" | null = null;
-
-  for (let index = 0; index < selectorList.length; index += 1) {
-    const char = selectorList[index];
-    const previous = selectorList[index - 1];
-
-    if (quote) {
-      current += char;
-      if (char === quote && previous !== '\\') {
-        quote = null;
-      }
-      continue;
-    }
-
-    if (char === '"' || char === "'") {
-      quote = char;
-      current += char;
-      continue;
-    }
-
-    if (char === '(' || char === '[') {
-      depth += 1;
-    } else if (char === ')' || char === ']') {
-      depth = Math.max(0, depth - 1);
-    }
-
-    if (char === ',' && depth === 0) {
-      selectors.push(current);
-      current = '';
-      continue;
-    }
-
-    current += char;
-  }
-
-  if (current.trim()) {
-    selectors.push(current);
-  }
-
-  return selectors;
-}
-
-function scopeSelector(selector: string, scope: string): string {
-  if (!selector) {
-    return selector;
-  }
-
-  if (selector.startsWith(scope)) {
-    return selector;
-  }
-
-  if (selector.startsWith('.reader-app')) {
-    return selector.replace(/^\.reader-app(?=[\s.#:[>+~]|$)/, scope);
-  }
-
-  if (/^(?:html|body|:root)(?=[\s.#:[>+~]|$)/.test(selector)) {
-    return selector.replace(/^(?:html|body|:root)(?=[\s.#:[>+~]|$)/, scope);
-  }
-
-  return `${scope} ${selector}`;
-}
-
-function findMatchingBrace(css: string, openIndex: number): number {
-  let depth = 0;
-  let quote: '"' | "'" | null = null;
-
-  for (let index = openIndex; index < css.length; index += 1) {
-    const char = css[index];
-    const previous = css[index - 1];
-
-    if (quote) {
-      if (char === quote && previous !== '\\') {
-        quote = null;
-      }
-      continue;
-    }
-
-    if (char === '"' || char === "'") {
-      quote = char;
-      continue;
-    }
-
-    if (char === '{') {
-      depth += 1;
-    } else if (char === '}') {
-      depth -= 1;
-      if (depth === 0) {
-        return index;
-      }
-    }
-  }
-
-  return -1;
+  return value.trim();
 }
 
 function parseStoredThemePackages(value: unknown): ReaderThemePackage[] {

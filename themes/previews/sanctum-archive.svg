@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="Sanctum Archive theme preview">
+  <rect width="480" height="540" fill="#f5efe4"/>
+  <rect x="480" width="480" height="540" fill="#17120d"/>
+  <rect x="32" y="36" width="416" height="468" rx="14" fill="#fffaf0" stroke="#d8cbb5"/>
+  <rect x="52" y="58" width="376" height="34" rx="8" fill="#fbf3e6" stroke="#d8cbb5"/>
+  <circle cx="74" cy="75" r="5" fill="#a06a2d"/>
+  <text x="92" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#7d7163">Light</text>
+  <text x="52" y="132" font-family="Georgia, Times New Roman, serif" font-size="28" fill="#332b22">Sanctum Archive</text>
+  <rect x="52" y="150" width="150" height="3" rx="1.5" fill="#a06a2d"/>
+  <text x="52" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#332b22">Warm archive paper, serif headings, annotation-style quotes an</text>
+  <rect x="52" y="214" width="376" height="82" rx="10" fill="#f1e6d6" stroke="#d8cbb5"/>
+  <text x="70" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#8a5f2c">const theme = "sanctum-archive"</text>
+  <text x="70" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#7d7163">// archive paper palette</text>
+  <rect x="52" y="320" width="180" height="104" rx="10" fill="#f6ead8" stroke="#d8cbb5"/>
+  <rect x="52" y="320" width="5" height="104" rx="2" fill="#a06a2d"/>
+  <text x="72" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#332b22">Callout</text>
+  <text x="72" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#7d7163">serif heading cadence</text>
+  <rect x="252" y="320" width="176" height="104" rx="8" fill="#f3e7d5" stroke="#d8cbb5"/>
+  <line x1="252" y1="354" x2="428" y2="354" stroke="#d8cbb5"/>
+  <line x1="252" y1="388" x2="428" y2="388" stroke="#d8cbb5"/>
+  <text x="270" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#332b22">Rows</text>
+  <text x="352" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#332b22">Cols</text>
+  <text x="270" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#7d7163">26</text>
+  <text x="352" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#7d7163">10</text>
+  <rect x="52" y="452" width="72" height="22" rx="11" fill="#f4e6d1"/>
+  <text x="68" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#a06a2d">#theme</text>
+  <rect x="512" y="36" width="416" height="468" rx="14" fill="#211a14" stroke="#403427"/>
+  <rect x="532" y="58" width="376" height="34" rx="8" fill="#1c160f" stroke="#403427"/>
+  <circle cx="554" cy="75" r="5" fill="#d59950"/>
+  <text x="572" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#b09d85">Dark</text>
+  <text x="532" y="132" font-family="Georgia, Times New Roman, serif" font-size="28" fill="#efe1ce">Sanctum Archive</text>
+  <rect x="532" y="150" width="150" height="3" rx="1.5" fill="#d59950"/>
+  <text x="532" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#efe1ce">Warm archive paper, serif headings, annotation-style quotes an</text>
+  <rect x="532" y="214" width="376" height="82" rx="10" fill="#2b2118" stroke="#403427"/>
+  <text x="550" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#e2b16f">const theme = "sanctum-archive"</text>
+  <text x="550" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#b09d85">// archive paper palette</text>
+  <rect x="532" y="320" width="180" height="104" rx="10" fill="#2b2118" stroke="#403427"/>
+  <rect x="532" y="320" width="5" height="104" rx="2" fill="#d59950"/>
+  <text x="552" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#efe1ce">Callout</text>
+  <text x="552" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#b09d85">serif heading cadence</text>
+  <rect x="732" y="320" width="176" height="104" rx="8" fill="#2c2118" stroke="#403427"/>
+  <line x1="732" y1="354" x2="908" y2="354" stroke="#403427"/>
+  <line x1="732" y1="388" x2="908" y2="388" stroke="#403427"/>
+  <text x="750" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#efe1ce">Rows</text>
+  <text x="832" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#efe1ce">Cols</text>
+  <text x="750" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#b09d85">26</text>
+  <text x="832" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#b09d85">10</text>
+  <rect x="532" y="452" width="72" height="22" rx="11" fill="#332718"/>
+  <text x="548" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#d59950">#theme</text>
+</svg>

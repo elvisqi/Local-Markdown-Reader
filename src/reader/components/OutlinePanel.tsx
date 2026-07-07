@@ -32,6 +32,7 @@ export function OutlinePanel({
       {canResize && (
         <div
           className="outline-panel__resize-handle"
+          data-theme-layout-scope="outline-indicator"
           role="separator"
           aria-label="调整文档大纲宽度"
           aria-orientation="vertical"
@@ -63,6 +64,7 @@ function OutlineList({ outline, activeId, onNavigate }: OutlinePanelProps) {
           <button
             type="button"
             className={item.id === activeId ? 'is-active' : undefined}
+            data-theme-layout-scope="outline-indicator"
             aria-current={item.id === activeId ? 'location' : undefined}
             onClick={() => onNavigate(item.id)}
           >

@@ -1,0 +1,48 @@
+{
+  "id": "sanctum-archive",
+  "name": "Sanctum Archive",
+  "version": "1.0.0",
+  "status": "official",
+  "lightDarkRequirement": "both-required",
+  "references": [
+    "obsidian:sanctum",
+    "obsidian:notation"
+  ],
+  "usage": "inspiration-only",
+  "designIntent": "Paper archive theme inspired by Sanctum and Notation.",
+  "visualIdentity": "Warm archive paper, serif headings, annotation-style quotes and marks.",
+  "nonColorDifferentiators": [
+    "archive paper palette",
+    "serif heading cadence",
+    "annotation quote styling",
+    "warm table surfaces"
+  ],
+  "requiredComponentCoverage": [
+    "document",
+    "headings",
+    "quotes",
+    "tables",
+    "code",
+    "outline"
+  ],
+  "tokenStrategy": {
+    "rowHeight": "24px",
+    "toolbarHeight": "50px",
+    "radius": "6px",
+    "headingFont": "Georgia, \"Times New Roman\", serif",
+    "typography": "17px / 1.82"
+  },
+  "cssEvidence": [
+    ".document-reader .markdown-heading { font-family: var(--reader-heading-font); }",
+    ".document-reader .markdown-quote { border-left-width: 3px; font-style: italic; }",
+    ".document-reader .markdown-mark { border-radius: 2px; padding-inline: 0.15em; }",
+    ".document-reader .markdown-rule { border-style: dashed; }",
+    "[data-theme-layout-scope=\"outline-indicator\"].is-active { border-left: 3px double var(--reader-accent); }"
+  ],
+  "acceptanceCriteria": [
+    "Light and dark modes are both present and independently tokenized.",
+    "Document width is not overridden by theme CSS.",
+    "File tree row height is controlled only through --reader-file-tree-row-height.",
+    "At least three non-color differentiators are visible in preview fixtures."
+  ]
+}

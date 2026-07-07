@@ -3,9 +3,39 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { sanitizeAndScopeThemeCss } from '../src/shared/themeCss.js';
+
 const THEME_PACKAGE_SUFFIX = '.mdv-theme.json';
 const THEME_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{1,63}$/i;
 const COLOR_SCHEMES = new Set(['light', 'dark', 'system']);
+const SUPPORTED_THEME_FEATURES = new Set([
+  'callouts',
+  'tables',
+  'tasks',
+  'code',
+  'mermaid',
+  'json-yaml',
+  'file-tree',
+  'toolbar',
+  'outline',
+  'chrome',
+  'narrow-screen',
+]);
+const SUPPORTED_THEME_PREVIEW_FIXTURES = new Set([
+  'longform',
+  'table',
+  'code',
+  'callouts',
+  'tasks',
+  'mermaid',
+  'json-yaml',
+  'file-tree',
+  'toolbar',
+  'outline',
+  'dashboard',
+  'ledger',
+  'note',
+]);
 const THEME_PACKAGE_FIELDS = new Set([
   'id',
   'name',
@@ -15,15 +45,18 @@ const THEME_PACKAGE_FIELDS = new Set([
   'minAppVersion',
   'colorScheme',
   'tokens',
+  'lightTokens',
+  'darkTokens',
+  'features',
+  'previewFixtures',
   'css',
 ]);
 const TOKEN_NAME_PATTERN = /^--(?:reader|markdown)-[a-z0-9-]+$/;
 const SAFE_CSS_VALUE_PATTERN = /^(?!.*(?:url\s*\(|@import|expression\s*\(|javascript:|behavior\s*:))[^;{}]+$/i;
-const UNSAFE_CSS_PATTERN = /@import|url\s*\(|expression\s*\(|javascript:|behavior\s*:|@font-face/i;
 const MAX_THEME_FIELD_LENGTH = 160;
-const MAX_THEME_TOKEN_COUNT = 160;
+const MAX_THEME_TOKEN_COUNT = 320;
 const MAX_THEME_TOKEN_VALUE_LENGTH = 500;
-const MAX_THEME_CSS_LENGTH = 64 * 1024;
+const MAX_THEME_CSS_LENGTH = 128 * 1024;
 const MAX_REMOTE_THEME_TAGS = 12;
 
 export async function buildThemeIndex({ rootDir = process.cwd() } = {}) {
@@ -52,6 +85,7 @@ export async function buildThemeIndex({ rootDir = process.cwd() } = {}) {
     seenIds.add(theme.id);
 
     const remoteMetadata = normalizeRemoteMetadata(theme.id, metadata.themes[theme.id]);
+    const downloadUrl = normalizeVersionedUrl(normalizeDownloadUrl(metadata.packageBaseUrl, packageName), theme.version);
     entries.push(removeUndefined({
       id: theme.id,
       name: theme.name,
@@ -60,10 +94,13 @@ export async function buildThemeIndex({ rootDir = process.cwd() } = {}) {
       description: theme.description,
       minAppVersion: theme.minAppVersion,
       colorScheme: theme.colorScheme,
-      downloadUrl: normalizeDownloadUrl(metadata.packageBaseUrl, packageName),
+      downloadUrl,
+      packageUrl: downloadUrl,
       sha256: createHash('sha256').update(text).digest('hex'),
-      previewUrl: remoteMetadata.previewUrl,
+      previewUrl: remoteMetadata.previewUrl ?? normalizePreviewUrl(metadata.previewBaseUrl, theme.id, theme.version),
       tags: remoteMetadata.tags,
+      features: theme.features,
+      previewFixtures: remoteMetadata.previewFixtures.length ? remoteMetadata.previewFixtures : theme.previewFixtures,
       deprecated: remoteMetadata.deprecated,
       replacementThemeId: remoteMetadata.replacementThemeId,
     }));
@@ -77,6 +114,8 @@ export async function buildThemeIndex({ rootDir = process.cwd() } = {}) {
 
   return {
     version: metadata.version,
+    schemaVersion: metadata.schemaVersion,
+    catalogVersion: metadata.catalogVersion,
     updatedAt: metadata.updatedAt,
     themes: entries.sort((a, b) => a.id.localeCompare(b.id)),
   };
@@ -148,14 +187,22 @@ async function readThemeMetadata(metadataPath) {
   }
 
   const version = normalizePositiveInteger(metadata.version, 'metadata version');
+  const schemaVersion = metadata.schemaVersion === undefined ? undefined : normalizePositiveInteger(metadata.schemaVersion, 'metadata schemaVersion');
+  const catalogVersion = normalizeOptionalString(metadata.catalogVersion, 'metadata catalogVersion');
   const updatedAt = normalizeRequiredString(metadata.updatedAt, 'metadata updatedAt');
   const packageBaseUrl = normalizeHttpsUrl(metadata.packageBaseUrl, 'metadata packageBaseUrl');
+  const previewBaseUrl = metadata.previewBaseUrl === undefined
+    ? undefined
+    : normalizeHttpsUrl(metadata.previewBaseUrl, 'metadata previewBaseUrl');
   const themes = normalizeMetadataThemes(metadata.themes);
 
   return {
     version,
+    schemaVersion,
+    catalogVersion,
     updatedAt,
     packageBaseUrl,
+    previewBaseUrl,
     themes,
   };
 }
@@ -184,6 +231,7 @@ function normalizeRemoteMetadata(themeId, input) {
   if (input === undefined) {
     return {
       tags: [],
+      previewFixtures: [],
     };
   }
 
@@ -202,6 +250,7 @@ function normalizeRemoteMetadata(themeId, input) {
   return {
     tags: normalizeTags(input.tags, themeId),
     previewUrl,
+    previewFixtures: normalizePreviewFixtures(input.previewFixtures, `${themeId} previewFixtures`),
     deprecated,
     replacementThemeId,
   };
@@ -225,9 +274,13 @@ function normalizeThemePackage(input, packageName) {
   const minAppVersion = normalizeOptionalString(input.minAppVersion, `${packageName} minAppVersion`);
   const colorScheme = input.colorScheme === undefined ? 'system' : normalizeColorScheme(input.colorScheme, packageName);
   const tokens = normalizeTokens(input.tokens, packageName);
-  const css = normalizeCss(input.css, packageName);
+  const lightTokens = normalizeTokens(input.lightTokens, `${packageName} lightTokens`);
+  const darkTokens = normalizeTokens(input.darkTokens, `${packageName} darkTokens`);
+  const features = normalizeFeatures(input.features, `${packageName} features`);
+  const previewFixtures = normalizePreviewFixtures(input.previewFixtures, `${packageName} previewFixtures`);
+  const css = normalizeCss(input.css, packageName, id);
 
-  if (!Object.keys(tokens).length && !css) {
+  if (!Object.keys(tokens).length && !Object.keys(lightTokens).length && !Object.keys(darkTokens).length && !css) {
     throw new Error(`${packageName} must define tokens or css.`);
   }
 
@@ -239,12 +292,29 @@ function normalizeThemePackage(input, packageName) {
     description,
     minAppVersion,
     colorScheme,
+    features,
+    previewFixtures,
   };
 }
 
 function normalizeDownloadUrl(packageBaseUrl, packageName) {
   const base = packageBaseUrl.endsWith('/') ? packageBaseUrl : `${packageBaseUrl}/`;
   return normalizeHttpsUrl(new URL(packageName, base).href, `${packageName} downloadUrl`);
+}
+
+function normalizePreviewUrl(previewBaseUrl, themeId, version) {
+  if (!previewBaseUrl) {
+    return undefined;
+  }
+
+  const base = previewBaseUrl.endsWith('/') ? previewBaseUrl : `${previewBaseUrl}/`;
+  return normalizeVersionedUrl(normalizeHttpsUrl(new URL(`${themeId}.svg`, base).href, `${themeId} previewUrl`), version);
+}
+
+function normalizeVersionedUrl(value, version) {
+  const url = new URL(value);
+  url.searchParams.set('v', version);
+  return normalizeHttpsUrl(url.href, `${value} versionedUrl`);
 }
 
 function normalizeRequiredString(value, label) {
@@ -318,13 +388,25 @@ function normalizeTokens(value, packageName) {
       throw new Error(`${packageName} token ${name} is unsafe or too long.`);
     }
 
+    if (name === '--reader-file-tree-row-height') {
+      assertFileTreeRowHeightTokenValue(normalizedValue, packageName);
+    }
+
     tokens[name] = normalizedValue;
   }
 
   return tokens;
 }
 
-function normalizeCss(value, packageName) {
+function assertFileTreeRowHeightTokenValue(value, packageName) {
+  const match = value.match(/^(\d+(?:\.\d+)?)px$/);
+  const numericValue = match ? Number.parseFloat(match[1]) : NaN;
+  if (!match || !Number.isFinite(numericValue) || numericValue < 22 || numericValue > 40) {
+    throw new Error(`${packageName} --reader-file-tree-row-height must be a px value from 22px to 40px.`);
+  }
+}
+
+function normalizeCss(value, packageName, themeId) {
   if (value === undefined) {
     return '';
   }
@@ -334,19 +416,63 @@ function normalizeCss(value, packageName) {
   }
 
   if (value.length > MAX_THEME_CSS_LENGTH) {
-    throw new Error(`${packageName} css cannot exceed 64KB.`);
+    throw new Error(`${packageName} css cannot exceed 128KB.`);
   }
 
   const css = value.trim();
-  if (css && !css.includes('{')) {
-    throw new Error(`${packageName} css must contain complete CSS rules.`);
-  }
-
-  if (UNSAFE_CSS_PATTERN.test(css)) {
-    throw new Error(`${packageName} css contains unsafe remote resources or expressions.`);
+  if (css) {
+    sanitizeAndScopeThemeCss(css, `[data-reader-theme-id="installed:${themeId}"][data-reader-theme-id]`, { themeId });
   }
 
   return css;
+}
+
+function normalizeFeatures(value, label) {
+  if (value === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array.`);
+  }
+
+  if (value.length > 12) {
+    throw new Error(`${label} cannot exceed 12 entries.`);
+  }
+
+  const features = new Set();
+  for (const feature of value) {
+    if (typeof feature !== 'string' || !SUPPORTED_THEME_FEATURES.has(feature)) {
+      throw new Error(`${label} contains unsupported feature: ${String(feature)}.`);
+    }
+    features.add(feature);
+  }
+
+  return [...features];
+}
+
+function normalizePreviewFixtures(value, label) {
+  if (value === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array.`);
+  }
+
+  if (value.length > 12) {
+    throw new Error(`${label} cannot exceed 12 entries.`);
+  }
+
+  const fixtures = new Set();
+  for (const fixture of value) {
+    if (typeof fixture !== 'string' || !SUPPORTED_THEME_PREVIEW_FIXTURES.has(fixture)) {
+      throw new Error(`${label} contains unsupported preview fixture: ${String(fixture)}.`);
+    }
+    fixtures.add(fixture);
+  }
+
+  return [...fixtures];
 }
 
 function normalizePositiveInteger(value, label) {

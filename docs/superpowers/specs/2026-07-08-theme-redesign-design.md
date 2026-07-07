@@ -14,6 +14,8 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - 保留现有“阅读宽度”设置；主题可以改变内部密度和间距，但不能强行固定正文宽度。
 - 远程主题预览要能清楚展示实际差异。
 - 增加可重复执行的相似度检查，避免以后再次出现主题近似重复的问题。
+- 10 套官方主题必须同时支持浅色和深色模式，不能发布单模式主题。
+- 官方主题必须达到产品内置质量：视觉特征明确、组件覆盖完整、真实页面预览通过，而不是“能安装的示例主题”。
 
 ## 非目标
 
@@ -21,6 +23,7 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - 不支持远程字体加载，也不允许主题 CSS 使用任意 `url(...)` 资源。
 - 不把现有的“跟随系统 / 浅色 / 深色”颜色模式替换成“主题”概念。
 - 不让这些主题依赖 Obsidian 专属插件 DOM 结构。
+- 不把单模式主题作为官方主题交付标准；第三方主题未来可以保留单模式兼容能力，但官方主题不能这样做。
 
 ## 核心判断
 
@@ -480,6 +483,76 @@ type ThemeProfile = {
 - Typewriter Desk 的主导特征是纸张和文章排版，禁止做高饱和彩色控件。
 - Cyber Glow 的主导特征是深色 glow，禁止使用大面积亮色背景。
 
+### 每套主题设计合同
+
+10 套官方主题不能只靠自然语言描述推进。每套主题在生成主题包前都必须先写一份设计合同，作为实现和验收的共同输入。
+
+建议结构：
+
+```ts
+type OfficialThemeContract = {
+  schemaVersion: 1;
+  id: string;
+  name: string;
+  references: string[];
+  profile: ThemeProfile;
+  dominantMemoryPoint: string;
+  lightModeStrategy: string;
+  darkModeStrategy: string;
+  requiredComponentCoverage: Array<
+    | 'document'
+    | 'heading'
+    | 'table'
+    | 'callout'
+    | 'code'
+    | 'file-tree'
+    | 'toolbar'
+    | 'outline'
+    | 'generated-reader'
+    | 'mermaid'
+  >;
+  nonColorDifferentiators: string[];
+  requiredFixtures: Array<
+    | 'longform'
+    | 'technical'
+    | 'data-table'
+    | 'fullscreen-table'
+    | 'mermaid'
+    | 'json-yaml'
+    | 'chrome'
+    | 'narrow-screen'
+  >;
+  forbiddenOverlap: Array<{
+    themeId: string;
+    forbiddenSimilarity: string;
+  }>;
+  screenshotAcceptance: Array<{
+    file: string;
+    expectedVisibleFeature: string;
+  }>;
+  releaseDescription: {
+    bestFor: string;
+    visualSignature: string;
+    notBestFor: string;
+  };
+};
+```
+
+合同要求：
+
+- 合同文件必须放在 `themes/official/contracts/<theme-id>.json`。
+- `contract.schemaVersion` 初始为 `1`；未来合同字段升级必须提升版本并保留迁移说明。
+- `contract.id`、主题包 `id`、远程 index entry `id` 必须完全一致。
+- `contract.name` 和主题包 `name` 可以有展示差异，但官方发布校验器必须在报告中列出差异。
+- `dominantMemoryPoint` 必须能在主题弹窗预览首屏看到。
+- `lightModeStrategy` 和 `darkModeStrategy` 必须分别描述，而不是写“反色”或“同浅色”。
+- `requiredComponentCoverage` 至少 6 项，并且必须和实际 token / CSS 覆盖报告一致。
+- `nonColorDifferentiators` 至少 3 项，且必须能在截图或 CSS 规则中找到对应证据。
+- `forbiddenOverlap` 用来防止两个主题在同一方向上重复，例如 Minimal Focus 和 Yin Editorial 都不能只表现为“黑白简洁”。
+- `screenshotAcceptance` 明确每张真实浏览器截图里要看到什么特征，人工验收时逐项勾选。
+
+如果主题包实现和设计合同不一致，应该调整主题包或合同，不能只修改相似度阈值来通过验收。
+
 ## 主题包 Schema 变化
 
 当前结构：
@@ -512,6 +585,7 @@ type ThemeProfile = {
 - `darkTokens` 在 reader 解析为深色模式时应用。
 - `features` 用于目录筛选和预览徽章。
 - `previewFixtures` 声明哪些预览样例最能展示该主题。
+- 官方主题必须同时提供 `lightTokens` 和 `darkTokens`，且两套模式都要有对应预览截图和人工验收记录。
 
 明暗 token 合并顺序固定为：
 
@@ -564,6 +638,118 @@ resolved color mode 来自 reader 的颜色模式计算结果：当用户选择�
 - CSS 上限先从 64KB 提高到 128KB。
 - 继续拒绝 `@import`、`url(...)`、`@font-face`、`javascript:`、`expression(...)` 和 `behavior`。
 
+### CSS 布局权限边界
+
+官方主题允许通过受控 scoped CSS 调整文件树、toolbar 和 outline 的布局尺寸。原因是这三块属于主题视觉身份的一部分，如果只能改颜色，Desktop Native、Terminal Console、Primary Soft、Topaz Lab 等主题很难形成足够明显的应用框架差异。
+
+允许调整：
+
+- toolbar 高度、按钮尺寸、按钮间距、分组间距、边框和背景层次。
+- 文件树行高、缩进、图标尺寸、展开箭头尺寸、节点 padding、选中态 indicator 尺寸。
+- outline 宽度相关的内部 padding、按钮行高、层级缩进、active indicator、resize handle 厚度和视觉样式。
+- reader 周边框架的 gap、分隔线、滚动条样式和局部 sticky 控件尺寸。
+
+文件树虚拟滚动联动规则：
+
+- 文件树实际行高必须以 `--reader-file-tree-row-height` 为唯一来源。
+- 虚拟滚动 item size 必须从同一个值读取，不能在 JS 中保留独立硬编码高度。
+- 主题 CSS 可以改变 `--reader-file-tree-row-height`，但不能直接对虚拟行写固定 `height`、`min-height` 或 `line-height` 来绕开该变量。
+- `--reader-file-tree-row-height` 需要有最小和最大限制，例如 22px 到 40px；超出范围时主题导入或官方发布校验必须失败。
+- `--reader-file-tree-row-height` 在 Phase 1 只允许明确的 px 数值，例如 `28px`；暂不允许 `calc()`、`var()`、`em`、`rem`、百分比或关键字，避免 JS item size 解析和继承结果不稳定。
+- 文件树缩进、图标尺寸、展开箭头尺寸也应优先通过 token / CSS 变量表达，例如 `--reader-file-tree-indent`、`--reader-file-tree-icon-size`、`--reader-file-tree-disclosure-size`。
+- 虚拟树测试必须覆盖至少 22px、28px、36px 三档行高，验证滚动位置、点击命中、展开收起、当前文件高亮不偏移。
+
+约束：
+
+- 不能强行固定正文阅读宽度，必须继续服从“阅读宽度”设置。
+- 不能使用 fixed / absolute 把主题元素覆盖到 reader 外部主流程之外，除非是已有的全屏表格、Mermaid 全屏或受控浮动按钮容器。
+- 文件树、toolbar、outline 的高度和宽度调整必须设置合理 min/max 或响应式约束，不能导致窄屏无法操作。
+- 不能隐藏基础交互元素：文件树展开箭头、当前文件高亮、toolbar 主按钮、outline 当前标题状态必须可见。
+- 不能禁用 pointer events、selection、scroll、resize 等核心交互。
+
+这些规则需要进入 CSS sanitizer / scoper 的测试矩阵。主题可以有布局个性，但不能破坏文件树懒加载、虚拟滚动、outline 定位、表格全屏和 Mermaid 全屏。
+
+### CSS Allow / Deny 清单
+
+远程主题 CSS 不能只靠字符串黑名单判断安全性。Phase 1 需要把 sanitizer 扩展为声明级校验，至少覆盖属性名、属性值、选择器和 at-rule。
+
+解析与复用约束：
+
+- CSS 校验必须基于 CSS AST parser，例如 PostCSS 或 CSSTree，不能继续依赖正则和字符串扫描作为主逻辑。
+- 运行时导入、远程 index 构建、options 预览、SVG/PNG 预览生成、官方主题发布校验器必须复用同一个 sanitizer / scoper 模块。
+- sanitizer 输出必须包含结构化诊断：规则位置、selector、property、value、失败原因、所属主题 id。
+- 任何路径使用了不同 sanitizer 实现都视为失败；否则会出现构建通过、运行时拒绝，或预览通过、安装失败的问题。
+
+运行位置：
+
+- 主题导入、安装、远程 index 构建、官方发布校验必须运行完整 AST sanitizer。
+- reader 实际渲染阶段不应重复加载完整 CSS parser；reader 只消费已经通过校验并被 scope 后的 CSS。
+- 已安装主题需要存储或缓存 sanitized/scoped CSS，以及 sanitizer 版本、source CSS hash、scoped CSS hash。sanitizer 版本升级时，需要重新校验已安装主题。
+- options 预览使用同一份 sanitized/scoped CSS，不能使用未校验的原始 CSS 直接预览。
+
+允许的 at-rule：
+
+- `@media`
+- `@supports`
+- 未来如果引入容器查询，可以增加 `@container`
+
+禁止的 at-rule：
+
+- `@import`
+- `@font-face`
+- `@keyframes`
+- `@property`
+- `@namespace`
+- 任何会加载外部资源或创建全局副作用的规则
+
+禁止的选择器：
+
+- `html`、`body`、`:root` 以外逃逸到主题 scope 外部的选择器。
+- `*` 全局重置选择器，除非 scoper 能保证只影响主题根下且不作用于交互控件。
+- `iframe`、`script`、`style`、`link`、`meta` 等非 reader 内容节点。
+- 针对扩展宿主页面、浏览器页面或 options 根节点的选择器。
+
+受控布局容器 allowlist：
+
+只有以下容器允许使用更强的布局能力，例如局部 `position: absolute`、局部 indicator 尺寸和局部浮层位置。Phase 1 如果现有 DOM 没有这些 data hook，需要先补 hook，再开放对应 CSS 能力。
+
+- `[data-theme-layout-scope="table-actions"]`：表格正文右侧 action、行列统计、最大化按钮。
+- `[data-theme-layout-scope="table-fullscreen-actions"]`：全屏表格里的底部或角落 action。
+- `[data-theme-layout-scope="mermaid-actions"]`：Mermaid 缩放、最大化、重置按钮。
+- `[data-theme-layout-scope="file-tree-indicator"]`：文件树节点内部选中态 indicator、展开箭头和图标区域。
+- `[data-theme-layout-scope="toolbar-group"]`：toolbar 内部分组、按钮间距和按钮尺寸。
+- `[data-theme-layout-scope="outline-indicator"]`：outline 当前标题 indicator 和层级缩进。
+- `[data-theme-layout-scope="theme-preview-overlay"]`：options 主题预览卡片内部浮层。
+
+allowlist 只开放容器内部布局，不开放逃逸到页面级 overlay。所有选择器仍然必须被主题 root scope 包裹。
+
+匹配规则：
+
+- 使用受限布局属性的 selector 必须显式包含对应 `[data-theme-layout-scope="..."]`。
+- 该 selector 被 scope 后必须仍位于主题 root 之下，不能通过 `:has()`、`:is()`、`:where()` 或 selector list 间接匹配主题 root 外部节点。
+- 对 selector list 逐项校验；只要其中一个 selector 不满足 allowlist，整条规则失败。
+- 受控容器只能放宽容器内部布局属性，不放宽全局交互限制，例如隐藏核心按钮、禁用 pointer events、破坏主滚动容器仍然禁止。
+
+禁止或限制的属性和值：
+
+- `position: fixed` 全面禁止。
+- `position: absolute` 只允许在已有受控容器内使用，例如表格全屏 action、Mermaid 控件、主题预览卡片内部浮层；其他区域禁止。
+- `z-index` 必须限制在产品定义范围内，例如 0 到 20；全屏 overlay 使用产品内置样式，不由主题 CSS 自行拔高。
+- `display: none`、`visibility: hidden`、`opacity: 0` 不能作用于关键交互节点，包括文件树展开箭头、当前文件标识、toolbar 主按钮、outline active 状态、表格全屏按钮、Mermaid 缩放按钮。
+- `pointer-events: none`、`user-select: none`、`touch-action: none` 不能作用于文件树、toolbar、outline、正文、全屏控件等核心区域。
+- `overflow: hidden` 不能作用于主滚动容器、文件树滚动容器、outline 滚动容器、表格滚动容器。
+- `width` / `max-width` 不能作用于 `.document-reader` 的阅读宽度；阅读宽度继续由产品设置控制。
+- `height` / `min-height` / `line-height` 不能直接覆盖虚拟文件树行高，必须通过 `--reader-file-tree-row-height`。
+- `transform` 不能作用于主 reader、文件树滚动容器、outline 滚动容器和虚拟列表内部定位容器，避免破坏测量和点击命中。
+
+允许的布局类属性应集中在受控组件内：
+
+- margin、padding、gap、border、border-radius、box-shadow、background、color、font、line-height、letter-spacing。
+- toolbar、文件树、outline 的尺寸 token 和内部 spacing token。
+- 表格、callout、代码块、Mermaid、JSON/YAML reader 的组件级布局属性。
+
+官方主题发布校验必须把 CSS deny 命中作为硬失败，而不是只在控制台警告。
+
 ## Token 回退规则
 
 所有新增 token 都必须有明确回退链，避免主题包必须一次性定义全部变量。
@@ -613,7 +799,7 @@ typed/component token
 - 真实弹窗预览。
 - 桌面宽度 reader 截图。
 - 窄屏 reader 截图。
-- 浅色和深色 resolved mode 截图；只支持单模式的主题需要明确展示单模式效果。
+- 浅色和深色 resolved mode 截图；10 套官方主题必须同时提供两种模式截图。
 - 表格全屏截图。
 - Mermaid 全屏截图。
 
@@ -636,8 +822,41 @@ typed/component token
   - `reader-narrow.png`
   - `table-fullscreen.png`
   - `mermaid-fullscreen.png`
-- 单模式主题可以只输出自身支持的 light/dark 文件，但文件名和报告中必须说明原因。
+- 单模式主题只作为第三方兼容能力存在；10 套官方主题必须输出 light 和 dark 全部截图。
 - 截图脚本需要生成 `themes/previews/theme-visual-report.json`，记录每张截图路径、viewport、resolved color mode、主题 id、是否成功。
+
+`theme-visual-report.json` 不能只记录截图文件存在。每张截图必须记录：
+
+- `themeId`
+- `mode`
+- `viewport`
+- `screenshotPath`
+- `themeCssHash`
+- `sourceCssHash`
+- `scopedCssHash`
+- `resolvedTokensHash`
+- `domAssertions`
+- `pixelAssertions`
+- `fullscreenState`
+- `expectedVisibleFeature`
+- `manualAcceptance`
+
+自动断言要求：
+
+- DOM 中的 theme id 必须等于目标主题 id。
+- 应用到页面的 `sourceCssHash` 必须和主题包原始 css hash 对应。
+- 应用到页面的 `scopedCssHash` 必须和 sanitizer / scoper 输出对应，用于排查主题包正确但注入结果不一致的问题。
+- 截图核心区域不能为空白，且非背景像素比例必须超过最小阈值。
+- `table-fullscreen.png` 必须断言全屏表格容器存在且处于打开状态。
+- `mermaid-fullscreen.png` 必须断言 Mermaid 全屏容器存在且处于打开状态。
+- light 和 dark 截图需要输出差异摘要，例如背景、文字、accent、surface token 至少有一组实际差异。
+- `expectedVisibleFeature` 必须来自设计合同的 `screenshotAcceptance`，不能由截图脚本临时生成。
+
+人工验收要求：
+
+- 人工验收结果写回 `manualAcceptance`，至少包含 `accepted`、`reviewer`、`reviewedAt`、`notes`。
+- 如果人工验收拒绝，官方主题发布校验器必须失败。
+- 如果自动断言通过但人工认为主题视觉记忆点不明显，应调整主题而不是只改合同描述。
 
 失败标准：
 
@@ -682,6 +901,62 @@ overall =
 - 每套主题至少包含 3 个非颜色差异点。
 - 每套主题至少有 1 个主题专属视觉记忆点。
 - 每套主题在预览首屏内必须能识别出主导特征。
+- 每套官方主题的 light 和 dark 模式都必须独立通过上述验收，不能只保证其中一种模式有特色。
+
+## 官方主题质量门槛
+
+10 套主题按官方主题交付，不按示例包交付。每套主题发布前必须满足：
+
+- 同时具备浅色和深色模式，且不是简单反色；两种模式都要有完整 token、CSS、截图和人工验收记录。
+- 至少覆盖正文、标题、表格、callout、代码、文件树、toolbar、outline、生成型 reader 中的 6 个区域。
+- 至少包含 3 个非颜色差异点，例如密度、圆角、边框策略、标题节奏、表格结构、callout 形态、代码块布局、应用框架尺寸。
+- 至少 1 个首屏可识别的视觉记忆点，且必须能在远程主题弹窗预览里看到。
+- 所有截图必须来自真实浏览器渲染，不能只依赖静态 SVG。
+- 桌面、窄屏、宽表格全屏、Mermaid 全屏、JSON/YAML reader、文件树展开状态都不能出现布局遮挡、文字溢出、交互控件不可见。
+- 主题 CSS 不能靠过度复杂选择器堆叠制造差异；如果需要大量 CSS，必须能说明它们分别服务于哪些组件特征。
+- 每套主题都要有一段发布说明，明确它适合的阅读场景、主导特征和不适合的场景。
+
+如果一套主题只是替换颜色、背景和少量字体，即使相似度报告通过，也不能发布为官方主题。
+
+### 官方主题发布校验器
+
+第三方主题导入器需要保持兼容，但官方 10 套主题必须额外通过发布校验器。建议新增脚本：
+
+```bash
+npm run themes:validate-official
+```
+
+该脚本负责读取：
+
+- `themes/official/contracts/*.json`
+- `themes/packages/*.mdv-theme.json`
+- `themes/index.json`
+- `themes/previews/theme-similarity-report.json`
+- `themes/previews/theme-visual-report.json`
+
+硬性失败条件：
+
+- 官方主题数量不是 10。
+- 任一官方主题缺少设计合同。
+- 任一官方主题缺少 `lightTokens` 或 `darkTokens`。
+- 任一官方主题没有进入远程 `themes/index.json`。
+- 任一官方主题缺少 light / dark 的 options 预览截图和 reader 真实截图。
+- 任一官方主题缺少窄屏、表格全屏、Mermaid 全屏截图。
+- 任一官方主题截图缺少 DOM 断言、像素断言、主题 CSS hash、resolved token hash 或人工验收记录。
+- 任一官方主题截图的 `expectedVisibleFeature` 和设计合同不一致。
+- 任一官方主题截图自动断言失败，或人工验收未通过。
+- 任一官方主题 `requiredComponentCoverage` 少于 6 项。
+- 任一官方主题 `nonColorDifferentiators` 少于 3 项。
+- 任一官方主题的 CSS 命中 deny 清单。
+- 任一官方主题相似度超过阈值，且没有在合同中明确说明同家族关系。
+- 任一官方主题发布说明缺少适合场景、视觉签名或不适合场景。
+
+输出：
+
+- `themes/previews/official-theme-validation-report.json`
+- 命令行列出失败主题、失败原因、缺失截图、相似度最高的主题对。
+
+发布 10 套官方主题前，`npm run themes:validate-official` 必须和 build、typecheck 一样作为必跑步骤。
 
 主题专属视觉记忆点示例：
 
@@ -696,6 +971,37 @@ overall =
 - Cyber Glow：霓虹 glow。
 - Yin Editorial：黑白强对比和杂志标题。
 
+## 远程主题缓存失效策略
+
+远程主题发布必须考虑 CDN 和浏览器缓存。之前已经出现过远程 `index.json` 更新后浏览器仍读取旧内容的问题，所以主题系统需要内置缓存失效规则。
+
+请求策略：
+
+- 手动点击“刷新远程主题”时必须强制使用新的 cache-busting 参数，例如 `?refresh=<Date.now()>`。
+- options 首次打开或后台自动刷新不应无条件追加 `Date.now()`；默认使用 TTL 策略，例如 10 到 30 分钟内复用缓存结果，超过 TTL 后使用 `cache: no-cache` 或带 app/catalog version 的请求。
+- 自动后台刷新可以使用较弱的缓存策略，但界面需要展示 `fetchedAt` 和缓存状态，避免用户误以为已经拿到最新远程内容。
+- 如果远程 `catalogVersion` 变化，下一次主题包和预览图请求必须使用 index 中的新版本化 URL，不依赖旧 URL 的缓存刷新。
+- 如果用户手动刷新后 `updatedAt` 或 `catalogVersion` 仍未变化，界面可以提示“远程目录未变化”，不能把它当作刷新失败。
+
+发布策略：
+
+- 主题包 URL 应包含版本号，例如 `themes/packages/minimal-focus@2.4.0.mdv-theme.json`，或者在 index 中使用带内容 hash 的 URL。
+- 预览图 URL 应包含版本号或内容 hash，避免用户看到旧预览但安装到新主题。
+- `themes/index.json` 必须包含 `updatedAt`、`schemaVersion`、`catalogVersion`。
+- 每个主题条目必须包含 `version`、`packageUrl`、`previewUrl`、`screenshots`、`features`、`previewFixtures`。
+
+界面排查信息：
+
+- options 远程主题区域应展示远程源地址、`updatedAt`、`fetchedAt` 和当前 catalog version。
+- 刷新失败时展示错误来源：网络失败、JSON 解析失败、schema 校验失败、主题包下载失败、缓存疑似未更新。
+- 已安装主题和远程主题版本不一致时，远程卡片应显示“可更新”状态，而不是只显示“已安装”。
+
+发布验收：
+
+- 发布后使用无缓存请求验证远程 `index.json`。
+- 再使用普通浏览器刷新路径验证 UI 能看到新 catalog version。
+- 如果远程源在 CDN 后面，发布说明中记录 CDN 刷新时间和验证时间。
+
 ## 实施阶段
 
 ### Phase 1：基础能力
@@ -705,6 +1011,14 @@ overall =
 - 扩展主题包解析，支持 `lightTokens`、`darkTokens`、`features` 和 `previewFixtures`。
 - 扩展远程主题 index，支持 `features` 和 `previewFixtures`。
 - 补充稳定 DOM 语义钩子，至少覆盖 heading、link、code block、callout、table、generated reader。
+- 明确并测试 scoped CSS 的布局权限边界，允许文件树、toolbar 和 outline 主题化布局尺寸，但不能破坏核心交互。
+- 将文件树虚拟滚动 item size 改为读取 `--reader-file-tree-row-height`，确保主题化行高和滚动计算一致。
+- 扩展 CSS sanitizer / scoper，加入 at-rule、selector、property、value 的 allow / deny 校验。
+- 将 CSS sanitizer / scoper 抽成共享模块，确保运行时导入、远程 index 构建、options 预览、预览生成和官方校验器复用同一实现。
+- 将完整 CSS AST sanitizer 放在主题导入、安装、index 构建、预览生成和官方校验路径；reader 渲染阶段只消费已校验的 scoped CSS。
+- 为已安装主题记录 sanitizer 版本、source CSS hash、scoped CSS hash，sanitizer 升级后触发重新校验。
+- 补齐受控布局容器 data hook，例如 `data-theme-layout-scope="table-actions"`、`mermaid-actions`、`file-tree-indicator`、`toolbar-group` 和 `outline-indicator`。
+- 为受限布局属性实现 selector allowlist 匹配：selector 必须显式包含对应 `data-theme-layout-scope`，selector list 逐项校验。
 - 保持现有主题包兼容。
 - 提高安全 token 和 CSS 限制。
 - 同阶段更新类型、schema 文档、导入/导出逻辑和测试。
@@ -719,6 +1033,8 @@ overall =
 
 - 用 10 个风格 profile 替代已经删除的 Obsidian 草稿生成器。
 - 每个 profile 必须定义 typography、layout、table、callout、code、chrome 和 generated-reader 行为。
+- 为每套官方主题创建设计合同，写清楚双模式策略、主导视觉记忆点、组件覆盖、非颜色差异点、禁止重叠项和截图验收点。
+- 校验 `themes/official/contracts/<theme-id>.json`、主题包 id 和远程 index id 三者一致。
 - 根据 profile 生成主题包和预览图。
 - 生成后立即运行相似度报告，未达标时必须调整 profile，而不是只改颜色。
 
@@ -726,12 +1042,15 @@ overall =
 
 - 运行单元测试、typecheck、build、主题索引生成和 dist 验证。
 - 运行相似度报告。
+- 运行真实浏览器截图生成，输出包含 DOM 断言、像素断言、CSS hash、token hash、全屏状态和人工验收记录的 `themes/previews/theme-visual-report.json`。
+- 运行官方主题发布校验器，输出 `themes/previews/official-theme-validation-report.json`。
 - 发布前人工检查生成的预览效果，包括桌面、窄屏、表格全屏和 Mermaid 全屏。
 
 ### Phase 5：发布
 
 - 发布 10 个远程主题包和预览。
-- 更新远程主题 index。
+- 更新远程主题 index，并确认 `updatedAt`、`schemaVersion`、`catalogVersion`、版本化 package / preview URL 已同步。
+- 验证 options 页面手动刷新通过 cache-busting 请求拿到新 catalog version，并验证自动刷新遵循 TTL / `cache: no-cache` 策略。
 - 准备发布说明，说明主题系统扩展内容。
 
 ## 待确认决策

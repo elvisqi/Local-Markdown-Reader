@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="Primary Soft theme preview">
+  <rect width="480" height="540" fill="#f6f4fb"/>
+  <rect x="480" width="480" height="540" fill="#15131b"/>
+  <rect x="32" y="36" width="416" height="468" rx="14" fill="#fffefe" stroke="#ded7ea"/>
+  <rect x="52" y="58" width="376" height="34" rx="8" fill="#faf8ff" stroke="#ded7ea"/>
+  <circle cx="74" cy="75" r="5" fill="#7c65c1"/>
+  <text x="92" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#756d82">Light</text>
+  <text x="52" y="132" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#282433">Primary Soft</text>
+  <rect x="52" y="150" width="150" height="3" rx="1.5" fill="#7c65c1"/>
+  <text x="52" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#282433">Soft rounded panels, balanced headings, muted accent hierarchy</text>
+  <rect x="52" y="214" width="376" height="82" rx="10" fill="#f1edf8" stroke="#ded7ea"/>
+  <text x="70" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#6c58a8">const theme = "primary-soft"</text>
+  <text x="70" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#756d82">// large soft radius</text>
+  <rect x="52" y="320" width="180" height="104" rx="10" fill="#f7f3fd" stroke="#ded7ea"/>
+  <rect x="52" y="320" width="5" height="104" rx="2" fill="#7c65c1"/>
+  <text x="72" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#282433">Callout</text>
+  <text x="72" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#756d82">muted purple note surface</text>
+  <rect x="252" y="320" width="176" height="104" rx="8" fill="#f2edf9" stroke="#ded7ea"/>
+  <line x1="252" y1="354" x2="428" y2="354" stroke="#ded7ea"/>
+  <line x1="252" y1="388" x2="428" y2="388" stroke="#ded7ea"/>
+  <text x="270" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#282433">Rows</text>
+  <text x="352" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#282433">Cols</text>
+  <text x="270" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#756d82">26</text>
+  <text x="352" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#756d82">10</text>
+  <rect x="52" y="452" width="72" height="22" rx="11" fill="#eee9fb"/>
+  <text x="68" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#7c65c1">#theme</text>
+  <rect x="512" y="36" width="416" height="468" rx="14" fill="#1d1a25" stroke="#383241"/>
+  <rect x="532" y="58" width="376" height="34" rx="8" fill="#191620" stroke="#383241"/>
+  <circle cx="554" cy="75" r="5" fill="#b9a7ff"/>
+  <text x="572" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#aca3ba">Dark</text>
+  <text x="532" y="132" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#ece7f4">Primary Soft</text>
+  <rect x="532" y="150" width="150" height="3" rx="1.5" fill="#b9a7ff"/>
+  <text x="532" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#ece7f4">Soft rounded panels, balanced headings, muted accent hierarchy</text>
+  <rect x="532" y="214" width="376" height="82" rx="10" fill="#25212d" stroke="#383241"/>
+  <text x="550" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#c4b4ff">const theme = "primary-soft"</text>
+  <text x="550" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#aca3ba">// large soft radius</text>
+  <rect x="532" y="320" width="180" height="104" rx="10" fill="#241f30" stroke="#383241"/>
+  <rect x="532" y="320" width="5" height="104" rx="2" fill="#b9a7ff"/>
+  <text x="552" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#ece7f4">Callout</text>
+  <text x="552" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#aca3ba">muted purple note surface</text>
+  <rect x="732" y="320" width="176" height="104" rx="8" fill="#292434" stroke="#383241"/>
+  <line x1="732" y1="354" x2="908" y2="354" stroke="#383241"/>
+  <line x1="732" y1="388" x2="908" y2="388" stroke="#383241"/>
+  <text x="750" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#ece7f4">Rows</text>
+  <text x="832" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#ece7f4">Cols</text>
+  <text x="750" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#aca3ba">26</text>
+  <text x="832" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#aca3ba">10</text>
+  <rect x="532" y="452" width="72" height="22" rx="11" fill="#2d2740"/>
+  <text x="548" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#b9a7ff">#theme</text>
+</svg>

@@ -1,0 +1,50 @@
+{
+  "id": "things-native",
+  "name": "Things Native",
+  "version": "1.0.0",
+  "status": "official",
+  "lightDarkRequirement": "both-required",
+  "references": [
+    "obsidian:things",
+    "obsidian:primary"
+  ],
+  "usage": "inspiration-only",
+  "designIntent": "Native productivity notes with crisp controls and compact navigation.",
+  "visualIdentity": "Mac-like control density, rounded selection rails, compact file navigation.",
+  "nonColorDifferentiators": [
+    "rounded native controls",
+    "compact tree rows",
+    "selection rails",
+    "task-forward preview fixtures"
+  ],
+  "requiredComponentCoverage": [
+    "toolbar",
+    "file-tree",
+    "outline",
+    "tasks",
+    "tables",
+    "callouts"
+  ],
+  "tokenStrategy": {
+    "rowHeight": "26px",
+    "toolbarHeight": "54px",
+    "radius": "10px",
+    "headingFont": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+    "typography": "16px / 1.7"
+  },
+  "cssEvidence": [
+    "[data-theme-layout-scope=\"toolbar-group\"] { gap: 10px; }",
+    "[data-theme-layout-scope=\"toolbar-group\"] button { border-radius: 999px; min-height: 30px; padding-inline: 12px; }",
+    "[data-theme-layout-scope=\"file-tree-indicator\"] { border-radius: 5px; }",
+    ".document-reader .markdown-task { padding: 0.18em 0; }",
+    ".document-reader .markdown-task-checkbox { border-radius: 6px; }",
+    ".document-reader .callout { border-left-width: 4px; }",
+    "[data-theme-layout-scope=\"outline-indicator\"].is-active { box-shadow: inset 3px 0 0 var(--reader-accent); }"
+  ],
+  "acceptanceCriteria": [
+    "Light and dark modes are both present and independently tokenized.",
+    "Document width is not overridden by theme CSS.",
+    "File tree row height is controlled only through --reader-file-tree-row-height.",
+    "At least three non-color differentiators are visible in preview fixtures."
+  ]
+}

@@ -589,7 +589,7 @@ export function ThemePreview({
   ].filter(Boolean).join(' ');
 
   return (
-    <div className={className} data-reader-theme-id={settings.reading.themeId}>
+    <div className={className} data-reader-theme-id={settings.reading.themeId} data-theme-layout-scope="theme-preview-overlay">
       {themeStylesheet && <style>{themeStylesheet}</style>}
       <article className="document-reader theme-preview__document" aria-label={label}>
         <h1 className="markdown-heading markdown-heading--h1">主题预览</h1>

@@ -1,0 +1,49 @@
+{
+  "id": "github-workbench",
+  "name": "GitHub Workbench",
+  "version": "1.0.0",
+  "status": "official",
+  "lightDarkRequirement": "both-required",
+  "references": [
+    "obsidian:gitsidian",
+    "vscode:github-theme"
+  ],
+  "usage": "inspiration-only",
+  "designIntent": "Developer documentation theme inspired by Gitsidian and GitHub Theme.",
+  "visualIdentity": "Flat developer-docs rhythm, square tables, precise code and file chrome.",
+  "nonColorDifferentiators": [
+    "developer-docs square rhythm",
+    "GitHub-like tables",
+    "precise code panels",
+    "flat toolbar chrome"
+  ],
+  "requiredComponentCoverage": [
+    "code",
+    "tables",
+    "file-tree",
+    "toolbar",
+    "json-yaml",
+    "headings"
+  ],
+  "tokenStrategy": {
+    "rowHeight": "24px",
+    "toolbarHeight": "50px",
+    "radius": "6px",
+    "headingFont": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+    "typography": "16px / 1.65"
+  },
+  "cssEvidence": [
+    ".document-reader .markdown-heading { border-bottom: 1px solid var(--reader-heading-border); }",
+    ".document-reader .markdown-table { border-collapse: collapse; }",
+    ".document-reader .markdown-code-block { border: 1px solid var(--reader-code-border); }",
+    ".document-reader .markdown-inline-code { border-radius: 4px; }",
+    "[data-theme-layout-scope=\"toolbar-group\"] button { border-radius: 6px; }",
+    "[data-theme-layout-scope=\"file-tree-indicator\"] { border-radius: 4px; }"
+  ],
+  "acceptanceCriteria": [
+    "Light and dark modes are both present and independently tokenized.",
+    "Document width is not overridden by theme CSS.",
+    "File tree row height is controlled only through --reader-file-tree-row-height.",
+    "At least three non-color differentiators are visible in preview fixtures."
+  ]
+}

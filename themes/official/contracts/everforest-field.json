@@ -1,0 +1,48 @@
+{
+  "id": "everforest-field",
+  "name": "Everforest Field",
+  "version": "1.0.0",
+  "status": "official",
+  "lightDarkRequirement": "both-required",
+  "references": [
+    "obsidian:everforest",
+    "obsidian:obsidian-gruvbox"
+  ],
+  "usage": "inspiration-only",
+  "designIntent": "Muted green field-note theme inspired by Everforest and Gruvbox.",
+  "visualIdentity": "Muted green and warm earth contrast, field-note callouts, calm task lists.",
+  "nonColorDifferentiators": [
+    "green field-note palette",
+    "serif heading mix",
+    "task list emphasis",
+    "earth-tone table stripes"
+  ],
+  "requiredComponentCoverage": [
+    "tasks",
+    "callouts",
+    "tables",
+    "code",
+    "outline",
+    "headings"
+  ],
+  "tokenStrategy": {
+    "rowHeight": "26px",
+    "toolbarHeight": "52px",
+    "radius": "8px",
+    "headingFont": "Georgia, \"Times New Roman\", serif",
+    "typography": "16px / 1.76"
+  },
+  "cssEvidence": [
+    ".document-reader .markdown-task { border-bottom: 1px solid color-mix(in srgb, var(--reader-border) 55%, transparent); }",
+    ".document-reader .markdown-quote { background: var(--reader-quote-bg); }",
+    ".document-reader .callout { border-left-width: 4px; }",
+    ".document-reader .markdown-heading--h2 { border-bottom: 1px solid var(--reader-heading-border); }",
+    "[data-theme-layout-scope=\"toolbar-group\"] button { border-radius: 8px; }"
+  ],
+  "acceptanceCriteria": [
+    "Light and dark modes are both present and independently tokenized.",
+    "Document width is not overridden by theme CSS.",
+    "File tree row height is controlled only through --reader-file-tree-row-height.",
+    "At least three non-color differentiators are visible in preview fixtures."
+  ]
+}

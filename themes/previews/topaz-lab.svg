@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="Topaz Lab theme preview">
+  <rect width="480" height="540" fill="#eef6fb"/>
+  <rect x="480" width="480" height="540" fill="#0c1820"/>
+  <rect x="32" y="36" width="416" height="468" rx="14" fill="#fbfdff" stroke="#c9dce8"/>
+  <rect x="52" y="58" width="376" height="34" rx="8" fill="#f3f9fd" stroke="#c9dce8"/>
+  <circle cx="74" cy="75" r="5" fill="#0f9ec7"/>
+  <text x="92" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#5f7280">Light</text>
+  <text x="52" y="132" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#18313f">Topaz Lab</text>
+  <rect x="52" y="150" width="150" height="3" rx="1.5" fill="#0f9ec7"/>
+  <text x="52" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#18313f">Layered blue-cyan surfaces, clear table headers, strong callou</text>
+  <rect x="52" y="214" width="376" height="82" rx="10" fill="#e8f3f8" stroke="#c9dce8"/>
+  <text x="70" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#087ea4">const theme = "topaz-lab"</text>
+  <text x="70" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#5f7280">// blue-cyan layer stack</text>
+  <rect x="52" y="320" width="180" height="104" rx="10" fill="#eef9fc" stroke="#c9dce8"/>
+  <rect x="52" y="320" width="5" height="104" rx="2" fill="#0f9ec7"/>
+  <text x="72" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#18313f">Callout</text>
+  <text x="72" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#5f7280">dense table treatment</text>
+  <rect x="252" y="320" width="176" height="104" rx="8" fill="#dff1f8" stroke="#c9dce8"/>
+  <line x1="252" y1="354" x2="428" y2="354" stroke="#c9dce8"/>
+  <line x1="252" y1="388" x2="428" y2="388" stroke="#c9dce8"/>
+  <text x="270" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#18313f">Rows</text>
+  <text x="352" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#18313f">Cols</text>
+  <text x="270" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#5f7280">26</text>
+  <text x="352" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#5f7280">10</text>
+  <rect x="52" y="452" width="72" height="22" rx="11" fill="#dff5fb"/>
+  <text x="68" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#0f9ec7">#theme</text>
+  <rect x="512" y="36" width="416" height="468" rx="14" fill="#10232d" stroke="#244151"/>
+  <rect x="532" y="58" width="376" height="34" rx="8" fill="#0e1d26" stroke="#244151"/>
+  <circle cx="554" cy="75" r="5" fill="#26c7e8"/>
+  <text x="572" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#98b5c1">Dark</text>
+  <text x="532" y="132" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#e2f2f7">Topaz Lab</text>
+  <rect x="532" y="150" width="150" height="3" rx="1.5" fill="#26c7e8"/>
+  <text x="532" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#e2f2f7">Layered blue-cyan surfaces, clear table headers, strong callou</text>
+  <rect x="532" y="214" width="376" height="82" rx="10" fill="#172e39" stroke="#244151"/>
+  <text x="550" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#67d7f7">const theme = "topaz-lab"</text>
+  <text x="550" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#98b5c1">// blue-cyan layer stack</text>
+  <rect x="532" y="320" width="180" height="104" rx="10" fill="#12303d" stroke="#244151"/>
+  <rect x="532" y="320" width="5" height="104" rx="2" fill="#26c7e8"/>
+  <text x="552" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#e2f2f7">Callout</text>
+  <text x="552" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#98b5c1">dense table treatment</text>
+  <rect x="732" y="320" width="176" height="104" rx="8" fill="#173545" stroke="#244151"/>
+  <line x1="732" y1="354" x2="908" y2="354" stroke="#244151"/>
+  <line x1="732" y1="388" x2="908" y2="388" stroke="#244151"/>
+  <text x="750" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#e2f2f7">Rows</text>
+  <text x="832" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#e2f2f7">Cols</text>
+  <text x="750" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#98b5c1">26</text>
+  <text x="832" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#98b5c1">10</text>
+  <rect x="532" y="452" width="72" height="22" rx="11" fill="#113846"/>
+  <text x="548" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#26c7e8">#theme</text>
+</svg>

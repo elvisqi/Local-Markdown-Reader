@@ -4,7 +4,7 @@ describe('renderMarkdown', () => {
   it('renders GFM tables', async () => {
     const result = await renderMarkdown('| A | B |\n| - | - |\n| 1 | 2 |\n| 3 | 4 |');
 
-    expect(result.html).toContain('<table class="markdown-table">');
+    expect(result.html).toContain('<table class="markdown-table"');
     expect(result.html).toContain('class="table-fullscreen"');
     expect(result.html).toContain('class="table-fullscreen__table"');
     expect(result.html).toContain('class="table-fullscreen__row-count"');
@@ -66,7 +66,7 @@ describe('renderMarkdown', () => {
   it('keeps rendered heading text from becoming a same-page link', async () => {
     const result = await renderMarkdown('# Intro');
 
-    expect(result.html).toContain('<h1 id="intro" class="markdown-heading markdown-heading--h1">Intro</h1>');
+    expect(result.html).toContain('<h1 id="intro" class="markdown-heading markdown-heading--h1" data-heading-level="1">Intro</h1>');
     expect(result.html).not.toContain('href="#intro"');
   });
 
@@ -91,7 +91,7 @@ describe('renderMarkdown', () => {
   it('renders chunk markdown with expensive decorations disabled', async () => {
     const result = await renderMarkdown('# Chunk', { chunkMode: true });
 
-    expect(result.html).toContain('<h1 id="chunk" class="markdown-heading markdown-heading--h1">Chunk</h1>');
+    expect(result.html).toContain('<h1 id="chunk" class="markdown-heading markdown-heading--h1" data-heading-level="1">Chunk</h1>');
     expect(result.html).not.toContain('href="#chunk"');
   });
 
@@ -116,15 +116,24 @@ describe('renderMarkdown', () => {
     ].join('\n'));
 
     expect(result.html).toContain('class="markdown-heading markdown-heading--h1"');
+    expect(result.html).toContain('data-heading-level="1"');
     expect(result.html).toContain('class="markdown-paragraph"');
     expect(result.html).toContain('class="markdown-link markdown-link--external"');
+    expect(result.html).toContain('data-link-kind="external"');
     expect(result.html).toContain('class="markdown-tag" data-tag="theme"');
     expect(result.html).toContain('class="markdown-quote"');
     expect(result.html).toMatch(/class="[^"]*markdown-task[^"]*markdown-task--checked/);
+    expect(result.html).toContain('data-task-state="checked"');
     expect(result.html).toMatch(/class="[^"]*markdown-task[^"]*markdown-task--open/);
+    expect(result.html).toContain('data-task-state="open"');
     expect(result.html).toContain('class="markdown-code-block"');
     expect(result.html).toContain('class="language-ts markdown-code markdown-code--block"');
+    expect(result.html).toContain('data-language="ts"');
     expect(result.html).toContain('class="markdown-table"');
+    expect(result.html).toContain('data-row-count="1"');
+    expect(result.html).toContain('data-column-count="2"');
+    expect(result.html).toContain('data-table-size="compact"');
+    expect(result.html).toContain('data-table-overflow="fit"');
     expect(result.html).toContain('class="markdown-table-cell markdown-table-cell--head"');
     expect(result.html).toContain('class="markdown-table-cell"');
   });

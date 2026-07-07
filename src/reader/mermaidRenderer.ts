@@ -157,6 +157,7 @@ function wrapMermaidDiagram(diagram: HTMLElement) {
   wrapper.className = WRAPPER_CLASS;
   const actions = document.createElement('div');
   actions.className = ACTIONS_CLASS;
+  actions.dataset.themeLayoutScope = 'mermaid-actions';
 
   const trigger = document.createElement('button');
   trigger.type = 'button';
@@ -404,6 +405,7 @@ function openMermaidOverlay(diagram: HTMLElement) {
 
   const toolbar = document.createElement('div');
   toolbar.className = 'table-fullscreen__toolbar';
+  toolbar.dataset.themeLayoutScope = 'mermaid-actions';
 
   const title = document.createElement('span');
   title.textContent = '图表';
@@ -420,6 +422,7 @@ function openMermaidOverlay(diagram: HTMLElement) {
   overlayWrapper.className = WRAPPER_CLASS;
   const overlayActions = document.createElement('div');
   overlayActions.className = ACTIONS_CLASS;
+  overlayActions.dataset.themeLayoutScope = 'mermaid-actions';
   overlayActions.append(createMermaidZoomControls(overlayWrapper, diagramClone));
   overlayWrapper.append(diagramClone, overlayActions);
   body.append(overlayWrapper);

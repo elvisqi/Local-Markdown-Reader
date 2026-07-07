@@ -27,13 +27,13 @@ export function ReaderToolbar({
 }: ReaderToolbarProps) {
   return (
     <header className="reader-toolbar">
-      <div className="reader-toolbar__primary">
+      <div className="reader-toolbar__primary" data-theme-layout-scope="toolbar-group">
         <button type="button" onClick={onToggleDrawer}>
           文件
         </button>
         <h1>{title}</h1>
       </div>
-      <div className="reader-toolbar__actions">
+      <div className="reader-toolbar__actions" data-theme-layout-scope="toolbar-group">
         <button
           type="button"
           disabled={!previousFile}

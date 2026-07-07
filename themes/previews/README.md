@@ -1,11 +1,13 @@
 # Theme Previews
 
-Generated visual preview and release materials for Local Markdown Reader 2.3.1.
+Generated visual preview and release materials for Local Markdown Reader 2.3.1 official remote themes.
 
 Run:
 
 ```bash
-npm run themes:previews
+npm run themes:official
+npm run themes:visual
+npm run themes:verify
 ```
 
 Generated assets:
@@ -13,16 +15,17 @@ Generated assets:
 - [Theme showcase](./theme-showcase-2.3.1.svg)
 - [Release Markdown](./release-2.3.1.md)
 - [HTML gallery](./index.html)
+- Chrome headless screenshots in `../official/reports/screenshots/`
 
 Themes:
 
-- [Minimal Focus](./minimal-focus.svg)
-- [Things Flow](./things-flow.svg)
-- [Pastel Puccin](./pastel-puccin.svg)
-- [Topaz Blue](./topaz-blue.svg)
-- [Nord Notes](./nord-notes.svg)
-- [Atom One Reader](./atom-one-reader.svg)
-- [Obsidianite Dark](./obsidianite-dark.svg)
-- [Wasp Highlight](./wasp-highlight.svg)
-- [Typewriter Desk](./typewriter-desk.svg)
-- [ITS Readable](./its-readable.svg)
+- Minimal Manuscript
+- Things Native
+- Topaz Lab
+- Primary Soft
+- Prism Spectrum
+- Sanctum Archive
+- Terminal Console
+- Nord Research
+- Everforest Field
+- GitHub Workbench

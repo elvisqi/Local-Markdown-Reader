@@ -71,6 +71,7 @@ function wrapBareTables(root: ParentNode): Array<() => void> {
 
     const actions = document.createElement('div');
     actions.className = ACTIONS_CLASS;
+    actions.dataset.themeLayoutScope = 'table-actions';
     wrapper.append(createTableRowCountElement(), actions);
     actions.append(trigger);
 
@@ -92,6 +93,7 @@ function installTableStats(root: ParentNode): Array<() => void> {
     if (!table || !actions) {
       continue;
     }
+    actions.dataset.themeLayoutScope = 'table-actions';
 
     let rowCount = wrapper.querySelector<HTMLElement>(`.${ROW_COUNT_CLASS}`);
     const shouldRemoveRowCount = !rowCount;
@@ -213,6 +215,7 @@ function openTableOverlay(table: HTMLTableElement) {
 
   const toolbar = document.createElement('div');
   toolbar.className = 'table-fullscreen__toolbar';
+  toolbar.dataset.themeLayoutScope = 'table-fullscreen-actions';
 
   const title = document.createElement('span');
   title.textContent = `表格（${formatTableStats(getTableStats(table))}）`;

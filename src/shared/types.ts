@@ -6,6 +6,32 @@ export type InstalledReaderThemeId = `installed:${string}`;
 export type ReaderThemeId = BuiltinReaderThemeId | InstalledReaderThemeId;
 export type DocumentFileKind = 'markdown' | 'html' | 'json' | 'jsonl' | 'yaml';
 export type ThemeColorScheme = ColorModePreference;
+export type ReaderThemeFeature =
+  | 'callouts'
+  | 'tables'
+  | 'tasks'
+  | 'code'
+  | 'mermaid'
+  | 'json-yaml'
+  | 'file-tree'
+  | 'toolbar'
+  | 'outline'
+  | 'chrome'
+  | 'narrow-screen';
+export type ReaderThemePreviewFixture =
+  | 'longform'
+  | 'table'
+  | 'code'
+  | 'callouts'
+  | 'tasks'
+  | 'mermaid'
+  | 'json-yaml'
+  | 'file-tree'
+  | 'toolbar'
+  | 'outline'
+  | 'dashboard'
+  | 'ledger'
+  | 'note';
 
 export type ReaderThemePackage = {
   id: string;
@@ -16,7 +42,15 @@ export type ReaderThemePackage = {
   minAppVersion?: string;
   colorScheme: ThemeColorScheme;
   tokens: Record<string, string>;
+  lightTokens?: Record<string, string>;
+  darkTokens?: Record<string, string>;
+  features?: ReaderThemeFeature[];
+  previewFixtures?: ReaderThemePreviewFixture[];
   css: string;
+  scopedCss?: string;
+  sanitizerVersion?: string;
+  sourceCssHash?: string;
+  scopedCssHash?: string;
   installedAt: number;
 };
 
@@ -29,9 +63,12 @@ export type RemoteThemeIndexEntry = {
   minAppVersion?: string;
   colorScheme: ThemeColorScheme;
   downloadUrl: string;
+  packageUrl?: string;
   sha256: string;
   previewUrl?: string;
   tags: string[];
+  features?: ReaderThemeFeature[];
+  previewFixtures?: ReaderThemePreviewFixture[];
   deprecated?: boolean;
   replacementThemeId?: string;
   compatible: boolean;
@@ -41,6 +78,8 @@ export type RemoteThemeIndex = {
   sourceUrl: string;
   fetchedAt: number;
   version: number;
+  schemaVersion?: number;
+  catalogVersion?: string;
   updatedAt?: string;
   themes: RemoteThemeIndexEntry[];
 };
