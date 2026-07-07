@@ -31,7 +31,6 @@ const THEME_PROFILES = {
     origin: 'Minimal',
     shape: 'quiet',
     density: 'airy',
-    contentWidth: '760px',
     radius: '6px',
     softRadius: '8px',
     strongRadius: '4px',
@@ -41,7 +40,6 @@ const THEME_PROFILES = {
     headingTransform: 'none',
     headingWeight: '650',
     headingSpacing: '1.8em',
-    paragraphWidth: '68ch',
     paragraphIndent: '0',
     tableMode: 'separated',
     codeMode: 'quiet',
@@ -59,7 +57,6 @@ const THEME_PROFILES = {
       orange: '#a2784d',
     },
     signatureRules: [
-      ['.document-reader > div', 'max-width: 760px; margin: 0 auto'],
       ['.markdown-heading', 'margin-top: 1.8em; margin-bottom: 0.55em; border-bottom: 0; letter-spacing: 0'],
       ['.markdown-heading--h2', 'font-weight: 620; color: var(--reader-muted)'],
       ['.markdown-quote', 'border-left-width: 2px; padding: 0.2em 0 0.2em 1em; background: transparent'],
@@ -71,7 +68,6 @@ const THEME_PROFILES = {
     origin: 'Things',
     shape: 'rounded-productivity',
     density: 'comfortable',
-    contentWidth: '840px',
     radius: '14px',
     softRadius: '18px',
     strongRadius: '999px',
@@ -81,7 +77,6 @@ const THEME_PROFILES = {
     headingTransform: 'none',
     headingWeight: '760',
     headingSpacing: '1.45em',
-    paragraphWidth: '72ch',
     paragraphIndent: '0',
     tableMode: 'rounded',
     codeMode: 'soft-panel',
@@ -111,7 +106,6 @@ const THEME_PROFILES = {
     origin: 'AnuPpuccin and Catppuccin',
     shape: 'pastel-soft',
     density: 'comfortable',
-    contentWidth: '860px',
     radius: '14px',
     softRadius: '16px',
     strongRadius: '18px',
@@ -121,7 +115,6 @@ const THEME_PROFILES = {
     headingTransform: 'none',
     headingWeight: '760',
     headingSpacing: '1.6em',
-    paragraphWidth: '72ch',
     paragraphIndent: '0',
     tableMode: 'pastel-card',
     codeMode: 'pastel-panel',
@@ -151,7 +144,6 @@ const THEME_PROFILES = {
     origin: 'Blue Topaz',
     shape: 'blue-decorative',
     density: 'feature-rich',
-    contentWidth: '920px',
     radius: '10px',
     softRadius: '14px',
     strongRadius: '12px',
@@ -161,7 +153,6 @@ const THEME_PROFILES = {
     headingTransform: 'none',
     headingWeight: '780',
     headingSpacing: '1.5em',
-    paragraphWidth: '76ch',
     paragraphIndent: '0',
     tableMode: 'framed',
     codeMode: 'panel',
@@ -179,7 +170,6 @@ const THEME_PROFILES = {
       orange: '#c98642',
     },
     signatureRules: [
-      ['.document-reader > div', 'max-width: 920px; margin: 0 auto'],
       ['.markdown-heading--h1', 'text-align: center; border-top: 3px double var(--reader-heading-border); border-bottom: 4px double var(--reader-heading-border); padding: 0.22em 0 0.35em'],
       ['.markdown-heading--h2', 'color: var(--reader-accent); border-bottom: 2px solid var(--reader-accent-muted); padding-bottom: 0.25em'],
       ['.callout', 'border: 1px solid rgba(45, 107, 161, 0.22); border-left: 5px solid var(--reader-accent); background: linear-gradient(90deg, rgba(45, 107, 161, 0.12), transparent)'],
@@ -191,7 +181,6 @@ const THEME_PROFILES = {
     origin: 'Obsidian Nord',
     shape: 'frost-editor',
     density: 'compact',
-    contentWidth: '820px',
     radius: '4px',
     softRadius: '6px',
     strongRadius: '2px',
@@ -201,7 +190,6 @@ const THEME_PROFILES = {
     headingTransform: 'uppercase',
     headingWeight: '700',
     headingSpacing: '1.55em',
-    paragraphWidth: '74ch',
     paragraphIndent: '0',
     tableMode: 'frost-grid',
     codeMode: 'editor',
@@ -231,7 +219,6 @@ const THEME_PROFILES = {
     origin: 'Atom',
     shape: 'code-editor',
     density: 'compact',
-    contentWidth: '840px',
     radius: '6px',
     softRadius: '8px',
     strongRadius: '4px',
@@ -241,7 +228,6 @@ const THEME_PROFILES = {
     headingTransform: 'none',
     headingWeight: '700',
     headingSpacing: '1.45em',
-    paragraphWidth: '74ch',
     paragraphIndent: '0',
     tableMode: 'editor-grid',
     codeMode: 'editor',
@@ -271,7 +257,6 @@ const THEME_PROFILES = {
     origin: 'Obsidianite',
     shape: 'neon-dark',
     density: 'comfortable',
-    contentWidth: '860px',
     radius: '10px',
     softRadius: '12px',
     strongRadius: '10px',
@@ -281,7 +266,6 @@ const THEME_PROFILES = {
     headingTransform: 'none',
     headingWeight: '780',
     headingSpacing: '1.5em',
-    paragraphWidth: '74ch',
     paragraphIndent: '0',
     tableMode: 'neon-grid',
     codeMode: 'glow',
@@ -311,7 +295,6 @@ const THEME_PROFILES = {
     origin: 'Wasp',
     shape: 'warning-contrast',
     density: 'compact',
-    contentWidth: '820px',
     radius: '0',
     softRadius: '0',
     strongRadius: '0',
@@ -321,7 +304,6 @@ const THEME_PROFILES = {
     headingTransform: 'uppercase',
     headingWeight: '820',
     headingSpacing: '1.35em',
-    paragraphWidth: '72ch',
     paragraphIndent: '0',
     tableMode: 'warning-grid',
     codeMode: 'warning-panel',
@@ -344,14 +326,13 @@ const THEME_PROFILES = {
       ['.markdown-heading--h1', 'color: #f8c537; border-bottom: 2px solid #f8c537'],
       ['.callout', 'border: 1px solid #7a5c14; border-left: 6px solid #f8c537; border-radius: 0; background: rgba(248, 197, 55, 0.08)'],
       ['.markdown-tag', 'text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid #f8c537; color: #f8c537; background: rgba(248, 197, 55, 0.08)'],
-      ['hr::after', 'content: "WASP"; position: absolute; right: 0; top: -0.8em; padding-left: 0.5em; background: var(--reader-surface); color: #f8c537; font-size: 0.7em; letter-spacing: 0.14em'],
+      ['hr::after', 'content: ""; position: absolute; right: 0; top: -0.2em; width: 3.2em; height: 3px; background: #f8c537'],
     ],
   },
   'typewriter-desk': {
     origin: 'Typewriter',
     shape: 'paper-manuscript',
     density: 'longform',
-    contentWidth: '720px',
     radius: '0',
     softRadius: '0',
     strongRadius: '0',
@@ -361,7 +342,6 @@ const THEME_PROFILES = {
     headingTransform: 'uppercase',
     headingWeight: '700',
     headingSpacing: '2.2em',
-    paragraphWidth: '66ch',
     paragraphIndent: '1.4em',
     tableMode: 'manuscript',
     codeMode: 'typewritten',
@@ -380,7 +360,6 @@ const THEME_PROFILES = {
     },
     signatureRules: [
       [':root', '--reader-theme-paper: manuscript'],
-      ['.document-reader > div', 'max-width: 720px; margin: 0 auto'],
       ['.markdown-heading', 'font-family: var(--reader-heading-font); text-align: center; text-transform: uppercase; letter-spacing: 0.08em'],
       ['.markdown-paragraph', 'text-indent: 1.4em; line-height: 1.9'],
       ['.callout', 'border: 1px solid var(--reader-border); border-radius: 0; padding: 1em 1.2em; background: var(--reader-callout-bg); box-shadow: 4px 4px 0 var(--reader-border)'],
@@ -391,7 +370,6 @@ const THEME_PROFILES = {
     origin: 'ITS Theme',
     shape: 'structured-readable',
     density: 'comfortable',
-    contentWidth: '900px',
     radius: '8px',
     softRadius: '10px',
     strongRadius: '999px',
@@ -401,7 +379,6 @@ const THEME_PROFILES = {
     headingTransform: 'none',
     headingWeight: '820',
     headingSpacing: '1.55em',
-    paragraphWidth: '76ch',
     paragraphIndent: '0',
     tableMode: 'readable-card',
     codeMode: 'readable-panel',
@@ -420,7 +397,6 @@ const THEME_PROFILES = {
     },
     signatureRules: [
       [':root', '--reader-theme-layout: readable'],
-      ['.document-reader > div', 'max-width: 900px; margin: 0 auto'],
       ['.markdown-heading', 'position: relative; padding-left: 0.9em'],
       ['.markdown-heading::before', 'content: ""; position: absolute; left: 0; top: 0.28em; width: 0.28em; height: 0.9em; border-radius: 999px; background: var(--reader-accent)'],
       ['.callout', 'border: 1px solid var(--reader-callout-border); border-left: 5px solid var(--reader-accent); border-radius: 10px; padding: 1em; box-shadow: 0 1px 0 var(--reader-border)'],
@@ -612,6 +588,187 @@ const VISIBLE_SIGNATURES = {
   },
 };
 
+const SOURCE_DETAIL_RULES = {
+  'minimal-focus': [
+    ['.markdown-preview-intro > .markdown-heading--h1', 'padding-bottom: 0.35em; border-bottom: 1px solid var(--reader-border)'],
+    ['.markdown-preview-intro > .markdown-heading--h2', 'margin-top: 0.65em; font-size: 0.92em; color: var(--reader-muted)'],
+    ['.markdown-preview-intro .markdown-paragraph', 'line-height: 1.78; color: var(--reader-text)'],
+    ['.markdown-preview-intro .markdown-tag[data-tag="theme"]', 'background: transparent; border: 1px solid var(--reader-border); color: var(--reader-muted)'],
+    ['.markdown-preview-tasks .markdown-task', 'padding: 0.08em 0; background: transparent'],
+    ['.markdown-preview-tasks .markdown-task-checkbox', 'box-shadow: none; background: var(--reader-surface)'],
+    ['.markdown-preview-quote.callout-tip', 'border-left-width: 2px; background: transparent'],
+    ['.markdown-preview-table .markdown-table-cell', 'border-left: 0; border-right: 0'],
+    ['.theme-preview__document .markdown-table-caption', 'color: var(--reader-muted); text-align: left'],
+    ['.theme-preview__document .markdown-code-block', 'border: 1px solid var(--reader-border); background: var(--reader-surface)'],
+    ['.document-reader .markdown-heading--h2 + .markdown-paragraph', 'margin-top: 0.2em'],
+    ['.document-reader .markdown-rule + .markdown-heading', 'margin-top: 1em'],
+    ['.outline-panel__scroll .is-active', 'background: transparent; color: var(--reader-text)'],
+    ['.markdown-list-item > .markdown-tag[data-tag="theme"]', 'font-size: 0.92em'],
+  ],
+  'things-flow': [
+    ['.markdown-preview-tasks > .markdown-heading--h3', 'display: inline-flex; align-items: center; padding: 0.12em 0.5em; border-radius: 999px; background: var(--reader-accent-muted)'],
+    ['.markdown-preview-tasks .markdown-task--checked', 'background: color-mix(in srgb, var(--reader-color-green) 12%, transparent); color: var(--reader-muted)'],
+    ['.markdown-list--unordered > .markdown-task', 'display: flex; align-items: center; gap: 0.55em'],
+    ['.markdown-task--open .markdown-task-checkbox', 'border-color: var(--reader-accent); background: var(--reader-surface)'],
+    ['.markdown-preview-tasks .markdown-task:not(.markdown-task--checked)', 'background: color-mix(in srgb, var(--reader-accent) 8%, transparent)'],
+    ['.markdown-preview-tasks .markdown-task-checkbox:checked', 'box-shadow: 0 0 0 3px var(--reader-accent-muted)'],
+    ['.markdown-preview-tasks .markdown-list-item::marker', 'color: var(--reader-accent)'],
+    ['.markdown-tag[data-tag="todo"]', 'background: var(--reader-accent-muted); color: var(--reader-accent)'],
+    ['.callout-success .callout-title', 'display: inline-flex; padding: 0.1em 0.5em; border-radius: 999px; background: color-mix(in srgb, var(--reader-color-green) 16%, transparent)'],
+    ['.callout-todo', 'border: 0; background: color-mix(in srgb, var(--reader-accent) 10%, var(--reader-callout-bg))'],
+    ['.markdown-table-row:hover > .markdown-table-cell', 'background: color-mix(in srgb, var(--reader-accent) 9%, var(--reader-table-row-hover))'],
+    ['.theme-preview__document .markdown-task + .markdown-task', 'margin-top: 0.42em'],
+    ['.markdown-preview-table .markdown-table-row:nth-child(even)', 'box-shadow: inset 4px 0 0 var(--reader-accent-muted)'],
+    ['.markdown-preview-table .markdown-table-cell:last-child', 'font-weight: 720; color: var(--reader-accent)'],
+    ['.markdown-preview-tasks .markdown-task--checked + .markdown-task', 'border-top: 1px solid color-mix(in srgb, var(--reader-accent) 18%, transparent)'],
+    ['.markdown-preview-tasks .markdown-task:first-of-type', 'border-top-left-radius: 12px; border-top-right-radius: 12px'],
+    ['.markdown-preview-tasks .markdown-task:last-of-type', 'border-bottom-left-radius: 12px; border-bottom-right-radius: 12px'],
+  ],
+  'pastel-puccin': [
+    ['.markdown-preview-code .markdown-code-block', 'border: 1px solid rgba(199, 165, 255, 0.32); background: color-mix(in srgb, var(--reader-color-purple) 10%, var(--reader-code-bg))'],
+    ['.markdown-preview-code .token.keyword', 'color: var(--reader-color-pink); font-weight: 760'],
+    ['.markdown-preview-code .token.string', 'color: var(--reader-color-green)'],
+    ['.markdown-preview-code .token.function', 'color: var(--reader-color-cyan)'],
+    ['.markdown-preview-code .token.comment', 'color: color-mix(in srgb, var(--reader-color-purple) 68%, var(--reader-muted)); font-style: italic'],
+    ['.markdown-tag[data-tag="theme"] + .markdown-tag', 'margin-left: 0.3em; background: color-mix(in srgb, var(--reader-color-pink) 16%, transparent)'],
+    ['.markdown-table-row:nth-child(even) > .markdown-table-cell', 'background: color-mix(in srgb, var(--reader-color-purple) 9%, var(--reader-table-stripe))'],
+    ['.markdown-table-body .markdown-table-row:nth-child(odd) > .markdown-table-cell', 'background: color-mix(in srgb, var(--reader-color-pink) 5%, transparent)'],
+    ['.callout-tip .callout-content', 'background: color-mix(in srgb, var(--reader-color-cyan) 7%, transparent); border-radius: var(--reader-callout-radius)'],
+    ['.theme-preview__document mark', 'background: color-mix(in srgb, var(--reader-color-yellow) 42%, transparent); color: var(--reader-text)'],
+    ['.markdown-preview-intro .markdown-code--inline', 'background: color-mix(in srgb, var(--reader-color-purple) 14%, transparent); color: var(--reader-color-pink)'],
+    ['.theme-preview__document > div .markdown-heading--h1::before', 'box-shadow: 0 0 0 4px color-mix(in srgb, var(--reader-color-pink) 18%, transparent)'],
+    ['.markdown-preview-intro mark', 'border-radius: 999px; padding: 0 0.34em'],
+    ['.markdown-preview-table .markdown-table-caption', 'color: var(--reader-color-pink); font-weight: 760'],
+  ],
+  'topaz-blue': [
+    ['.markdown-preview-table-wrap > .markdown-heading--h3', 'text-align: center; padding-bottom: 0.24em; border-bottom: 2px solid var(--reader-accent-muted)'],
+    ['.markdown-preview-table .markdown-table-head', 'background: linear-gradient(90deg, var(--reader-accent-muted), transparent)'],
+    ['.markdown-preview-table .markdown-table-cell--head:first-child', 'border-top-left-radius: var(--reader-radius)'],
+    ['.callout-tip .callout-title', 'justify-content: center; border-bottom: 1px solid var(--reader-accent-muted)'],
+    ['.markdown-heading--h1 + .markdown-heading--h2', 'text-align: center; color: var(--reader-accent)'],
+    ['.markdown-preview-table .markdown-table-row:hover', 'box-shadow: inset 0 0 0 2px var(--reader-accent-muted)'],
+    ['.markdown-preview-table .markdown-table-cell:last-child', 'color: var(--reader-accent); font-weight: 720'],
+    ['.markdown-table-body .markdown-table-row:hover > .markdown-table-cell', 'background: color-mix(in srgb, var(--reader-accent) 10%, var(--reader-table-row-hover))'],
+    ['.callout-tip[data-callout="tip"]', 'border-top: 1px solid color-mix(in srgb, var(--reader-accent) 28%, transparent)'],
+    ['.callout-warning[data-callout="warning"]', 'border-inline: 1px solid color-mix(in srgb, var(--reader-color-yellow) 30%, transparent)'],
+    ['.theme-preview__document .markdown-heading--h1::after', 'content: ""; display: block; width: 6em; height: 2px; margin: 0.35em auto 0; background: linear-gradient(90deg, transparent, var(--reader-accent), transparent)'],
+    ['.markdown-preview-intro .markdown-link--external', 'text-decoration-style: double; text-underline-offset: 0.22em'],
+    ['.markdown-preview-table-wrap .markdown-table', 'border: 1px solid color-mix(in srgb, var(--reader-accent) 28%, var(--reader-border))'],
+    ['.markdown-table-cell--head + .markdown-table-cell--head', 'border-left: 1px solid color-mix(in srgb, var(--reader-accent) 18%, transparent)'],
+  ],
+  'nord-notes': [
+    ['.markdown-code-block .line:hover', 'background: color-mix(in srgb, var(--reader-color-cyan) 9%, transparent)'],
+    ['.markdown-code-block code.language-js', 'color: var(--reader-base-100)'],
+    ['.markdown-table-cell--head:first-child', 'color: var(--reader-color-cyan)'],
+    ['.outline-panel button.is-active', 'border-left: 3px solid var(--reader-color-cyan); background: color-mix(in srgb, var(--reader-color-cyan) 8%, transparent)'],
+    ['.markdown-preview-code pre.markdown-code-block', 'border-radius: 2px; border-left-color: var(--reader-color-cyan)'],
+    ['.markdown-preview-code code.language-js', 'letter-spacing: 0.01em'],
+    ['.markdown-preview-table .markdown-table-row:nth-child(odd)', 'background: color-mix(in srgb, var(--reader-base-20) 60%, transparent)'],
+    ['.markdown-preview-table .markdown-table-row:nth-child(even)', 'background: color-mix(in srgb, var(--reader-base-30) 45%, transparent)'],
+    ['.markdown-table-cell:first-child.markdown-table-cell', 'font-variant-numeric: tabular-nums'],
+    ['.markdown-heading--h3 + .markdown-code-block', 'margin-top: 0.45em'],
+    ['.markdown-heading--h2 ~ .markdown-paragraph', 'color: color-mix(in srgb, var(--reader-text) 86%, var(--reader-color-cyan))'],
+    ['.markdown-tag[data-tag="status"] + .markdown-tag[data-tag="done"]', 'border-color: var(--reader-color-cyan)'],
+    ['.markdown-preview-tasks .markdown-list--unordered', 'border-left: 1px solid var(--reader-base-30); padding-left: 1.25em'],
+    ['.callout-tip .callout-content > .markdown-paragraph', 'font-variant-numeric: tabular-nums'],
+    ['.markdown-preview-code + .markdown-preview-tasks', 'border-top: 1px solid var(--reader-base-30); padding-top: 0.8em'],
+    ['.markdown-preview-table .markdown-table-cell:first-child', 'color: var(--reader-color-cyan)'],
+    ['.markdown-preview-table .markdown-table-cell:nth-child(2)', 'font-family: var(--reader-monospace-font)'],
+  ],
+  'atom-one-reader': [
+    ['.markdown-preview-code > .markdown-heading--h3', 'font-family: var(--reader-monospace-font); color: var(--reader-color-blue)'],
+    ['.markdown-code-block .token.keyword', 'font-weight: 760; color: var(--reader-color-purple)'],
+    ['.markdown-code-block .token.string', 'color: var(--reader-color-green)'],
+    ['.markdown-inline-code.markdown-code--inline', 'border: 1px solid var(--reader-code-border); background: color-mix(in srgb, var(--reader-code-bg) 86%, var(--reader-base-00))'],
+    ['.theme-preview__document pre.markdown-code-block', 'border-left: 4px solid var(--reader-color-blue)'],
+    ['.theme-preview__document code.markdown-code--inline', 'font-weight: 650'],
+    ['.markdown-preview-code pre.markdown-code-block > code', 'display: block; color: var(--reader-code-text)'],
+    ['.markdown-preview-code .markdown-code--block', 'tab-size: 2'],
+    ['.markdown-preview-code .language-js', 'font-feature-settings: "liga" 0'],
+    ['.markdown-paragraph > code.markdown-code', 'vertical-align: 0.04em'],
+    ['.markdown-code-block .line:nth-child(odd)', 'background: rgba(255, 255, 255, 0.015)'],
+    ['.markdown-code-block .line:nth-child(even)', 'background: rgba(0, 0, 0, 0.035)'],
+    ['.markdown-code-block .token.punctuation + .token.keyword', 'margin-left: 0.12em'],
+    ['.callout-tip code.markdown-code', 'color: var(--reader-color-yellow)'],
+  ],
+  'obsidianite-dark': [
+    ['.markdown-link--external', 'text-shadow: 0 0 10px color-mix(in srgb, var(--reader-color-cyan) 22%, transparent)'],
+    ['.markdown-link--external:hover', 'filter: brightness(1.25) saturate(1.25)'],
+    ['.markdown-link--external:focus-visible', 'outline: 1px solid var(--reader-color-cyan); outline-offset: 3px'],
+    ['.callout-tip::before', 'content: ""; display: block; height: 2px; background: linear-gradient(90deg, var(--reader-color-cyan), transparent)'],
+    ['.callout-tip::after', 'content: ""; display: block; height: 1px; background: linear-gradient(90deg, transparent, var(--reader-color-purple))'],
+    ['.markdown-code-block::after', 'content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 18px rgba(14, 210, 247, 0.12)'],
+    ['.markdown-code-block:hover::after', 'box-shadow: inset 0 0 24px rgba(14, 210, 247, 0.18)'],
+    ['.markdown-tag[data-tag="theme"]::after', 'content: ""; display: inline-block; width: 0.42em; height: 0.42em; margin-left: 0.3em; border-radius: 999px; background: var(--reader-color-cyan)'],
+    ['.markdown-tag[data-tag="theme"]:hover::after', 'box-shadow: 0 0 12px var(--reader-color-cyan)'],
+    ['.markdown-heading--h2::before', 'content: ""; display: inline-block; width: 0.5em; height: 0.5em; margin-right: 0.42em; background: var(--reader-color-cyan); box-shadow: 0 0 12px var(--reader-color-cyan)'],
+    ['.markdown-heading--h3::before', 'content: ""; display: inline-block; width: 0.42em; height: 0.42em; margin-right: 0.36em; border: 1px solid var(--reader-color-purple)'],
+    ['.markdown-preview-quote::before', 'box-shadow: 0 0 18px rgba(14, 210, 247, 0.22)'],
+    ['.markdown-preview-table::after', 'content: ""; display: table-caption; caption-side: bottom; height: 2px; background: linear-gradient(90deg, transparent, var(--reader-color-cyan), transparent)'],
+    ['.mermaid::after', 'content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 24px rgba(14, 210, 247, 0.12)'],
+    ['.theme-preview-shell .markdown-link--external', 'color: var(--reader-color-cyan)'],
+    ['.markdown-preview-document .callout-tip::before', 'opacity: 0.88'],
+    ['.markdown-preview-document .markdown-tag[data-tag="theme"]::after', 'vertical-align: 0.04em'],
+  ],
+  'wasp-highlight': [
+    ['.markdown-heading--h1::after', 'content: ""; display: block; height: 3px; margin-top: 0.25em; background: #f8c537'],
+    ['.markdown-heading--h2::before', 'content: ""; display: inline-block; width: 0.75em; height: 0.75em; margin-right: 0.4em; background: #f8c537'],
+    ['.markdown-task-checkbox:not(:checked)', 'background: #101010; border-color: #f8c537'],
+    ['.markdown-tag[data-tag="status"]', 'border-color: #f8c537; color: #f8c537; background: rgba(248, 197, 55, 0.08)'],
+    ['.markdown-tag[data-tag="status"]::before', 'content: ""; display: inline-block; width: 0.55em; height: 0.55em; margin-right: 0.3em; background: currentColor'],
+    ['.markdown-table-row:nth-child(odd) > .markdown-table-cell:first-child', 'border-left: 4px solid #f8c537'],
+    ['.markdown-preview-table .markdown-table-row:nth-child(odd) > .markdown-table-cell', 'background: rgba(248, 197, 55, 0.05)'],
+    ['.markdown-code-block .token.operator::selection', 'background: #f8c537; color: #111111'],
+    ['.callout-warning::before', 'content: ""; display: block; height: 3px; background: #f8c537'],
+    ['.callout-danger', 'border-color: #fb4934; background: rgba(251, 73, 52, 0.1)'],
+    ['.callout-bug', 'border-color: #fb4934; box-shadow: 0 0 0 2px rgba(251, 73, 52, 0.12)'],
+    ['.markdown-rule::before', 'content: ""; position: absolute; left: 0; top: -0.2em; width: 2.5em; height: 3px; background: #f8c537'],
+    ['.theme-preview-header .theme-preview-badge', 'border-radius: 0; border: 1px solid #f8c537'],
+    ['.markdown-list--unordered .markdown-list-item::marker', 'color: #f8c537'],
+    ['.markdown-preview-document .markdown-heading--h1::after', 'box-shadow: 0 0 0 1px rgba(248, 197, 55, 0.24)'],
+    ['.markdown-preview-document .markdown-heading--h2::before', 'box-shadow: 0 0 0 2px rgba(248, 197, 55, 0.16)'],
+    ['.markdown-preview-table .markdown-table-cell:first-child', 'text-transform: uppercase; letter-spacing: 0.05em'],
+    ['.markdown-preview-document .markdown-tag[data-tag="status"]', 'border-style: dashed'],
+  ],
+  'typewriter-desk': [
+    ['.markdown-paragraph + .markdown-paragraph', 'text-indent: 1.4em'],
+    ['.markdown-code-block::after', 'content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 1px; background: repeating-linear-gradient(90deg, var(--reader-border) 0 6px, transparent 6px 12px)'],
+    ['.markdown-table-caption::before', 'content: ""; display: inline-block; width: 1.6em; height: 1px; margin-right: 0.45em; background: currentColor; vertical-align: middle'],
+    ['.markdown-preview-document::after', 'content: ""; display: block; height: 1px; margin-top: 1em; background: repeating-linear-gradient(90deg, var(--reader-border) 0 8px, transparent 8px 16px)'],
+    ['.markdown-preview-document .markdown-heading--h1::after', 'content: ""; display: block; width: 7em; height: 1px; margin: 0.45em auto 0; background: var(--reader-border)'],
+    ['.markdown-heading--h2::first-letter', 'color: var(--reader-accent)'],
+    ['.markdown-heading--h3::first-letter', 'color: var(--reader-accent)'],
+    ['.markdown-task::before', 'content: ""; display: inline-block; width: 0.7em; height: 1px; margin-right: 0.35em; background: var(--reader-border); vertical-align: middle'],
+    ['.markdown-task--checked::before', 'background: var(--reader-accent)'],
+    ['.markdown-list--ordered .markdown-list-item', 'font-variant-numeric: oldstyle-nums'],
+    ['.markdown-quote .markdown-paragraph', 'font-style: italic'],
+    ['.theme-preview__document pre::before', 'content: ""; position: absolute; left: 0.75em; top: 0.75em; width: 0.45em; height: 0.45em; border-radius: 999px; background: var(--reader-border)'],
+    ['.markdown-table-cell:first-child::before', 'content: ""; display: inline-block; width: 0.7em; height: 1px; margin-right: 0.35em; background: var(--reader-border); vertical-align: middle'],
+    ['.markdown-inline-code::after', 'content: ""; display: inline-block; width: 0.35em; height: 1px; margin-left: 0.12em; background: currentColor; vertical-align: middle'],
+  ],
+  'its-readable': [
+    ['.theme-preview__callouts', 'display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.65em'],
+    ['.callout[data-callout="info"]', 'border-left-color: var(--reader-color-blue); background: color-mix(in srgb, var(--reader-color-blue) 8%, var(--reader-callout-bg))'],
+    ['.callout[data-callout="warning"]', 'border-left-color: var(--reader-color-yellow); background: color-mix(in srgb, var(--reader-color-yellow) 10%, var(--reader-callout-bg))'],
+    ['.markdown-tag[data-tag="done"]', 'background: color-mix(in srgb, var(--reader-color-green) 14%, transparent); color: var(--reader-color-green)'],
+    ['.callout[data-callout="success"]', 'border-left-color: var(--reader-color-green); background: color-mix(in srgb, var(--reader-color-green) 9%, var(--reader-callout-bg))'],
+    ['.callout[data-callout="info"] .callout-title', 'color: var(--reader-color-blue)'],
+    ['.callout[data-callout="warning"] .callout-title', 'color: var(--reader-color-yellow)'],
+    ['.callout[data-callout="success"] .callout-title', 'color: var(--reader-color-green)'],
+    ['.theme-preview__callouts .callout + .callout', 'margin-top: 0'],
+    ['.markdown-tag[data-tag="done"]::before', 'content: ""; display: inline-block; width: 0.5em; height: 0.5em; margin-right: 0.3em; border-radius: 999px; background: currentColor'],
+    ['.markdown-tag[data-tag="status"]::after', 'content: ""; display: inline-block; width: 0.45em; height: 0.45em; margin-left: 0.3em; border-radius: 999px; background: var(--reader-accent)'],
+    ['.theme-preview__document .markdown-image-caption', 'display: block; padding: 0.35em 0.5em; background: var(--reader-base-10)'],
+    ['.theme-preview__document .markdown-preview-table-wrap', 'border: 1px solid var(--reader-border); border-radius: var(--reader-radius); padding: 0.75em'],
+    ['.markdown-table-body .markdown-table-row:last-child .markdown-table-cell', 'border-bottom-width: 0'],
+    ['.markdown-table-cell--head:last-child', 'text-align: right'],
+    ['.callout-content .markdown-list', 'margin-top: 0.35em'],
+    ['.theme-preview__document .callout[data-callout="info"]', 'box-shadow: inset 3px 0 0 var(--reader-color-blue)'],
+    ['.theme-preview__document .callout[data-callout="warning"]', 'box-shadow: inset 3px 0 0 var(--reader-color-yellow)'],
+    ['.theme-preview__document .callout[data-callout="success"]', 'box-shadow: inset 3px 0 0 var(--reader-color-green)'],
+  ],
+};
+
 const CALLOUT_TYPES = [
   'note',
   'abstract',
@@ -745,6 +902,7 @@ export function buildObsidianThemeCss(themeId) {
     ...buildCodeRules(profile),
     ...buildTaskAndTagRules(profile),
     ...buildMediaRules(profile),
+    ...buildSourceDetailRules(themeId),
   ];
 
   return rules.join('\n');
@@ -796,27 +954,31 @@ function buildVisibleSignatureRules(themeId, profile) {
   return [
     rule('.theme-preview__document', [
       'position: relative',
-      `max-width: ${profile.contentWidth}`,
       `border: ${signature.accentLine}`,
       `box-shadow: ${profile.shadow}`,
       `padding: ${profile.density === 'compact' ? '16px' : profile.density === 'longform' ? '28px 32px' : '22px'}`,
     ]),
     rule('.theme-preview__document::before', [
-      `content: "${signature.label}"`,
+      'content: ""',
       'position: absolute',
       'top: 10px',
       'right: 12px',
       'z-index: 1',
-      'padding: 0.16em 0.52em',
-      'font-size: 0.68em',
-      'font-weight: 760',
-      'line-height: 1.35',
+      'display: block',
+      'width: 2.8em',
+      'height: 0.36em',
+      'padding: 0',
       signature.documentBadge,
     ]),
     rule('.markdown-heading--h1', 'position: relative'),
     rule('.markdown-heading--h1::before', [
-      `content: "${signature.headingPrefix}"`,
+      'content: ""',
       'display: inline-block',
+      'width: 0.72em',
+      'height: 0.72em',
+      'border-radius: 999px',
+      'background: var(--reader-accent)',
+      'vertical-align: 0.02em',
       signature.h1Prefix,
     ]),
     rule('.markdown-heading--h2', 'position: relative'),
@@ -836,15 +998,15 @@ function buildVisibleSignatureRules(themeId, profile) {
       signature.codePanel,
     ]),
     rule('.markdown-code-block::before', [
-      `content: "${signature.codeLabel}"`,
+      'content: ""',
       'position: absolute',
-      'top: 0.58em',
-      'right: 0.75em',
-      'font-size: 0.72em',
-      'font-weight: 760',
-      'letter-spacing: 0.08em',
-      'text-transform: uppercase',
-      'color: var(--reader-muted)',
+      'top: 0.82em',
+      'right: 0.86em',
+      'width: 3.2em',
+      'height: 0.34em',
+      'border-radius: 999px',
+      'background: var(--reader-accent)',
+      'opacity: 0.68',
     ]),
     rule('.markdown-code-block .line', [
       'display: block',
@@ -863,15 +1025,13 @@ function buildVisibleSignatureRules(themeId, profile) {
     ]),
     rule('.markdown-table', 'position: relative'),
     rule('.markdown-table::before', [
-      `content: "${signature.tableLabel}"`,
+      'content: ""',
       'display: table-caption',
       'caption-side: top',
-      'width: max-content',
+      'width: 3.2em',
+      'height: 0.34em',
       'max-width: 100%',
       'margin: 0 0 0.45em',
-      'padding: 0.14em 0.48em',
-      'font-size: 0.75em',
-      'font-weight: 750',
       signature.tableMarker,
     ]),
     rule('.markdown-table-row:nth-child(even) .markdown-table-cell', `background: color-mix(in srgb, var(--reader-table-stripe) 86%, var(--reader-accent-muted))`),
@@ -887,10 +1047,13 @@ function buildVisibleSignatureRules(themeId, profile) {
     ]),
     rule('.markdown-tag[data-tag="theme"]', 'position: relative'),
     rule('.markdown-tag[data-tag="theme"]::before', [
-      `content: "${signature.tagPrefix}"`,
+      'content: ""',
+      'display: inline-block',
+      'width: 0.5em',
+      'height: 0.5em',
       'margin-right: 0.28em',
-      'font-size: 0.82em',
-      'font-weight: 760',
+      'border-radius: 999px',
+      'background: currentColor',
       signature.tagMarker,
     ]),
     rule('.markdown-image', [
@@ -899,13 +1062,13 @@ function buildVisibleSignatureRules(themeId, profile) {
       signature.mediaMarker,
     ]),
     rule('.markdown-image::before', [
-      `content: "${signature.imageLabel}"`,
+      'content: ""',
       'position: absolute',
       'top: 0.48em',
       'left: 0.58em',
-      'padding: 0.1em 0.38em',
-      'font-size: 0.72em',
-      'font-weight: 760',
+      'width: 2.4em',
+      'height: 0.34em',
+      'border-radius: 999px',
       signature.mediaMarker,
     ]),
     rule('.mermaid', [
@@ -914,13 +1077,13 @@ function buildVisibleSignatureRules(themeId, profile) {
       signature.mediaMarker,
     ]),
     rule('.mermaid::before', [
-      `content: "${signature.diagramLabel}"`,
+      'content: ""',
       'position: absolute',
       'top: 0.48em',
       'right: 0.58em',
-      'padding: 0.1em 0.38em',
-      'font-size: 0.72em',
-      'font-weight: 760',
+      'width: 2.4em',
+      'height: 0.34em',
+      'border-radius: 999px',
       signature.mediaMarker,
     ]),
     rule('.markdown-rule', 'position: relative; overflow: visible'),
@@ -961,8 +1124,11 @@ function buildHeadingRules(profile) {
 function buildContentRules(profile) {
   const rules = [];
   for (const selector of CONTENT_BLOCKS) {
+    const maxWidth = maxWidthFor(selector);
     rules.push(rule(selector, `border-radius: ${radiusFor(profile, selector)}`));
-    rules.push(rule(selector, `max-width: ${maxWidthFor(profile, selector)}`));
+    if (maxWidth !== 'none') {
+      rules.push(rule(selector, `max-width: ${maxWidth}`));
+    }
     rules.push(rule(selector, `box-shadow: ${shadowFor(profile, selector)}`));
     rules.push(rule(selector, `text-transform: ${textTransformFor(profile, selector)}`));
   }
@@ -973,7 +1139,6 @@ function buildContentRules(profile) {
     rules.push(rule(`.markdown-image${suffix}`, `padding: ${profile.density === 'compact' ? '0.25em' : '0.45em'}`));
   }
   rules.push(rule('.markdown-paragraph', `text-indent: ${profile.paragraphIndent}`));
-  rules.push(rule('.markdown-paragraph', `max-width: ${profile.paragraphWidth}`));
   rules.push(rule('.markdown-link:hover', 'filter: saturate(1.18)'));
   rules.push(rule('.markdown-rule, hr', `height: ${profile.shape === 'warning-contrast' ? '2px' : '1px'}`));
   return rules;
@@ -1078,6 +1243,15 @@ function buildMediaRules(profile) {
   return rules;
 }
 
+function buildSourceDetailRules(themeId) {
+  const sourceRules = SOURCE_DETAIL_RULES[themeId];
+  if (!sourceRules) {
+    throw new Error(`Unknown Obsidian source detail profile: ${themeId}`);
+  }
+
+  return sourceRules.map(([selector, declarations]) => rule(selector, declarations));
+}
+
 function rule(selector, declarations) {
   const body = Array.isArray(declarations) ? declarations.join('; ') : declarations;
   return `${selector} { ${body}; }`;
@@ -1109,10 +1283,7 @@ function radiusFor(profile, selector) {
   return profile.radius;
 }
 
-function maxWidthFor(profile, selector) {
-  if (selector.includes('paragraph')) {
-    return profile.paragraphWidth;
-  }
+function maxWidthFor(selector) {
   if (selector.includes('image')) {
     return '100%';
   }
