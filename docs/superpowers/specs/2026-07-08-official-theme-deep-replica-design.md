@@ -42,7 +42,7 @@
 
 ## 许可证与改编策略
 
-初步 GitHub API 核查结果如下。实施时必须写入机器可读报告，并在主题包描述中保留简短署名。许可证和来源明细默认不写入主题包或远程 index，避免破坏现有 schema。
+初步 GitHub API 核查结果如下。实施时必须写入机器可读报告。主题包 `description` 只保留短描述，不能承载长署名；许可证和来源明细默认不写入主题包或远程 index，避免破坏现有 schema。
 
 | 主题 | 上游仓库 | 许可证 | 策略 |
 | --- | --- | --- | --- |
@@ -74,6 +74,8 @@
 - `usage`: `adaptable` 或 `inspiration-only`
 
 默认构建只能读取已 pin 的 source manifest。只有显式执行刷新命令时，才允许重新访问 GitHub 并更新 pinned commit。这样后续主题构建和审计是可复现的。
+
+上游 CSS 源码不提交进仓库，尤其不能把 GPL 或无许可证 CSS 作为 repo 文件保存。需要读取上游 CSS 时，脚本从 pinned raw URL 下载到临时缓存目录，例如 `themes/official/.cache/upstream-css/`；该目录必须加入 `.gitignore`。仓库只保留 source manifest、hash、许可证报告和分析摘要。离线构建可以跳过刷新，但不能伪造许可证或防复制报告。
 
 ## 架构
 
@@ -126,7 +128,7 @@
 
 不得新增会破坏旧主题包解析的必填字段。许可证、来源、合同和报告属于官方构建资料，不作为用户主题包必填字段。
 
-许可证和来源信息默认不写入 `.mdv-theme.json` 顶层字段，因为当前主题包 schema 会拒绝未知字段；也不写入 `themes/metadata.json` 自定义字段，因为当前远程 index 构建器只消费 tags、preview、deprecated 和 replacement 信息。官方审计信息放在 `themes/official/sources/source-manifest.json` 和 `themes/official/reports/license-audit-report.json` 中。若未来要在远程主题库 UI 里展示 `source` 或 `license`，必须先扩展 `ReaderThemePackage`、远程 index schema、导入解析器、index 构建器和相关测试，并保持旧主题包兼容。
+许可证和来源信息默认不写入 `.mdv-theme.json` 顶层字段，因为当前主题包 schema 会拒绝未知字段；也不写入 `themes/metadata.json` 自定义字段，因为当前远程 index 构建器只消费 tags、preview、deprecated 和 replacement 信息。主题包 `description` 受现有字段长度限制，只写 160 字以内的用户可读描述，不塞入长许可证说明。官方审计信息放在 `themes/official/sources/source-manifest.json` 和 `themes/official/reports/license-audit-report.json` 中。若未来要在远程主题库 UI 里展示 `source` 或 `license`，必须先扩展 `ReaderThemePackage`、远程 index schema、导入解析器、index 构建器和相关测试，并保持旧主题包兼容。
 
 ### 官方生成入口
 
@@ -224,6 +226,11 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
   - callout：至少 12 条规则，且覆盖 typed callout。
   - file tree / toolbar / outline：每类至少 8 条规则。
   - Mermaid / JSON/YAML / dashboard fixture：声明覆盖时至少 6 条规则。
+- 每个已声明覆盖的核心组件必须通过 selector reachability 校验：
+  - 使用真实 preview DOM fixture 渲染 markdown、table、callout、file-tree、toolbar、outline、Mermaid、JSON/YAML 等区域。
+  - 统计主题 CSS 选择器在 fixture DOM 中的命中情况。
+  - 每个声明覆盖组件至少 70% 的选择器必须命中真实 DOM；核心组件命中规则数不得低于该组件最低规则数的 60%。
+  - 未命中的选择器必须进入报告，不能静默忽略。
 - 相似度报告必须包括：
   - token 相似度
   - selector 相似度
@@ -237,8 +244,9 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 对 GPL 和无许可证主题，官方报告必须包含源码未复制检测，至少包括：
 
 - declaration block hash 对比：本地主题 CSS 的声明块 hash 不得与上游 CSS 完全匹配，允许的通用单声明块必须进入白名单。
-- selector n-gram 相似度：连续 selector 片段相似度不得超过阈值。
+- selector n-gram 相似度：selector 3-gram Jaccard 相似度必须小于等于 0.15；超过即失败，除非该主题为 MIT 改编并在许可证报告中声明。
 - 连续文本相似度：本地 CSS 与上游 CSS 不能存在超过 120 个字符的连续相同片段，CSS 变量名、颜色值和通用属性组合可白名单处理。
+- 声明块完全匹配数：GPL / 无许可证主题的非白名单声明块完全匹配数必须为 0。
 - 规则级来源标注：GPL / 无许可证主题的合同中必须声明 `implementation: "original-replica"`。
 - 检测失败时，官方校验器必须失败，而不是只写 warning。
 
@@ -260,7 +268,16 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 需要生成两类预览：
 
 - 远程主题库卡片预览：展示主题主视觉、light/dark、组件摘要。
-- 真实浏览器截图：使用实际 options/preview 页面或独立预览页面截图，覆盖 desktop 和较窄宽度。
+- 真实浏览器截图：使用实际 theme stylesheet 渲染的 HTML fixture 截图，覆盖 desktop 和较窄宽度。
+
+预览不能只截图 SVG mock。必须新增一个真实 DOM 预览页面或 fixture，要求：
+
+- 使用最终 `.mdv-theme.json` 主题包。
+- 通过与运行时一致的 token + scoped CSS 生成逻辑渲染样式，等价于 `buildInstalledThemeStylesheet()` 的输出。
+- DOM 包含真实的 reader 结构和稳定 hooks，而不是专门为预览写的一套伪 DOM。
+- 同一页面展示 light 和 dark 两种模式，或分别截图 light/dark。
+- `themes:visual` 必须截图这个真实 DOM 预览，并把截图路径写入 `theme-visual-report.json`。
+- SVG 卡片预览可以保留，但只能作为远程主题库缩略图，不能作为官方视觉验收依据。
 
 每套主题至少展示：
 
@@ -286,6 +303,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 新增许可证审计报告。
 - 新增源 CSS 分析脚本。
 - 新增 source manifest，固定每个上游仓库 commit 和 CSS hash。
+- 新增 upstream CSS 临时缓存目录并加入 `.gitignore`，确保上游 CSS 不进入仓库。
 
 ### Phase 2：强化官方校验
 
@@ -293,6 +311,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 新增 CSS 规则数、字节数、组件覆盖矩阵、许可证策略、相似度门槛。
 - 使用 legacy thin theme fixture 验证旧薄主题无法通过。
 - 增加 GPL / 无许可证防复制检测。
+- 增加真实 DOM selector reachability 校验。
 
 ### Phase 3：逐套主题合同
 
@@ -311,7 +330,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 生成 10 套主题包。
 - 生成远程 index。
 - 生成预览素材。
-- 使用浏览器检查真实预览。
+- 使用浏览器检查真实 DOM 预览。
 - 运行 typecheck、测试、build、主题官方校验。
 
 ## 测试与验证
@@ -335,6 +354,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - **主题过大风险**：CSS 上限 128KB，深度主题必须控制在可安装范围内。
 - **DOM 能力不足风险**：如果某主题关键特征无法通过现有 DOM hooks 表达，应先补稳定 hook 和测试，再做主题 CSS。
 - **视觉差异不足风险**：官方校验器必须量化 CSS 厚度、组件覆盖和相似度，不能靠主观确认。
+- **假覆盖风险**：CSS 规则数量不足以证明生效，必须通过 selector reachability 校验确认规则命中真实 DOM。
 - **兼容风险**：主题 schema 扩展只能向后兼容，旧主题包仍可安装。
 
 ## 完成标准
@@ -342,6 +362,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 旧 10 套官方主题已从远程主题库删除。
 - 新 10 套官方主题均可安装、可预览、可切换 light/dark。
 - 每套主题有独立设计合同、许可证审计、CSS 分析摘要和视觉报告。
+- 每套主题通过真实 DOM selector reachability 校验。
 - 官方校验器会拒绝薄主题。
 - `themes/index.json` 指向新 10 套主题。
 - 所有要求的验证命令通过。
