@@ -59,6 +59,15 @@
 
 `themes/references/catalog.json` 需要同步修正 Everforest 来源，并把这 10 个主题的 `license.status`、`usage`、`reviewStatus` 更新为实际状态。
 
+### 命名与品牌边界
+
+许可证允许改编 CSS 不等于自动允许使用上游品牌名、logo、截图或“官方复刻”表述。实施时必须在 license audit report 中单独记录每套主题的 `nameUsage`：
+
+- 默认展示名使用 `Inspired by <Theme>`、`<Theme>-inspired` 或 `<Theme> for Local Markdown Reader` 这类明确非官方的命名。
+- 只有在许可证、上游说明或人工审计确认允许时，才可直接使用原主题名称作为展示名。
+- 主题包、预览图、远程主题库和 release 文案不得使用上游 logo、截图或暗示上游官方背书的措辞。
+- 技术 ID 可以使用稳定短 ID，例如 `minimal`、`catppuccin`，但展示名和描述必须体现 Local Markdown Reader 适配关系。
+
 ### 来源固定策略
 
 上游主题不得使用浮动的默认分支作为长期构建输入。实施时必须生成 `themes/official/sources/source-manifest.json`，每个来源记录：
@@ -292,11 +301,12 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 通过与运行时一致的 token + scoped CSS 生成逻辑渲染样式，等价于 `buildInstalledThemeStylesheet()` 的输出。
 - 预览生成器必须调用共享 stylesheet builder，不能手写或复制 token/scoped CSS 拼接逻辑。
 - DOM 包含真实的 reader 结构和稳定 hooks，而不是专门为预览写的一套伪 DOM。
+- Markdown 正文 fixture 必须通过现有 Markdown 渲染 pipeline 生成；toolbar、file-tree、outline 等应用框架区域必须复用现有 React 组件、测试渲染工具或从实际组件结构生成的快照，不能手写一个看起来相似的 HTML 结构。
 - 同一页面展示 light 和 dark 两种模式，或分别截图 light/dark。
 - `themes:visual` 必须截图这个真实 DOM 预览，并把截图路径写入 `theme-visual-report.json`。
 - SVG 卡片预览可以保留，但只能作为远程主题库缩略图，不能作为官方视觉验收依据。
 - `manualAcceptance` 不能由主题生成脚本自动置为 `true`。视觉报告初始值必须是 `false` 或缺省；只有截图生成完成并经过人工或明确的验收步骤后，才允许写入 `manualAcceptance: true`，并记录验收时间、验收人或验收命令。
-- 必须新增 `themes:visual:accept` 或等价命令。该命令只在截图和 selector reachability 报告已经生成后运行，写入 `manualAcceptance: true`、`acceptedAt`、`acceptedBy` 或 `acceptedCommand`。`verify-official-themes` 必须拒绝缺少这些验收字段的视觉报告。
+- 必须新增 `themes:visual:accept` 或等价命令。该命令只在截图和 selector reachability 报告已经生成后运行，并且必须要求显式参数，例如 `--accepted-by <name>` 和 `--reviewed-screenshots <path-or-glob>`；无参数执行必须失败。验收命令写入 `manualAcceptance: true`、`acceptedAt`、`acceptedBy`、`acceptedCommand` 和已审阅截图列表。`verify-official-themes` 必须拒绝缺少这些验收字段的视觉报告。
 
 每套主题至少展示：
 
@@ -326,6 +336,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 新增 `themes:sources:refresh` 或等价脚本，用于网络刷新 source manifest 和不可逆源 CSS 指纹摘要；默认 `themes:official` 不访问网络。
 - 新增 `themes:sources:verify` 并把它纳入 `themes:verify`。
 - 抽出运行时和 Node 预览共用的 stylesheet builder，避免真实 DOM 预览与实际 reader 样式生成逻辑漂移。
+- 在许可证审计报告中加入 name usage 审计，确认每套主题展示名、描述和发布文案不会暗示上游官方背书。
 
 ### Phase 2：强化官方校验
 
@@ -336,6 +347,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 增加真实 DOM selector reachability 校验。
 - 增加动态伪类、伪元素和组合选择器的 reachability 归一化测试。
 - 增加 stylesheet builder 等价性测试，确认真实 DOM 预览和 reader 运行时对同一主题包输出完全一致。
+- 增加真实 DOM fixture 来源测试，确认 Markdown 内容来自现有渲染 pipeline，toolbar、file-tree、outline 来自现有组件或实际组件结构快照。
 
 ### Phase 3：逐套主题合同
 
@@ -355,7 +367,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 生成远程 index。
 - 生成预览素材。
 - 使用浏览器检查真实 DOM 预览。
-- 运行 `themes:visual:accept` 写入明确的视觉验收记录。
+- 运行带显式审阅参数的 `themes:visual:accept` 写入明确的视觉验收记录。
 - 运行 typecheck、测试、build、主题官方校验。
 
 ## 测试与验证
@@ -366,7 +378,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - `npm run themes:sources:verify`
 - `npm run themes:official`
 - `npm run themes:visual`
-- `npm run themes:visual:accept`
+- `npm run themes:visual:accept -- --accepted-by <name> --reviewed-screenshots <path-or-glob>`
 - `npm run themes:verify`
 - `npm run typecheck`
 - `npm test -- --run`
