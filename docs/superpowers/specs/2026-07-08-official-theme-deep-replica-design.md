@@ -77,6 +77,13 @@
 
 上游 CSS 源码不提交进仓库，尤其不能把 GPL 或无许可证 CSS 作为 repo 文件保存。需要读取上游 CSS 时，脚本从 pinned raw URL 下载到临时缓存目录，例如 `themes/official/.cache/upstream-css/`；该目录必须加入 `.gitignore`。仓库只保留 source manifest、hash、许可证报告和分析摘要。离线构建可以跳过刷新，但不能伪造许可证或防复制报告。
 
+为了让默认构建可复现且不依赖网络，需要区分两类命令：
+
+- `themes:sources:refresh`：允许访问网络，从 pinned upstream commit 拉取 CSS 到临时缓存，更新 source manifest、许可证报告和源 CSS 指纹摘要。
+- `themes:official` / `themes:verify`：默认不得访问网络，只消费已提交的 source manifest、源 CSS 指纹摘要、主题定义和设计合同。
+
+源 CSS 指纹摘要可以提交，但不能包含可还原上游 CSS 的原文。对 GPL / 无许可证主题，只允许提交不可逆 hash、计数、selector 分类统计、声明块 hash、selector n-gram hash 和连续文本窗口 hash。防复制检测必须使用这些已提交的指纹摘要完成离线校验；如果指纹摘要缺失或与 source manifest hash 不匹配，官方校验必须失败。
+
 ## 架构
 
 ### 目录结构
@@ -98,7 +105,7 @@
 
 ### 生成链路
 
-1. 下载或读取上游主题 CSS。
+1. 刷新阶段下载上游主题 CSS 到临时缓存；默认生成阶段只读取已提交的 source manifest 和指纹摘要。
 2. 提取源 CSS 指标：
    - CSS 字节数
    - 规则数量
@@ -231,6 +238,9 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
   - 统计主题 CSS 选择器在 fixture DOM 中的命中情况。
   - 每个声明覆盖组件至少 70% 的选择器必须命中真实 DOM；核心组件命中规则数不得低于该组件最低规则数的 60%。
   - 未命中的选择器必须进入报告，不能静默忽略。
+  - reachability 校验必须区分静态选择器和状态选择器。`:hover`、`:focus`、`:active`、`:focus-visible` 这类动态伪类不能直接当作未命中；需要在 fixture 中提供对应状态样本，或先剥离动态伪类校验基础选择器命中，再单独报告状态覆盖。
+  - `::before`、`::after`、`::marker` 等伪元素按基础元素选择器命中计算，但伪元素规则必须在报告中单独计数。
+  - `:where()`、`:is()`、`:not()` 这类组合选择器必须通过 CSS AST 解析后展开或归一化，不能用字符串截断造成误判。
 - 相似度报告必须包括：
   - token 相似度
   - selector 相似度
@@ -247,6 +257,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - selector n-gram 相似度：selector 3-gram Jaccard 相似度必须小于等于 0.15；超过即失败，除非该主题为 MIT 改编并在许可证报告中声明。
 - 连续文本相似度：本地 CSS 与上游 CSS 不能存在超过 120 个字符的连续相同片段，CSS 变量名、颜色值和通用属性组合可白名单处理。
 - 声明块完全匹配数：GPL / 无许可证主题的非白名单声明块完全匹配数必须为 0。
+- 上述对比必须基于已提交的不可逆上游指纹摘要执行。不能把 GPL / 无许可证原始 CSS 文本、可还原 CSS 的片段列表、或长文本 shingle 原文提交进仓库。
 - 规则级来源标注：GPL / 无许可证主题的合同中必须声明 `implementation: "original-replica"`。
 - 检测失败时，官方校验器必须失败，而不是只写 warning。
 
@@ -278,6 +289,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 同一页面展示 light 和 dark 两种模式，或分别截图 light/dark。
 - `themes:visual` 必须截图这个真实 DOM 预览，并把截图路径写入 `theme-visual-report.json`。
 - SVG 卡片预览可以保留，但只能作为远程主题库缩略图，不能作为官方视觉验收依据。
+- `manualAcceptance` 不能由主题生成脚本自动置为 `true`。视觉报告初始值必须是 `false` 或缺省；只有截图生成完成并经过人工或明确的验收步骤后，才允许写入 `manualAcceptance: true`，并记录验收时间、验收人或验收命令。
 
 每套主题至少展示：
 
@@ -304,6 +316,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 新增源 CSS 分析脚本。
 - 新增 source manifest，固定每个上游仓库 commit 和 CSS hash。
 - 新增 upstream CSS 临时缓存目录并加入 `.gitignore`，确保上游 CSS 不进入仓库。
+- 新增 `themes:sources:refresh` 或等价脚本，用于网络刷新 source manifest 和不可逆源 CSS 指纹摘要；默认 `themes:official` 不访问网络。
 
 ### Phase 2：强化官方校验
 
@@ -312,6 +325,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 使用 legacy thin theme fixture 验证旧薄主题无法通过。
 - 增加 GPL / 无许可证防复制检测。
 - 增加真实 DOM selector reachability 校验。
+- 增加动态伪类、伪元素和组合选择器的 reachability 归一化测试。
 
 ### Phase 3：逐套主题合同
 
