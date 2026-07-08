@@ -42,7 +42,7 @@
 
 ## 许可证与改编策略
 
-初步 GitHub API 核查结果如下。实施时必须写入机器可读报告，并在主题包描述或 metadata 中保留来源和策略。
+初步 GitHub API 核查结果如下。实施时必须写入机器可读报告，并在主题包描述中保留简短署名。许可证和来源明细默认不写入主题包或远程 index，避免破坏现有 schema。
 
 | 主题 | 上游仓库 | 许可证 | 策略 |
 | --- | --- | --- | --- |
@@ -58,6 +58,22 @@
 | Cybertron | `nickmilo/Cybertron` | 无许可证文件 | 原创复刻，禁止复制 CSS |
 
 `themes/references/catalog.json` 需要同步修正 Everforest 来源，并把这 10 个主题的 `license.status`、`usage`、`reviewStatus` 更新为实际状态。
+
+### 来源固定策略
+
+上游主题不得使用浮动的默认分支作为长期构建输入。实施时必须生成 `themes/official/sources/source-manifest.json`，每个来源记录：
+
+- upstream repository
+- default branch
+- pinned commit SHA
+- license SPDX
+- license file URL
+- license file sha256
+- 参与分析的 CSS 文件路径
+- 每个 CSS 文件的 sha256 和字节数
+- `usage`: `adaptable` 或 `inspiration-only`
+
+默认构建只能读取已 pin 的 source manifest。只有显式执行刷新命令时，才允许重新访问 GitHub 并更新 pinned commit。这样后续主题构建和审计是可复现的。
 
 ## 架构
 
@@ -109,6 +125,17 @@
 - sanitizer 生成的 `scopedCss`
 
 不得新增会破坏旧主题包解析的必填字段。许可证、来源、合同和报告属于官方构建资料，不作为用户主题包必填字段。
+
+许可证和来源信息默认不写入 `.mdv-theme.json` 顶层字段，因为当前主题包 schema 会拒绝未知字段；也不写入 `themes/metadata.json` 自定义字段，因为当前远程 index 构建器只消费 tags、preview、deprecated 和 replacement 信息。官方审计信息放在 `themes/official/sources/source-manifest.json` 和 `themes/official/reports/license-audit-report.json` 中。若未来要在远程主题库 UI 里展示 `source` 或 `license`，必须先扩展 `ReaderThemePackage`、远程 index schema、导入解析器、index 构建器和相关测试，并保持旧主题包兼容。
+
+### 官方生成入口
+
+现有 `npm run themes:official` 不能继续调用旧的同模板生成器。实施 Phase 1 时必须完成以下调整：
+
+- 替换或重写 `scripts/build-official-themes.mjs`，让它从 `themes/official/definitions/` 读取新 10 套主题定义。
+- 删除旧脚本里的内联 `THEMES` 大数组，避免误生成旧主题。
+- 保持 `npm run themes:official` 仍是唯一官方生成入口，内部可以调用新的分析、构建、预览和 index 脚本。
+- 增加测试，确认 `themes:official` 生成的主题 ID 只包含新 10 套，不包含旧混合命名主题。
 
 ## 主题设计要求
 
@@ -174,6 +201,8 @@
 - 重点：深色表面、glow、代码/链接/active 状态发光、Mermaid 和全屏控件融合。
 - 禁止：直接复制无许可证 CSS。
 
+Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode，但 light mode 应明确标记为 Local Markdown Reader 的浅色适配版，不声称是上游原样复刻。AnuPpuccin、ITS Theme、Primary 等 GPL 主题同理：只能复刻视觉策略，不能复制源码。
+
 ## 官方校验门槛
 
 现有 `scripts/verify-official-themes.mjs` 只检查 token 数和报告存在，必须增强：
@@ -187,6 +216,14 @@
 - 每套主题必须有许可证策略记录。
 - MIT 改编主题必须保留 upstream repo、license、licenseUrl、usage=`adaptable`。
 - GPL / 无许可证主题必须 usage=`inspiration-only`，并在报告中证明未复制上游 CSS。
+- 每套主题必须有组件覆盖矩阵，至少覆盖 8 个组件区域。
+- 每个已声明覆盖的核心组件必须有最低 CSS 覆盖：
+  - document / headings：至少 10 条规则。
+  - table / fullscreen table：至少 12 条规则。
+  - code / inline code：至少 10 条规则。
+  - callout：至少 12 条规则，且覆盖 typed callout。
+  - file tree / toolbar / outline：每类至少 8 条规则。
+  - Mermaid / JSON/YAML / dashboard fixture：声明覆盖时至少 6 条规则。
 - 相似度报告必须包括：
   - token 相似度
   - selector 相似度
@@ -194,6 +231,18 @@
   - CSS size/rule count 分布
 - 任何两套主题的 selector 相似度不得高于 0.72。
 - 任何两套主题的非颜色差异点重叠不得高于 0.5。
+
+### 受限许可证防复制校验
+
+对 GPL 和无许可证主题，官方报告必须包含源码未复制检测，至少包括：
+
+- declaration block hash 对比：本地主题 CSS 的声明块 hash 不得与上游 CSS 完全匹配，允许的通用单声明块必须进入白名单。
+- selector n-gram 相似度：连续 selector 片段相似度不得超过阈值。
+- 连续文本相似度：本地 CSS 与上游 CSS 不能存在超过 120 个字符的连续相同片段，CSS 变量名、颜色值和通用属性组合可白名单处理。
+- 规则级来源标注：GPL / 无许可证主题的合同中必须声明 `implementation: "original-replica"`。
+- 检测失败时，官方校验器必须失败，而不是只写 warning。
+
+对 MIT 主题，允许改编，但仍不允许直接把整段上游 CSS 原封不动搬入主题包。MIT 主题需要在许可证报告中列出改编范围和署名。
 
 ## CSS 安全边界
 
@@ -228,18 +277,22 @@
 
 ## 执行计划
 
-### Phase 1：清理旧主题与补齐审计
+### Phase 1：冻结旧样本、替换生成入口、补齐审计
 
-- 删除旧 10 套主题包、预览、合同和报告。
+- 将当前旧 10 套薄主题复制为测试 fixture，例如 `themes/official/fixtures/legacy-thin-themes/`，用于验证新校验器会拒绝薄主题。
+- 删除正式目录里的旧 10 套主题包、预览、合同和报告。
+- 替换 `npm run themes:official` 背后的旧生成器，确保不会再生成旧混合命名主题。
 - 修正 reference catalog，补齐许可证状态。
 - 新增许可证审计报告。
 - 新增源 CSS 分析脚本。
+- 新增 source manifest，固定每个上游仓库 commit 和 CSS hash。
 
 ### Phase 2：强化官方校验
 
 - 增强官方校验器。
-- 新增 CSS 规则数、字节数、组件覆盖、许可证策略、相似度门槛。
-- 先验证旧薄主题无法通过。
+- 新增 CSS 规则数、字节数、组件覆盖矩阵、许可证策略、相似度门槛。
+- 使用 legacy thin theme fixture 验证旧薄主题无法通过。
+- 增加 GPL / 无许可证防复制检测。
 
 ### Phase 3：逐套主题合同
 
