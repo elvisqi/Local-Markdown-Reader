@@ -1,307 +1,447 @@
 {
   "version": 1,
   "schemaVersion": 2,
-  "catalogVersion": "2026.07.08.official.1",
+  "catalogVersion": "2026.07.08.official.2",
   "updatedAt": "2026-07-08T00:00:00.000Z",
   "themes": [
     {
-      "id": "everforest-field",
-      "name": "Everforest Field",
+      "id": "anuppuccin",
+      "name": "AnuPpuccin for Local Markdown Reader",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Muted green field-note theme inspired by Everforest and Gruvbox.",
-      "minAppVersion": "2.3.1",
+      "description": "Playful pastel workspace with shaped callouts and pill controls.",
+      "minAppVersion": "2.3.2",
       "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/everforest-field.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/everforest-field.mdv-theme.json?v=1.0.0",
-      "sha256": "01443bb6a74e93e0c5bed98913d693718aae588ec62d80443a58d48582b94707",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/everforest-field.svg?v=1.0.0",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/anuppuccin.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/anuppuccin.mdv-theme.json?v=1.0.0",
+      "sha256": "9b63a3691fdcdd95350760b4314dfe33ad807fd552bd5ede71ceebc75d713e3a",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/anuppuccin.svg?v=1.0.0",
       "tags": [
-        "green",
-        "field-notes",
-        "warm"
-      ],
-      "features": [
-        "callouts",
-        "tables",
-        "code",
-        "tasks",
-        "outline"
-      ],
-      "previewFixtures": [
-        "note",
-        "tasks",
-        "table"
-      ]
-    },
-    {
-      "id": "github-workbench",
-      "name": "GitHub Workbench",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Developer documentation theme inspired by Gitsidian and GitHub Theme.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/github-workbench.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/github-workbench.mdv-theme.json?v=1.0.0",
-      "sha256": "92a9e6ef911849ebdf6a6d656b97d31943781097931d12df018016a49936379c",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/github-workbench.svg?v=1.0.0",
-      "tags": [
-        "developer",
-        "github",
-        "documentation"
-      ],
-      "features": [
-        "tables",
-        "code",
-        "file-tree",
-        "toolbar",
-        "json-yaml"
-      ],
-      "previewFixtures": [
-        "code",
-        "table",
-        "file-tree"
-      ]
-    },
-    {
-      "id": "minimal-manuscript",
-      "name": "Minimal Manuscript",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Quiet long-form writing surface inspired by Minimal and Shimmering Focus.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/minimal-manuscript.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/minimal-manuscript.mdv-theme.json?v=1.0.0",
-      "sha256": "38561b801818558bb22d444cac3f4e7a27680f869f709fab0401a29e34d02e2a",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/minimal-manuscript.svg?v=1.0.0",
-      "tags": [
-        "writing",
-        "minimal",
-        "longform"
-      ],
-      "features": [
-        "callouts",
-        "tables",
-        "code",
-        "outline",
-        "toolbar"
-      ],
-      "previewFixtures": [
-        "longform",
-        "code",
-        "callouts"
-      ]
-    },
-    {
-      "id": "nord-research",
-      "name": "Nord Research",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Cool research reading theme inspired by Obsidian Nord and Noctis.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/nord-research.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/nord-research.mdv-theme.json?v=1.0.0",
-      "sha256": "59c0b949711528516a1fc6e1bfa8ec44b6d022815e0a128d57c672f0bab2a960",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/nord-research.svg?v=1.0.0",
-      "tags": [
-        "cool",
-        "research",
-        "low-contrast"
-      ],
-      "features": [
-        "tables",
-        "code",
-        "mermaid",
-        "outline",
-        "file-tree"
-      ],
-      "previewFixtures": [
-        "table",
-        "mermaid",
-        "longform"
-      ]
-    },
-    {
-      "id": "primary-soft",
-      "name": "Primary Soft",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Soft knowledge-base theme inspired by Primary and Sanctum.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/primary-soft.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/primary-soft.mdv-theme.json?v=1.0.0",
-      "sha256": "87f12c5d047277a5e277463062709ba7495d7eb6ea02e5a9a4c4da5aa69e269d",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/primary-soft.svg?v=1.0.0",
-      "tags": [
-        "soft",
-        "knowledge",
-        "clean"
-      ],
-      "features": [
-        "callouts",
-        "tables",
-        "code",
-        "toolbar",
-        "outline"
-      ],
-      "previewFixtures": [
-        "note",
-        "longform",
-        "callouts"
-      ]
-    },
-    {
-      "id": "prism-spectrum",
-      "name": "Prism Spectrum",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Colorful structured notes inspired by Prism and AnuPpuccin.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/prism-spectrum.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/prism-spectrum.mdv-theme.json?v=1.0.0",
-      "sha256": "7ba52a25d28cad23324140a7543f6c3686ac455772114fdd52f34995d9659cdf",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/prism-spectrum.svg?v=1.0.0",
-      "tags": [
-        "colorful",
-        "notes",
-        "structured"
-      ],
-      "features": [
-        "callouts",
-        "tables",
-        "code",
-        "mermaid",
-        "toolbar"
-      ],
-      "previewFixtures": [
-        "callouts",
-        "tasks",
-        "mermaid"
-      ]
-    },
-    {
-      "id": "sanctum-archive",
-      "name": "Sanctum Archive",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Paper archive theme inspired by Sanctum and Notation.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/sanctum-archive.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/sanctum-archive.mdv-theme.json?v=1.0.0",
-      "sha256": "1ccd4250746c42af14ea25a2080a4aafe207dfb87562ac0c72ec53e4ea47e267",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/sanctum-archive.svg?v=1.0.0",
-      "tags": [
-        "paper",
-        "archive",
-        "serif"
-      ],
-      "features": [
-        "callouts",
-        "tables",
-        "code",
-        "outline"
-      ],
-      "previewFixtures": [
-        "longform",
-        "note",
-        "callouts"
-      ]
-    },
-    {
-      "id": "terminal-console",
-      "name": "Terminal Console",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Command-line reading surface inspired by Cybertron, Dracula, and popular terminal themes.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/terminal-console.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/terminal-console.mdv-theme.json?v=1.0.0",
-      "sha256": "7f3c9b6281b041512ff1e63cd3e7ea52165ff81376355328875219ec4010686b",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/terminal-console.svg?v=1.0.0",
-      "tags": [
-        "terminal",
-        "developer",
-        "contrast"
-      ],
-      "features": [
-        "code",
-        "tables",
-        "file-tree",
-        "toolbar",
-        "json-yaml"
-      ],
-      "previewFixtures": [
-        "code",
-        "json-yaml",
-        "file-tree"
-      ]
-    },
-    {
-      "id": "things-native",
-      "name": "Things Native",
-      "version": "1.0.0",
-      "author": "Local Markdown Reader",
-      "description": "Native productivity notes with crisp controls and compact navigation.",
-      "minAppVersion": "2.3.1",
-      "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/things-native.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/things-native.mdv-theme.json?v=1.0.0",
-      "sha256": "482fbfa7f6e3a0bdc688995a6bed1701a3352d1658cb888077f0435bfcff487b",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/things-native.svg?v=1.0.0",
-      "tags": [
-        "productivity",
-        "native",
+        "pastel",
+        "playful",
         "notes"
       ],
       "features": [
         "callouts",
         "tables",
+        "code",
+        "mermaid",
+        "json-yaml",
         "file-tree",
         "toolbar",
-        "outline"
+        "outline",
+        "chrome",
+        "narrow-screen"
       ],
       "previewFixtures": [
-        "dashboard",
+        "longform",
+        "table",
+        "code",
+        "callouts",
         "tasks",
-        "file-tree"
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
       ]
     },
     {
-      "id": "topaz-lab",
-      "name": "Topaz Lab",
+      "id": "blue-topaz",
+      "name": "Blue Topaz for Local Markdown Reader",
       "version": "1.0.0",
       "author": "Local Markdown Reader",
-      "description": "Information-rich research theme inspired by Blue Topaz and ITS.",
-      "minAppVersion": "2.3.1",
+      "description": "Information-rich research theme with dense tables and data panels.",
+      "minAppVersion": "2.3.2",
       "colorScheme": "system",
-      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/topaz-lab.mdv-theme.json?v=1.0.0",
-      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/topaz-lab.mdv-theme.json?v=1.0.0",
-      "sha256": "77fad536fa81f5d24c0f18b9552e9f1d2cde1df64a67624678aa100aa09f85a0",
-      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/topaz-lab.svg?v=1.0.0",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/blue-topaz.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/blue-topaz.mdv-theme.json?v=1.0.0",
+      "sha256": "0bf4d69995b71a8dbcfc3bc0b2152067466b82a9ce0f90d27a179f8afd847545",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/blue-topaz.svg?v=1.0.0",
       "tags": [
         "research",
-        "feature-rich",
-        "tables"
+        "tables",
+        "feature-rich"
       ],
       "features": [
         "callouts",
         "tables",
         "code",
-        "json-yaml",
         "mermaid",
-        "outline"
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "chrome",
+        "narrow-screen"
       ],
       "previewFixtures": [
+        "longform",
         "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
         "dashboard",
-        "mermaid"
+        "note"
+      ]
+    },
+    {
+      "id": "catppuccin",
+      "name": "Catppuccin for Local Markdown Reader",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Soft palette theme with editor-like code and rounded reading surfaces.",
+      "minAppVersion": "2.3.2",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/catppuccin.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/catppuccin.mdv-theme.json?v=1.0.0",
+      "sha256": "7d8954c0f4a8d85c6b809d5e243695f8afdfcd248c51ffe404a06edcd8b65040",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/catppuccin.svg?v=1.0.0",
+      "tags": [
+        "palette",
+        "soft",
+        "code"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "chrome",
+        "narrow-screen"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    {
+      "id": "cybertron",
+      "name": "Cybertron for Local Markdown Reader",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "High-contrast neon console theme with angular chrome and glowing panels.",
+      "minAppVersion": "2.3.2",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/cybertron.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/cybertron.mdv-theme.json?v=1.0.0",
+      "sha256": "cb69f82f7a7e4ee2fd3acc6e8d65c487efcf3aa97cece1c67168ebe568adca2b",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/cybertron.svg?v=1.0.0",
+      "tags": [
+        "neon",
+        "terminal",
+        "contrast"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "chrome",
+        "narrow-screen"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    {
+      "id": "everforest",
+      "name": "Everforest for Local Markdown Reader",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Muted green long-reading theme with warm editorial spacing.",
+      "minAppVersion": "2.3.2",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/everforest.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/everforest.mdv-theme.json?v=1.0.0",
+      "sha256": "c21d843394e7bb7f5e36afddcf7559e72c311707692c331cf7b6f7f63ac46781",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/everforest.svg?v=1.0.0",
+      "tags": [
+        "green",
+        "longform",
+        "soft"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "chrome",
+        "narrow-screen"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    {
+      "id": "its-theme",
+      "name": "ITS for Local Markdown Reader",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Dense dashboard and metadata theme for complex technical notes.",
+      "minAppVersion": "2.3.2",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/its-theme.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/its-theme.mdv-theme.json?v=1.0.0",
+      "sha256": "7384fa3c14a330a64eee04f2e7859d083d779c3cb20193202cd2105746a6c7bb",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/its-theme.svg?v=1.0.0",
+      "tags": [
+        "dense",
+        "dashboard",
+        "metadata"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "chrome",
+        "narrow-screen"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    {
+      "id": "minimal",
+      "name": "Minimal for Local Markdown Reader",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Quiet writing-first theme adapted for long Markdown reading.",
+      "minAppVersion": "2.3.2",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/minimal.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/minimal.mdv-theme.json?v=1.0.0",
+      "sha256": "a5f0596a46cb0a6a6cdb69cc0cc70ce4321a0930fbffeb92fd9c8d1f0a64479b",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/minimal.svg?v=1.0.0",
+      "tags": [
+        "minimal",
+        "writing",
+        "longform"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "chrome",
+        "narrow-screen"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    {
+      "id": "primary",
+      "name": "Primary for Local Markdown Reader",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Balanced rounded note theme with soft controls and calm callouts.",
+      "minAppVersion": "2.3.2",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/primary.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/primary.mdv-theme.json?v=1.0.0",
+      "sha256": "bdb58fe08ad16acc37570fa240d2dfe5c4e960efccedda260fa3df18afe6b04a",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/primary.svg?v=1.0.0",
+      "tags": [
+        "clean",
+        "rounded",
+        "notes"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "chrome",
+        "narrow-screen"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    {
+      "id": "prism",
+      "name": "Prism for Local Markdown Reader",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Colorful structured note theme with editorial heading markers.",
+      "minAppVersion": "2.3.2",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/prism.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/prism.mdv-theme.json?v=1.0.0",
+      "sha256": "f444d226a38036b89e9887259a644c81088c9e5743d18d4db8269deb58fdbe2f",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/prism.svg?v=1.0.0",
+      "tags": [
+        "colorful",
+        "structured",
+        "headings"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "chrome",
+        "narrow-screen"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    {
+      "id": "things",
+      "name": "Things for Local Markdown Reader",
+      "version": "1.0.0",
+      "author": "Local Markdown Reader",
+      "description": "Native productivity notes with crisp controls and compact navigation.",
+      "minAppVersion": "2.3.2",
+      "colorScheme": "system",
+      "downloadUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/things.mdv-theme.json?v=1.0.0",
+      "packageUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/things.mdv-theme.json?v=1.0.0",
+      "sha256": "76809c18dd1cc6b8063651bd2ed0d3d4e2fdc46f700128b41c7ddb0ec9a186d2",
+      "previewUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/things.svg?v=1.0.0",
+      "tags": [
+        "native",
+        "productivity",
+        "notes"
+      ],
+      "features": [
+        "callouts",
+        "tables",
+        "code",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "chrome",
+        "narrow-screen"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
       ]
     }
   ]

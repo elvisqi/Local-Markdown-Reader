@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-07-08T00:00:00.000Z",
+  "sources": [
+    {
+      "id": "minimal",
+      "bytes": 196,
+      "normalizedBytes": 146,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 29,
+      "textWindows": 27
+    },
+    {
+      "id": "things",
+      "bytes": 194,
+      "normalizedBytes": 145,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 28,
+      "textWindows": 26
+    },
+    {
+      "id": "anuppuccin",
+      "bytes": 201,
+      "normalizedBytes": 154,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 32,
+      "textWindows": 35
+    },
+    {
+      "id": "blue-topaz",
+      "bytes": 205,
+      "normalizedBytes": 152,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 32,
+      "textWindows": 33
+    },
+    {
+      "id": "catppuccin",
+      "bytes": 207,
+      "normalizedBytes": 154,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 32,
+      "textWindows": 35
+    },
+    {
+      "id": "everforest",
+      "bytes": 205,
+      "normalizedBytes": 152,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 32,
+      "textWindows": 33
+    },
+    {
+      "id": "its-theme",
+      "bytes": 201,
+      "normalizedBytes": 149,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 28,
+      "textWindows": 30
+    },
+    {
+      "id": "primary",
+      "bytes": 198,
+      "normalizedBytes": 148,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 29,
+      "textWindows": 29
+    },
+    {
+      "id": "prism",
+      "bytes": 190,
+      "normalizedBytes": 142,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 27,
+      "textWindows": 23
+    },
+    {
+      "id": "cybertron",
+      "bytes": 202,
+      "normalizedBytes": 150,
+      "declarationBlocks": 2,
+      "selectorTrigrams": 31,
+      "textWindows": 31
+    }
+  ]
+}

@@ -1,0 +1,350 @@
+{
+  "generatedAt": "2026-07-08T00:00:00.000Z",
+  "catalogVersion": "2026.07.08.official.2",
+  "allowPartial": false,
+  "themeCount": 10,
+  "themeIds": [
+    "minimal",
+    "things",
+    "anuppuccin",
+    "blue-topaz",
+    "catppuccin",
+    "everforest",
+    "its-theme",
+    "primary",
+    "prism",
+    "cybertron"
+  ],
+  "reports": [
+    {
+      "id": "minimal",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.9840213049267643,
+        "ruleCount": 177,
+        "declarationCount": 751,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "97413b625158181446554991f3d895972dd08fd5613eb62ce1611cec8be8b8a0",
+        "scopedCssHash": "0c64df9626a759a3d26054c34f9e39e0e5a7917297ff51524a6bae685bfc8245"
+      },
+      "allowPartial": false
+    },
+    {
+      "id": "things",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.988,
+        "ruleCount": 177,
+        "declarationCount": 750,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "bad1df690536f341da96ee81378f54f34e3b0b5d817447ae2474ce3359fbda95",
+        "scopedCssHash": "2211eb43dbf76e4a7ec029b50302f7e79d40097caa64452c0f57f5c45a01068c"
+      },
+      "allowPartial": false
+    },
+    {
+      "id": "anuppuccin",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.9880636604774535,
+        "ruleCount": 177,
+        "declarationCount": 754,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "e4c021bb2ab2348984554d24d589baa8e08177fd313bd8514a25d763341403f2",
+        "scopedCssHash": "cfbcc8622366f77e4bfa352d5b8cf9a61c1dbb828f4ca68f9c9b3754b68ebe0b"
+      },
+      "allowPartial": false
+    },
+    {
+      "id": "blue-topaz",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.9880478087649402,
+        "ruleCount": 177,
+        "declarationCount": 753,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "3f8e243201249e2c3b8cd6eeab366576149673273abe231b7e7456f5c9287d66",
+        "scopedCssHash": "f9020c15a0c60b18a2e566e0069d01f34c6151dc088e882f02219664e68e7ee2"
+      },
+      "allowPartial": false
+    },
+    {
+      "id": "catppuccin",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.988,
+        "ruleCount": 177,
+        "declarationCount": 750,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "eccbeac7807f7f71bf7bb413d0497cbb633b28a740735a2b646d79387cbb628f",
+        "scopedCssHash": "f8debab95e7f8b787d5b30a0cec6c06afd16aae0d8b1ec1054db094ed15a1800"
+      },
+      "allowPartial": false
+    },
+    {
+      "id": "everforest",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.9880159786950732,
+        "ruleCount": 177,
+        "declarationCount": 751,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "03bb9dfe461897cf0787456b352f12a13ff1f5a66e2194cc9655dbdb180664c3",
+        "scopedCssHash": "1d7c32f31aa8dd09a9e78398c2dd186b78c2ebe42ffa7f138add666cd9849f77"
+      },
+      "allowPartial": false
+    },
+    {
+      "id": "its-theme",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.9880636604774535,
+        "ruleCount": 177,
+        "declarationCount": 754,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "d991a5819ee0698a7431865427af62684aaef6e3578889777182bb606dba16bc",
+        "scopedCssHash": "e30ff570f08e4fc67050a22f0c4de712ac7d825e95fa794f55e08e25dc6a9b40"
+      },
+      "allowPartial": false
+    },
+    {
+      "id": "primary",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.988,
+        "ruleCount": 177,
+        "declarationCount": 750,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "e56dcad0c5e48169b56445660a0db3f749c6b89c6c5b90e8d31ab0b810734ef9",
+        "scopedCssHash": "fbebded669d268cb9e4f1c31388f51f866f6561debbdb96e710d6b8eae11edae"
+      },
+      "allowPartial": false
+    },
+    {
+      "id": "prism",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.988,
+        "ruleCount": 177,
+        "declarationCount": 750,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "f8177d3b1960aedae8c2ca22d086e127bfb7ec8c5febe31df371d7699b509b71",
+        "scopedCssHash": "050d29b6d7eb07e767d88eb17ecc85930fe9cc6ea84ef039956b37a0827798ad"
+      },
+      "allowPartial": false
+    },
+    {
+      "id": "cybertron",
+      "audit": {
+        "passed": true,
+        "errors": [],
+        "nonColorFeatureCount": 18,
+        "signatureFeatureCount": 3,
+        "nonColorDeclarationRatio": 0.9881578947368421,
+        "ruleCount": 177,
+        "declarationCount": 760,
+        "coveredComponents": [
+          "document",
+          "headings",
+          "tables",
+          "fullscreen-table",
+          "code",
+          "callouts",
+          "file-tree",
+          "toolbar",
+          "outline",
+          "mermaid",
+          "json-yaml",
+          "dashboard"
+        ],
+        "missingComponents": []
+      },
+      "sanitized": {
+        "sanitizerVersion": "theme-css-ast-v1",
+        "sourceCssHash": "d7c371c0b1017c72aa67b2a925dfde58af125b45667ebc40482a6fde2e1b260b",
+        "scopedCssHash": "a5f8780bd3082f8e8796a1017f6b5297b77f14f3e053d6b7ab6490bd0b4e540f"
+      },
+      "allowPartial": false
+    }
+  ]
+}

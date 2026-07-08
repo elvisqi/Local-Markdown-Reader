@@ -1,31 +1,27 @@
 # Theme Previews
 
-Generated visual preview and release materials for Local Markdown Reader 2.3.1 official remote themes.
+Generated visual preview and release materials for Local Markdown Reader 2.3.2.
 
 Run:
 
 ```bash
-npm run themes:official
-npm run themes:visual
-npm run themes:verify
+npm run themes:previews
 ```
 
 Generated assets:
 
-- [Theme showcase](./theme-showcase-2.3.1.svg)
-- [Release Markdown](./release-2.3.1.md)
+- [Theme showcase](./theme-showcase-2.3.2.svg)
+- [Release Markdown](./release-2.3.2.md)
 - [HTML gallery](./index.html)
-- Chrome headless screenshots in `../official/reports/screenshots/`
 
 Themes:
-
-- Minimal Manuscript
-- Things Native
-- Topaz Lab
-- Primary Soft
-- Prism Spectrum
-- Sanctum Archive
-- Terminal Console
-- Nord Research
-- Everforest Field
-- GitHub Workbench
+- [AnuPpuccin for Local Markdown Reader](./anuppuccin.svg)
+- [Blue Topaz for Local Markdown Reader](./blue-topaz.svg)
+- [Catppuccin for Local Markdown Reader](./catppuccin.svg)
+- [Cybertron for Local Markdown Reader](./cybertron.svg)
+- [Everforest for Local Markdown Reader](./everforest.svg)
+- [ITS for Local Markdown Reader](./its-theme.svg)
+- [Minimal for Local Markdown Reader](./minimal.svg)
+- [Primary for Local Markdown Reader](./primary.svg)
+- [Prism for Local Markdown Reader](./prism.svg)
+- [Things for Local Markdown Reader](./things.svg)

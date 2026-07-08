@@ -14,6 +14,10 @@ import {
   sanitizeAndScopeThemeCss,
   scopeThemeCss,
 } from './themeCss.js';
+import {
+  buildInstalledThemeStylesheetFromPackage,
+  buildReaderThemeStylesheetFromDefinition,
+} from './themeStylesheet.js';
 import { APP_VERSION } from './version';
 
 const THEMES_KEY = 'readerThemePackages';
@@ -707,14 +711,7 @@ export function serializeThemePackage(theme: ReaderThemePackage): string {
 }
 
 export function buildInstalledThemeStylesheet(theme: ReaderThemePackage | null): string {
-  if (!theme) {
-    return '';
-  }
-
-  const scope = `[data-reader-theme-id="${createInstalledReaderThemeId(theme.id)}"][data-reader-theme-id]`;
-  const tokenCss = buildReaderThemeTokenStylesheet(scope, theme.tokens, theme.lightTokens, theme.darkTokens);
-  const scopedCss = theme.scopedCss?.trim() || (theme.css.trim() ? scopeCss(theme.css, scope) : '');
-  return [tokenCss, scopedCss].filter(Boolean).join('\n\n');
+  return buildInstalledThemeStylesheetFromPackage(theme, createInstalledReaderThemeId);
 }
 
 export function buildBuiltinThemeStylesheet(theme: BuiltinReaderTheme | null): string {
@@ -726,44 +723,11 @@ export function buildBuiltinThemeStylesheet(theme: BuiltinReaderTheme | null): s
 }
 
 export function buildReaderThemeStylesheet(theme: { id: string; tokens: Record<string, string>; css: string }): string {
-  const scope = `[data-reader-theme-id="${theme.id}"][data-reader-theme-id]`;
-  const tokenCss = buildReaderThemeTokenStylesheet(scope, theme.tokens);
-  const scopedCss = theme.css.trim() ? scopeCss(theme.css, scope) : '';
-  return [tokenCss, scopedCss].filter(Boolean).join('\n\n');
+  return buildReaderThemeStylesheetFromDefinition(theme);
 }
 
 export function scopeCss(css: string, scope: string): string {
   return scopeThemeCss(css, scope);
-}
-
-function buildReaderThemeTokenStylesheet(
-  scope: string,
-  tokens: Record<string, string>,
-  lightTokens: Record<string, string> = {},
-  darkTokens: Record<string, string> = {},
-): string {
-  const blocks: string[] = [];
-  const sharedBlock = buildTokenBlock(scope, tokens);
-  if (sharedBlock) {
-    blocks.push(sharedBlock);
-  }
-
-  if (Object.keys(lightTokens).length) {
-    blocks.push(buildTokenBlock(`.theme-light${scope}`, lightTokens));
-    blocks.push(buildTokenBlock(`.theme-system${scope}`, lightTokens));
-  }
-
-  if (Object.keys(darkTokens).length) {
-    blocks.push(buildTokenBlock(`.theme-dark${scope}`, darkTokens));
-    blocks.push(`@media (prefers-color-scheme: dark) {\n${buildTokenBlock(`.theme-system${scope}`, darkTokens)}\n}`);
-  }
-
-  return blocks.filter(Boolean).join('\n\n');
-}
-
-function buildTokenBlock(selector: string, tokens: Record<string, string>): string {
-  const tokenLines = Object.entries(tokens).map(([name, value]) => `  ${name}: ${value};`);
-  return tokenLines.length ? `${selector} {\n${tokenLines.join('\n')}\n}` : '';
 }
 
 function normalizeThemePackage(

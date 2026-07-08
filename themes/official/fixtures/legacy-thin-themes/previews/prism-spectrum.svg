@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="Prism Spectrum theme preview">
+  <rect width="480" height="540" fill="#f7f7ff"/>
+  <rect x="480" width="480" height="540" fill="#11121d"/>
+  <rect x="32" y="36" width="416" height="468" rx="14" fill="#ffffff" stroke="#d9d8ef"/>
+  <rect x="52" y="58" width="376" height="34" rx="8" fill="#fbfbff" stroke="#d9d8ef"/>
+  <circle cx="74" cy="75" r="5" fill="#d45ca9"/>
+  <text x="92" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#6d6a82">Light</text>
+  <text x="52" y="132" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#25243a">Prism Spectrum</text>
+  <rect x="52" y="150" width="150" height="3" rx="1.5" fill="#d45ca9"/>
+  <text x="52" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#25243a">Distinct heading colors, colored tags, lively but bounded acce</text>
+  <rect x="52" y="214" width="376" height="82" rx="10" fill="#f0effa" stroke="#d9d8ef"/>
+  <text x="70" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#5a64d8">const theme = "prism-spectrum"</text>
+  <text x="70" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#6d6a82">// multi-color heading ladder</text>
+  <rect x="52" y="320" width="180" height="104" rx="10" fill="#fbf0f7" stroke="#d9d8ef"/>
+  <rect x="52" y="320" width="5" height="104" rx="2" fill="#d45ca9"/>
+  <text x="72" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#25243a">Callout</text>
+  <text x="72" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#6d6a82">saturated tag accents</text>
+  <rect x="252" y="320" width="176" height="104" rx="8" fill="#f0effb" stroke="#d9d8ef"/>
+  <line x1="252" y1="354" x2="428" y2="354" stroke="#d9d8ef"/>
+  <line x1="252" y1="388" x2="428" y2="388" stroke="#d9d8ef"/>
+  <text x="270" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#25243a">Rows</text>
+  <text x="352" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#25243a">Cols</text>
+  <text x="270" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#6d6a82">26</text>
+  <text x="352" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#6d6a82">10</text>
+  <rect x="52" y="452" width="72" height="22" rx="11" fill="#f5e8f4"/>
+  <text x="68" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#d45ca9">#theme</text>
+  <rect x="512" y="36" width="416" height="468" rx="14" fill="#191a29" stroke="#303249"/>
+  <rect x="532" y="58" width="376" height="34" rx="8" fill="#151725" stroke="#303249"/>
+  <circle cx="554" cy="75" r="5" fill="#ff8ad8"/>
+  <text x="572" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#aaa9c0">Dark</text>
+  <text x="532" y="132" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#ececff">Prism Spectrum</text>
+  <rect x="532" y="150" width="150" height="3" rx="1.5" fill="#ff8ad8"/>
+  <text x="532" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#ececff">Distinct heading colors, colored tags, lively but bounded acce</text>
+  <rect x="532" y="214" width="376" height="82" rx="10" fill="#222337" stroke="#303249"/>
+  <text x="550" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#9ca8ff">const theme = "prism-spectrum"</text>
+  <text x="550" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#aaa9c0">// multi-color heading ladder</text>
+  <rect x="532" y="320" width="180" height="104" rx="10" fill="#2a2032" stroke="#303249"/>
+  <rect x="532" y="320" width="5" height="104" rx="2" fill="#ff8ad8"/>
+  <text x="552" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#ececff">Callout</text>
+  <text x="552" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#aaa9c0">saturated tag accents</text>
+  <rect x="732" y="320" width="176" height="104" rx="8" fill="#262840" stroke="#303249"/>
+  <line x1="732" y1="354" x2="908" y2="354" stroke="#303249"/>
+  <line x1="732" y1="388" x2="908" y2="388" stroke="#303249"/>
+  <text x="750" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#ececff">Rows</text>
+  <text x="832" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#ececff">Cols</text>
+  <text x="750" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#aaa9c0">26</text>
+  <text x="832" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#aaa9c0">10</text>
+  <rect x="532" y="452" width="72" height="22" rx="11" fill="#35243a"/>
+  <text x="548" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#ff8ad8">#theme</text>
+</svg>

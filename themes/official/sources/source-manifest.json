@@ -1,0 +1,236 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-08T00:00:00.000Z",
+  "sources": [
+    {
+      "id": "minimal",
+      "referenceId": "obsidian:minimal",
+      "repositoryUrl": "https://github.com/kepano/obsidian-minimal",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "68fa4b37e2188b1bd121d69493e0d5f7ce71680f"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/kepano/obsidian-minimal",
+        "sha256": "36bad14cf836d1c8c64dde28c091f48348122f719061cf922c2d7c46eb084c0d"
+      },
+      "cssSha256": "a24d2ddac5f519fe815e5678bdd3f149683fae3f23820f1ad52148477a1876fa",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Minimal for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    },
+    {
+      "id": "things",
+      "referenceId": "obsidian:things",
+      "repositoryUrl": "https://github.com/colineckert/obsidian-things",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "e25d664dca7a2aba014316b0588cb629f705118a"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/colineckert/obsidian-things",
+        "sha256": "db2d33a8a8789a855823b0c83dee2501bebe6059cc10612f8722dda66b046e54"
+      },
+      "cssSha256": "bbee50f0f0bb34360f53827bede9b896999b58aec826928445ab1b682acd6cd0",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Things for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    },
+    {
+      "id": "anuppuccin",
+      "referenceId": "obsidian:anup",
+      "repositoryUrl": "https://github.com/anubisnekhet/AnuPpuccin",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "5a60e28c16faefa5a4833d486e1980b581f15669"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/anubisnekhet/AnuPpuccin",
+        "sha256": "c5d1966014f4e6f87c85b1f04a8611f0e6c169487b3b95c2c8c3f8a15cdfbd20"
+      },
+      "cssSha256": "f3f3d38b7f2d3cdd5faf884b12a7939554bc5da8e425c75c7f6adb4ab8646569",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "AnuPpuccin for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    },
+    {
+      "id": "blue-topaz",
+      "referenceId": "obsidian:blue-topaz",
+      "repositoryUrl": "https://github.com/pkm-er/Blue-Topaz_Obsidian-css",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "8e8acfd94f35e296d1322a91750f0683cb25e8b7"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/pkm-er/Blue-Topaz_Obsidian-css",
+        "sha256": "b13fa0ab471fff933bd7516304315f928cbc4b1579d1b890a7e9f4d329a32507"
+      },
+      "cssSha256": "4cfd07dd5a6f63c1261de37682a950c199a5250fc96a827ab6eef46e733ffb63",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Blue Topaz for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    },
+    {
+      "id": "catppuccin",
+      "referenceId": "obsidian:catppuccin",
+      "repositoryUrl": "https://github.com/catppuccin/obsidian",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "60ba947cb91326b1b17dc06b34ce14c837514215"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/catppuccin/obsidian",
+        "sha256": "1b5314a73640992e0b4905a79c653ac799788c291833dcb8dd961bee500033d5"
+      },
+      "cssSha256": "a47d4e49e5742a928bac72f7ec105d06baa9f08ed218ea6839980a63df90f9dd",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Catppuccin for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    },
+    {
+      "id": "everforest",
+      "referenceId": "obsidian:everforest",
+      "repositoryUrl": "https://github.com/0xglitchbyte/obsidian_everforest",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "2ca0d333e9295f70e26efc0eea4559141461dfe4"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/0xglitchbyte/obsidian_everforest",
+        "sha256": "5f6f8dddcec35ae27594da2efb24989ff2b51ee50341a54d3c011bbb09176a3b"
+      },
+      "cssSha256": "ae6969c803f095836adfa293dd628e7607c021c3cd6ab22897da0def3ee8b584",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Everforest for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    },
+    {
+      "id": "its-theme",
+      "referenceId": "obsidian:its-theme",
+      "repositoryUrl": "https://github.com/slrvb/Obsidian--ITS-Theme",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "9b3a8a6b14a0ae91c0d80c1e743bee0dea132cbf"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/slrvb/Obsidian--ITS-Theme",
+        "sha256": "1dd8c763a50d3376ee0e949bbd1acce532b31aa28d465229b453572f9560f43d"
+      },
+      "cssSha256": "7ea11df91ec411633f29ff7938fff58a6f6a5a67e4e556cf84959caf4aed1e98",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "ITS for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    },
+    {
+      "id": "primary",
+      "referenceId": "obsidian:primary",
+      "repositoryUrl": "https://github.com/primary-theme/obsidian",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "0b109c67f11e295dfcefdbc7572ff973f0423a4b"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/primary-theme/obsidian",
+        "sha256": "746e3fd2b0c6a6b26e3e1795bc339059a3c27f22e5cd0b0cecbd98b27c5a29d2"
+      },
+      "cssSha256": "b2ffd21b2f968a3a54ec0babaf7a5c2e0990e7f6c0699a07ab3a2c8fda22f61c",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Primary for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    },
+    {
+      "id": "prism",
+      "referenceId": "obsidian:prism",
+      "repositoryUrl": "https://github.com/damiankorcz/Prism-Theme",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "e39f6be0c0bc01c96f32b1b152c1aea7fca3f958"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/damiankorcz/Prism-Theme",
+        "sha256": "5ca189248ba314a2f4206ac0b80ddb4fe9f31dddccb0e1a9a0279ce0850ef9af"
+      },
+      "cssSha256": "101c7817732ba495530817564e3a0a5a9b3d97a1aaeb5272b415a0c046ad76f1",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Prism for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    },
+    {
+      "id": "cybertron",
+      "referenceId": "obsidian:cybertron",
+      "repositoryUrl": "https://github.com/nickmilo/Cybertron",
+      "cssPath": "theme.css",
+      "upstream": {
+        "branch": "master",
+        "commit": "5fbcd7838fb4f5f52f863fcf32c1e22c988807ee"
+      },
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/nickmilo/Cybertron",
+        "sha256": "195d9f8fe461d4c8605fe78953af012e6bac53a93a323e3058e12406e9ef050e"
+      },
+      "cssSha256": "e207a72c4b846ca83f28a7897073a102531468591f635966e534b7e38161f60d",
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Cybertron for Local Markdown Reader",
+        "allowed": true,
+        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+      }
+    }
+  ]
+}

@@ -1,122 +1,19 @@
 {
   "generatedAt": "2026-07-08T00:00:00.000Z",
   "passed": true,
+  "allowPartial": false,
   "themeCount": 10,
-  "checks": [
-    {
-      "id": "minimal-manuscript",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 7
-      }
-    },
-    {
-      "id": "things-native",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 6
-      }
-    },
-    {
-      "id": "topaz-lab",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 7
-      }
-    },
-    {
-      "id": "primary-soft",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 6
-      }
-    },
-    {
-      "id": "prism-spectrum",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 6
-      }
-    },
-    {
-      "id": "sanctum-archive",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 6
-      }
-    },
-    {
-      "id": "terminal-console",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 6
-      }
-    },
-    {
-      "id": "nord-research",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 6
-      }
-    },
-    {
-      "id": "everforest-field",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 6
-      }
-    },
-    {
-      "id": "github-workbench",
-      "passed": true,
-      "checks": {
-        "dualMode": true,
-        "lightTokens": 64,
-        "darkTokens": 64,
-        "differentiators": 4,
-        "componentCoverage": 6
-      }
-    }
+  "themeIds": [
+    "minimal",
+    "things",
+    "anuppuccin",
+    "blue-topaz",
+    "catppuccin",
+    "everforest",
+    "its-theme",
+    "primary",
+    "prism",
+    "cybertron"
   ],
-  "similarity": {
-    "themeCount": 10,
-    "maxTokenSimilarity": 0.256,
-    "maxCssSelectorSimilarity": 0.625
-  }
+  "errors": []
 }

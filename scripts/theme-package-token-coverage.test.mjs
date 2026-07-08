@@ -13,6 +13,30 @@ const REMOVED_OBSIDIAN_THEME_IDS = [
   'typewriter-desk',
   'its-readable',
 ];
+const LEGACY_THIN_OFFICIAL_THEME_IDS = [
+  'everforest-field',
+  'github-workbench',
+  'minimal-manuscript',
+  'nord-research',
+  'primary-soft',
+  'prism-spectrum',
+  'sanctum-archive',
+  'terminal-console',
+  'things-native',
+  'topaz-lab',
+];
+const DEEP_REPLICA_OFFICIAL_THEME_IDS = [
+  'anuppuccin',
+  'blue-topaz',
+  'catppuccin',
+  'cybertron',
+  'everforest',
+  'its-theme',
+  'minimal',
+  'primary',
+  'prism',
+  'things',
+];
 
 describe('removed Obsidian draft theme packages', () => {
   it.each(REMOVED_OBSIDIAN_THEME_IDS)('%s no longer ships as a remote theme package', (themeId) => {
@@ -30,22 +54,16 @@ describe('removed Obsidian draft theme packages', () => {
       expect(metadataIds.has(themeId), `${themeId} should not be in metadata`).toBe(false);
       expect(indexIds.has(themeId), `${themeId} should not be in index`).toBe(false);
     }
+    for (const themeId of LEGACY_THIN_OFFICIAL_THEME_IDS) {
+      expect(metadataIds.has(themeId), `${themeId} should not be in metadata`).toBe(false);
+      expect(indexIds.has(themeId), `${themeId} should not be in index`).toBe(false);
+      expect(existsSync(resolve(process.cwd(), 'themes', 'official', 'fixtures', 'legacy-thin-themes', 'packages', `${themeId}.mdv-theme.json`))).toBe(true);
+    }
   });
 
-  it('ships the redesigned official remote theme packages', () => {
+  it('ships the deep replica official remote theme packages', () => {
     const index = JSON.parse(readFileSync(resolve(process.cwd(), 'themes', 'index.json'), 'utf8'));
 
-    expect((index.themes ?? []).map((theme) => theme.id).sort()).toEqual([
-      'everforest-field',
-      'github-workbench',
-      'minimal-manuscript',
-      'nord-research',
-      'primary-soft',
-      'prism-spectrum',
-      'sanctum-archive',
-      'terminal-console',
-      'things-native',
-      'topaz-lab',
-    ]);
+    expect((index.themes ?? []).map((theme) => theme.id).sort()).toEqual(DEEP_REPLICA_OFFICIAL_THEME_IDS);
   });
 });

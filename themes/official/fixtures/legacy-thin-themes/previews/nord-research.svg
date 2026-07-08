@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="Nord Research theme preview">
+  <rect width="480" height="540" fill="#eef3f7"/>
+  <rect x="480" width="480" height="540" fill="#10151d"/>
+  <rect x="32" y="36" width="416" height="468" rx="14" fill="#fbfdff" stroke="#ccd8e4"/>
+  <rect x="52" y="58" width="376" height="34" rx="8" fill="#f4f8fb" stroke="#ccd8e4"/>
+  <circle cx="74" cy="75" r="5" fill="#5e81ac"/>
+  <text x="92" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#657586">Light</text>
+  <text x="52" y="132" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#253142">Nord Research</text>
+  <rect x="52" y="150" width="150" height="3" rx="1.5" fill="#5e81ac"/>
+  <text x="52" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#253142">Frosted cool palette, low-glare contrast, precise table and di</text>
+  <rect x="52" y="214" width="376" height="82" rx="10" fill="#e9eef4" stroke="#ccd8e4"/>
+  <text x="70" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#4f77a6">const theme = "nord-research"</text>
+  <text x="70" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#657586">// cool frosted surfaces</text>
+  <rect x="52" y="320" width="180" height="104" rx="10" fill="#eef5fa" stroke="#ccd8e4"/>
+  <rect x="52" y="320" width="5" height="104" rx="2" fill="#5e81ac"/>
+  <text x="72" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#253142">Callout</text>
+  <text x="72" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#657586">diagram-oriented palette</text>
+  <rect x="252" y="320" width="176" height="104" rx="8" fill="#e8f0f6" stroke="#ccd8e4"/>
+  <line x1="252" y1="354" x2="428" y2="354" stroke="#ccd8e4"/>
+  <line x1="252" y1="388" x2="428" y2="388" stroke="#ccd8e4"/>
+  <text x="270" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#253142">Rows</text>
+  <text x="352" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#253142">Cols</text>
+  <text x="270" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#657586">26</text>
+  <text x="352" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#657586">10</text>
+  <rect x="52" y="452" width="72" height="22" rx="11" fill="#e4edf5"/>
+  <text x="68" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#5e81ac">#theme</text>
+  <rect x="512" y="36" width="416" height="468" rx="14" fill="#17202b" stroke="#2d3948"/>
+  <rect x="532" y="58" width="376" height="34" rx="8" fill="#131b25" stroke="#2d3948"/>
+  <circle cx="554" cy="75" r="5" fill="#81a1c1"/>
+  <text x="572" y="80" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#9aaabd">Dark</text>
+  <text x="532" y="132" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#e5edf5">Nord Research</text>
+  <rect x="532" y="150" width="150" height="3" rx="1.5" fill="#81a1c1"/>
+  <text x="532" y="184" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#e5edf5">Frosted cool palette, low-glare contrast, precise table and di</text>
+  <rect x="532" y="214" width="376" height="82" rx="10" fill="#202a36" stroke="#2d3948"/>
+  <text x="550" y="242" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#88c0d0">const theme = "nord-research"</text>
+  <text x="550" y="266" font-family="SFMono-Regular, Consolas, monospace" font-size="13" fill="#9aaabd">// cool frosted surfaces</text>
+  <rect x="532" y="320" width="180" height="104" rx="10" fill="#182635" stroke="#2d3948"/>
+  <rect x="532" y="320" width="5" height="104" rx="2" fill="#81a1c1"/>
+  <text x="552" y="350" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#e5edf5">Callout</text>
+  <text x="552" y="374" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#9aaabd">diagram-oriented palette</text>
+  <rect x="732" y="320" width="176" height="104" rx="8" fill="#202d3a" stroke="#2d3948"/>
+  <line x1="732" y1="354" x2="908" y2="354" stroke="#2d3948"/>
+  <line x1="732" y1="388" x2="908" y2="388" stroke="#2d3948"/>
+  <text x="750" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#e5edf5">Rows</text>
+  <text x="832" y="343" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#e5edf5">Cols</text>
+  <text x="750" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#9aaabd">26</text>
+  <text x="832" y="377" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#9aaabd">10</text>
+  <rect x="532" y="452" width="72" height="22" rx="11" fill="#1f3241"/>
+  <text x="548" y="467" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#81a1c1">#theme</text>
+</svg>

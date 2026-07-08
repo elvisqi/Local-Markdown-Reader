@@ -1,23 +1,23 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const RELEASE_VERSION = '2.3.1';
+import { buildRealPreviewPages } from './theme-rebuild/build-real-preview-page.mjs';
+
+const RELEASE_VERSION = '2.3.2';
 const PREVIEW_DIR = 'themes/previews';
 const THEME_BASE_URL = 'https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/';
 const PREVIEW_BASE_URL = `${THEME_BASE_URL}previews/`;
 const PACKAGE_BASE_URL = `${THEME_BASE_URL}packages/`;
-const THEME_IDS = [];
 
 export async function buildThemePreviews({ rootDir = process.cwd() } = {}) {
   const outputDir = resolve(rootDir, PREVIEW_DIR);
   await mkdir(outputDir, { recursive: true });
 
-  const themes = [];
-  for (const themeId of THEME_IDS) {
-    const theme = await readThemePackage(rootDir, themeId);
-    themes.push(theme);
+  const themes = await readThemePackages(rootDir);
+  for (const theme of themes) {
     await writeFile(resolve(outputDir, `${theme.id}.svg`), renderThemePreviewSvg(theme));
   }
+  await buildRealPreviewPages({ rootDir, themes });
 
   await writeFile(resolve(outputDir, `theme-showcase-${RELEASE_VERSION}.svg`), renderShowcaseSvg(themes));
   await writeFile(resolve(outputDir, 'index.html'), renderGalleryHtml(themes));
@@ -27,9 +27,14 @@ export async function buildThemePreviews({ rootDir = process.cwd() } = {}) {
   return themes;
 }
 
-async function readThemePackage(rootDir, themeId) {
-  const packagePath = resolve(rootDir, 'themes', 'packages', `${themeId}.mdv-theme.json`);
-  return JSON.parse(await readFile(packagePath, 'utf8'));
+async function readThemePackages(rootDir) {
+  const packagesDir = resolve(rootDir, 'themes', 'packages');
+  const files = (await readdir(packagesDir))
+    .filter((file) => file.endsWith('.mdv-theme.json'))
+    .sort((a, b) => a.localeCompare(b));
+  return Promise.all(files.map(async (file) => (
+    JSON.parse(await readFile(resolve(packagesDir, file), 'utf8'))
+  )));
 }
 
 function renderThemePreviewSvg(theme) {
@@ -82,7 +87,7 @@ function renderShowcaseSvg(themes) {
 
 function renderThemeCard(theme, frame) {
   const { x, y, width, height, large } = frame;
-  const tokens = theme.tokens ?? {};
+  const tokens = { ...(theme.tokens ?? {}), ...(theme.lightTokens ?? {}) };
   const pageBg = token(tokens, '--reader-page-bg', '#f3f4f6');
   const surface = token(tokens, '--reader-surface', '#ffffff');
   const border = token(tokens, '--reader-border', '#d1d5db');
@@ -129,7 +134,7 @@ ${previewCss}
 }
 
 function renderPreviewCss(theme, { large, scope }) {
-  const tokens = theme.tokens ?? {};
+  const tokens = { ...(theme.tokens ?? {}), ...(theme.lightTokens ?? {}) };
   const accent = token(tokens, '--reader-accent', token(tokens, '--reader-link', '#2563eb'));
   const tokenLines = Object.entries(tokens).map(([name, value]) => `  ${name}: ${value};`);
   const scopedThemeCss = theme.css?.trim() ? scopePreviewCss(theme.css, scope) : '';

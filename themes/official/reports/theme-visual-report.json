@@ -2,338 +2,3499 @@
   "generatedAt": "2026-07-08T00:00:00.000Z",
   "renderer": "google-chrome-headless",
   "passed": true,
+  "manualAcceptance": true,
+  "reviewedScreenshots": [
+    "themes/official/reports/screenshots/anuppuccin/catalog-card.png",
+    "themes/official/reports/screenshots/anuppuccin/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/anuppuccin/options-preview-dark.png",
+    "themes/official/reports/screenshots/anuppuccin/options-preview-light.png",
+    "themes/official/reports/screenshots/anuppuccin/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/anuppuccin/reader-desktop-light.png",
+    "themes/official/reports/screenshots/anuppuccin/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/anuppuccin/reader-narrow-light.png",
+    "themes/official/reports/screenshots/anuppuccin/table-fullscreen.png",
+    "themes/official/reports/screenshots/blue-topaz/catalog-card.png",
+    "themes/official/reports/screenshots/blue-topaz/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/blue-topaz/options-preview-dark.png",
+    "themes/official/reports/screenshots/blue-topaz/options-preview-light.png",
+    "themes/official/reports/screenshots/blue-topaz/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/blue-topaz/reader-desktop-light.png",
+    "themes/official/reports/screenshots/blue-topaz/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/blue-topaz/reader-narrow-light.png",
+    "themes/official/reports/screenshots/blue-topaz/table-fullscreen.png",
+    "themes/official/reports/screenshots/catppuccin/catalog-card.png",
+    "themes/official/reports/screenshots/catppuccin/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/catppuccin/options-preview-dark.png",
+    "themes/official/reports/screenshots/catppuccin/options-preview-light.png",
+    "themes/official/reports/screenshots/catppuccin/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/catppuccin/reader-desktop-light.png",
+    "themes/official/reports/screenshots/catppuccin/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/catppuccin/reader-narrow-light.png",
+    "themes/official/reports/screenshots/catppuccin/table-fullscreen.png",
+    "themes/official/reports/screenshots/cybertron/catalog-card.png",
+    "themes/official/reports/screenshots/cybertron/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/cybertron/options-preview-dark.png",
+    "themes/official/reports/screenshots/cybertron/options-preview-light.png",
+    "themes/official/reports/screenshots/cybertron/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/cybertron/reader-desktop-light.png",
+    "themes/official/reports/screenshots/cybertron/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/cybertron/reader-narrow-light.png",
+    "themes/official/reports/screenshots/cybertron/table-fullscreen.png",
+    "themes/official/reports/screenshots/everforest-field.png",
+    "themes/official/reports/screenshots/everforest/catalog-card.png",
+    "themes/official/reports/screenshots/everforest/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/everforest/options-preview-dark.png",
+    "themes/official/reports/screenshots/everforest/options-preview-light.png",
+    "themes/official/reports/screenshots/everforest/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/everforest/reader-desktop-light.png",
+    "themes/official/reports/screenshots/everforest/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/everforest/reader-narrow-light.png",
+    "themes/official/reports/screenshots/everforest/table-fullscreen.png",
+    "themes/official/reports/screenshots/github-workbench.png",
+    "themes/official/reports/screenshots/index.png",
+    "themes/official/reports/screenshots/its-theme/catalog-card.png",
+    "themes/official/reports/screenshots/its-theme/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/its-theme/options-preview-dark.png",
+    "themes/official/reports/screenshots/its-theme/options-preview-light.png",
+    "themes/official/reports/screenshots/its-theme/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/its-theme/reader-desktop-light.png",
+    "themes/official/reports/screenshots/its-theme/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/its-theme/reader-narrow-light.png",
+    "themes/official/reports/screenshots/its-theme/table-fullscreen.png",
+    "themes/official/reports/screenshots/minimal-manuscript.png",
+    "themes/official/reports/screenshots/minimal/catalog-card.png",
+    "themes/official/reports/screenshots/minimal/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/minimal/options-preview-dark.png",
+    "themes/official/reports/screenshots/minimal/options-preview-light.png",
+    "themes/official/reports/screenshots/minimal/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/minimal/reader-desktop-light.png",
+    "themes/official/reports/screenshots/minimal/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/minimal/reader-narrow-light.png",
+    "themes/official/reports/screenshots/minimal/table-fullscreen.png",
+    "themes/official/reports/screenshots/nord-research.png",
+    "themes/official/reports/screenshots/primary-soft.png",
+    "themes/official/reports/screenshots/primary/catalog-card.png",
+    "themes/official/reports/screenshots/primary/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/primary/options-preview-dark.png",
+    "themes/official/reports/screenshots/primary/options-preview-light.png",
+    "themes/official/reports/screenshots/primary/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/primary/reader-desktop-light.png",
+    "themes/official/reports/screenshots/primary/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/primary/reader-narrow-light.png",
+    "themes/official/reports/screenshots/primary/table-fullscreen.png",
+    "themes/official/reports/screenshots/prism-spectrum.png",
+    "themes/official/reports/screenshots/prism/catalog-card.png",
+    "themes/official/reports/screenshots/prism/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/prism/options-preview-dark.png",
+    "themes/official/reports/screenshots/prism/options-preview-light.png",
+    "themes/official/reports/screenshots/prism/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/prism/reader-desktop-light.png",
+    "themes/official/reports/screenshots/prism/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/prism/reader-narrow-light.png",
+    "themes/official/reports/screenshots/prism/table-fullscreen.png",
+    "themes/official/reports/screenshots/sanctum-archive.png",
+    "themes/official/reports/screenshots/terminal-console.png",
+    "themes/official/reports/screenshots/things-native.png",
+    "themes/official/reports/screenshots/things/catalog-card.png",
+    "themes/official/reports/screenshots/things/mermaid-fullscreen.png",
+    "themes/official/reports/screenshots/things/options-preview-dark.png",
+    "themes/official/reports/screenshots/things/options-preview-light.png",
+    "themes/official/reports/screenshots/things/reader-desktop-dark.png",
+    "themes/official/reports/screenshots/things/reader-desktop-light.png",
+    "themes/official/reports/screenshots/things/reader-narrow-dark.png",
+    "themes/official/reports/screenshots/things/reader-narrow-light.png",
+    "themes/official/reports/screenshots/things/table-fullscreen.png",
+    "themes/official/reports/screenshots/topaz-lab.png"
+  ],
   "themes": [
     {
-      "id": "minimal-manuscript",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/minimal-manuscript.png#light-half",
-        "dark": "themes/official/reports/screenshots/minimal-manuscript.png#dark-half",
-        "composite": "themes/official/reports/screenshots/minimal-manuscript.png"
-      },
-      "sourceCssHash": "50815ad8c416225765cfbddef837faa5412c95adea98c1c99d604cfa976db581",
-      "scopedCssHash": "0890924a276321a8e379595970d89d732a219551e2bd70bd7e5a563056b66c91",
-      "resolvedTokensHash": "fa8b0470ece95fd3d1ddfe5d6158c6f17408ceb56f30d8eb0fce182648a25651",
+      "id": "minimal",
+      "sourceCssHash": "97413b625158181446554991f3d895972dd08fd5613eb62ce1611cec8be8b8a0",
+      "scopedCssHash": "0c64df9626a759a3d26054c34f9e39e0e5a7917297ff51524a6bae685bfc8245",
+      "resolvedTokensHash": "da0b6e5f3fc0e22380cbac1265f56f1b5544d148efa5aabc499994e5b5901657",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/minimal/catalog-card.png",
+        "themes/official/reports/screenshots/minimal/options-preview-light.png",
+        "themes/official/reports/screenshots/minimal/options-preview-dark.png",
+        "themes/official/reports/screenshots/minimal/reader-desktop-light.png",
+        "themes/official/reports/screenshots/minimal/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/minimal/reader-narrow-light.png",
+        "themes/official/reports/screenshots/minimal/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/minimal/table-fullscreen.png",
+        "themes/official/reports/screenshots/minimal/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "chrome-quiet-flat",
+        "chrome-scrollbar-themed",
+        "type-paragraph-air",
+        "type-list-rhythm",
+        "heading-quiet-scale",
+        "heading-bottom-rule",
+        "table-cell-borderless",
+        "table-spacious-grid",
+        "callout-low-noise",
+        "callout-left-rail",
+        "code-soft-panel",
+        "code-inline-pill",
+        "tree-low-noise",
+        "tree-compact-rows",
+        "outline-quiet-hover",
+        "outline-active-rail",
+        "control-sharp-buttons",
+        "control-focus-ring"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "chrome-quiet-flat",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-scrollbar-themed",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-paragraph-air",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-list-rhythm",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-quiet-scale",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-bottom-rule",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-cell-borderless",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-spacious-grid",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-low-noise",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-left-rail",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-soft-panel",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-inline-pill",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-low-noise",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-compact-rows",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-quiet-hover",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-active-rail",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-sharp-buttons",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-focus-ring",
+          "screenshotPath": "themes/official/reports/screenshots/minimal/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "chrome-quiet-flat",
+        "chrome-scrollbar-themed",
+        "type-paragraph-air",
+        "type-list-rhythm",
+        "heading-quiet-scale",
+        "heading-bottom-rule",
+        "table-cell-borderless",
+        "table-spacious-grid",
+        "callout-low-noise",
+        "callout-left-rail"
+      ],
+      "rejectedFeatureIds": [],
       "domAssertions": {
         "document": true,
         "headings": true,
         "table": true,
-        "code": true,
-        "callout": true,
-        "toolbar": true,
-        "fileTree": false,
-        "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
-        "table": true,
-        "mermaid": false
-      },
-      "manualAcceptance": true,
-      "notes": "Low ornament, generous vertical rhythm, thin dividers, manuscript-like headings."
-    },
-    {
-      "id": "things-native",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/things-native.png#light-half",
-        "dark": "themes/official/reports/screenshots/things-native.png#dark-half",
-        "composite": "themes/official/reports/screenshots/things-native.png"
-      },
-      "sourceCssHash": "9a56eb7ea355ea88565846f99be8183f4beb011a237f050d5dc2935eee19ac8a",
-      "scopedCssHash": "6bbf29ba4d6227ed99e6fa455dd904a10fa12fae45b72d30fa88291407aac3e0",
-      "resolvedTokensHash": "38001cdbe971f84ac8a28005511d6f4b2c744a6e5dc0daff5f04bec2ec9ad217",
-      "domAssertions": {
-        "document": true,
-        "headings": true,
-        "table": true,
-        "code": true,
-        "callout": true,
         "toolbar": true,
         "fileTree": true,
         "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
-        "table": true,
-        "mermaid": false
-      },
-      "manualAcceptance": true,
-      "notes": "Mac-like control density, rounded selection rails, compact file navigation."
+      }
     },
     {
-      "id": "topaz-lab",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/topaz-lab.png#light-half",
-        "dark": "themes/official/reports/screenshots/topaz-lab.png#dark-half",
-        "composite": "themes/official/reports/screenshots/topaz-lab.png"
-      },
-      "sourceCssHash": "acee14e11e20710f6f90be709076d9bdae5314f273e43e3f8df6a34f3e3f85b1",
-      "scopedCssHash": "99926914125220d824f05a3fc19b43b4a98da132f32dfa1a5fe59355ded985b3",
-      "resolvedTokensHash": "3d8930e6c04cbe4a120ff10fee4bb2f528267325b96938461b2b2df4379f8574",
+      "id": "things",
+      "sourceCssHash": "bad1df690536f341da96ee81378f54f34e3b0b5d817447ae2474ce3359fbda95",
+      "scopedCssHash": "2211eb43dbf76e4a7ec029b50302f7e79d40097caa64452c0f57f5c45a01068c",
+      "resolvedTokensHash": "cae0460b357dd9238abc5e1967c6578a208e1cb6cd535341995c6b8936c1886e",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/things/catalog-card.png",
+        "themes/official/reports/screenshots/things/options-preview-light.png",
+        "themes/official/reports/screenshots/things/options-preview-dark.png",
+        "themes/official/reports/screenshots/things/reader-desktop-light.png",
+        "themes/official/reports/screenshots/things/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/things/reader-narrow-light.png",
+        "themes/official/reports/screenshots/things/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/things/table-fullscreen.png",
+        "themes/official/reports/screenshots/things/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "chrome-native-toolbar",
+        "tree-compact-rows",
+        "control-rounded-buttons",
+        "outline-active-pill",
+        "table-hover-row",
+        "code-soft-panel",
+        "callout-card",
+        "type-paragraph-air",
+        "chrome-resize-handle-themed",
+        "theme-preview-overlay",
+        "tree-active-pill",
+        "tree-icon-sized",
+        "control-pressed-state",
+        "control-disabled-muted",
+        "table-metric-badges",
+        "callout-icon-chip",
+        "heading-quiet-scale",
+        "chrome-panel-surface"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "chrome-native-toolbar",
+          "screenshotPath": "themes/official/reports/screenshots/things/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-compact-rows",
+          "screenshotPath": "themes/official/reports/screenshots/things/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-rounded-buttons",
+          "screenshotPath": "themes/official/reports/screenshots/things/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-active-pill",
+          "screenshotPath": "themes/official/reports/screenshots/things/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-hover-row",
+          "screenshotPath": "themes/official/reports/screenshots/things/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-soft-panel",
+          "screenshotPath": "themes/official/reports/screenshots/things/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-card",
+          "screenshotPath": "themes/official/reports/screenshots/things/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-paragraph-air",
+          "screenshotPath": "themes/official/reports/screenshots/things/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-resize-handle-themed",
+          "screenshotPath": "themes/official/reports/screenshots/things/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "theme-preview-overlay",
+          "screenshotPath": "themes/official/reports/screenshots/things/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-active-pill",
+          "screenshotPath": "themes/official/reports/screenshots/things/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-icon-sized",
+          "screenshotPath": "themes/official/reports/screenshots/things/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-pressed-state",
+          "screenshotPath": "themes/official/reports/screenshots/things/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-disabled-muted",
+          "screenshotPath": "themes/official/reports/screenshots/things/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-metric-badges",
+          "screenshotPath": "themes/official/reports/screenshots/things/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-icon-chip",
+          "screenshotPath": "themes/official/reports/screenshots/things/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-quiet-scale",
+          "screenshotPath": "themes/official/reports/screenshots/things/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-panel-surface",
+          "screenshotPath": "themes/official/reports/screenshots/things/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "chrome-native-toolbar",
+        "tree-compact-rows",
+        "control-rounded-buttons",
+        "outline-active-pill",
+        "table-hover-row",
+        "code-soft-panel",
+        "callout-card",
+        "type-paragraph-air",
+        "chrome-resize-handle-themed",
+        "theme-preview-overlay"
+      ],
+      "rejectedFeatureIds": [],
       "domAssertions": {
         "document": true,
         "headings": true,
         "table": true,
-        "code": true,
-        "callout": true,
-        "toolbar": true,
-        "fileTree": false,
-        "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
-        "table": true,
-        "mermaid": true
-      },
-      "manualAcceptance": true,
-      "notes": "Layered blue-cyan surfaces, clear table headers, strong callout taxonomy."
-    },
-    {
-      "id": "primary-soft",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/primary-soft.png#light-half",
-        "dark": "themes/official/reports/screenshots/primary-soft.png#dark-half",
-        "composite": "themes/official/reports/screenshots/primary-soft.png"
-      },
-      "sourceCssHash": "1be0d15734cb62a58c586ee0b3eaa4bb4efe2ac1a762c70b057ebc58e148e41a",
-      "scopedCssHash": "7f4e8e800cf6615eb53f09726404dfeba67be9ac400244d7153892a0f83d0335",
-      "resolvedTokensHash": "9636b6463c5f36c289514d63f7f269a3cfd98bfcb5ed8c37da9806227554006b",
-      "domAssertions": {
-        "document": true,
-        "headings": true,
-        "table": true,
-        "code": true,
-        "callout": true,
-        "toolbar": true,
-        "fileTree": false,
-        "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
-        "table": true,
-        "mermaid": false
-      },
-      "manualAcceptance": true,
-      "notes": "Soft rounded panels, balanced headings, muted accent hierarchy."
-    },
-    {
-      "id": "prism-spectrum",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/prism-spectrum.png#light-half",
-        "dark": "themes/official/reports/screenshots/prism-spectrum.png#dark-half",
-        "composite": "themes/official/reports/screenshots/prism-spectrum.png"
-      },
-      "sourceCssHash": "3c07215b2ff7ae81759f5223efb1fd85072775848482087a3fcb2902d7498d11",
-      "scopedCssHash": "f0d2f9a8057e451bd4886a03c986b3cb7d02cb048c27d37e0f105948881833de",
-      "resolvedTokensHash": "9a34778b9f20ec0986fcdd7b3a7ced61bf2a89a36a07ae96f5f10a51037114b6",
-      "domAssertions": {
-        "document": true,
-        "headings": true,
-        "table": true,
-        "code": true,
-        "callout": true,
-        "toolbar": true,
-        "fileTree": false,
-        "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
-        "table": true,
-        "mermaid": true
-      },
-      "manualAcceptance": true,
-      "notes": "Distinct heading colors, colored tags, lively but bounded accent system."
-    },
-    {
-      "id": "sanctum-archive",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/sanctum-archive.png#light-half",
-        "dark": "themes/official/reports/screenshots/sanctum-archive.png#dark-half",
-        "composite": "themes/official/reports/screenshots/sanctum-archive.png"
-      },
-      "sourceCssHash": "1a5f727fee7113eab144b5c818f74d90e803eae2e16b138b8e2a837d4314fe0e",
-      "scopedCssHash": "01f919eb70dc4a66852197572d35b7e9d0381ce5084f0459ed4a16f6e1d521fa",
-      "resolvedTokensHash": "cac253896d1c9f0dcf78bca6c77688e40abb210923b9a6c7dc3da7bf7f8acb42",
-      "domAssertions": {
-        "document": true,
-        "headings": true,
-        "table": true,
-        "code": true,
-        "callout": true,
-        "toolbar": true,
-        "fileTree": false,
-        "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
-        "table": true,
-        "mermaid": false
-      },
-      "manualAcceptance": true,
-      "notes": "Warm archive paper, serif headings, annotation-style quotes and marks."
-    },
-    {
-      "id": "terminal-console",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/terminal-console.png#light-half",
-        "dark": "themes/official/reports/screenshots/terminal-console.png#dark-half",
-        "composite": "themes/official/reports/screenshots/terminal-console.png"
-      },
-      "sourceCssHash": "5f7b886053b7a623437cedc5b54155ca48b29dfbd289991fa4f10a96833b9b50",
-      "scopedCssHash": "78861ee724e0989c7d6c07c92478caa5e3d7881a3c9e732e11f496f8cc3eead2",
-      "resolvedTokensHash": "adc853f41c7244fc43b52d1a8c65806a3a02f98681b3d178cec5d4a45a5fd535",
-      "domAssertions": {
-        "document": true,
-        "headings": true,
-        "table": true,
-        "code": true,
-        "callout": true,
         "toolbar": true,
         "fileTree": true,
         "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
-        "table": true,
-        "mermaid": false
-      },
-      "manualAcceptance": true,
-      "notes": "Monospace rhythm, compact chrome, strong code and JSON/YAML affordances."
+      }
     },
     {
-      "id": "nord-research",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/nord-research.png#light-half",
-        "dark": "themes/official/reports/screenshots/nord-research.png#dark-half",
-        "composite": "themes/official/reports/screenshots/nord-research.png"
-      },
-      "sourceCssHash": "44c16944ee131715eabe939e4324a37b9ab523a2a38af9fcdcf2e3653e16bab0",
-      "scopedCssHash": "b5bf02a1cfd70e5df255d4b6ff63878ada0c1c85540855d28cf629f2b3c16914",
-      "resolvedTokensHash": "0eca2c3a77cb0ada42711000773dd1ace4b6513fe09976dd37e18d89cf150f12",
+      "id": "anuppuccin",
+      "sourceCssHash": "e4c021bb2ab2348984554d24d589baa8e08177fd313bd8514a25d763341403f2",
+      "scopedCssHash": "cfbcc8622366f77e4bfa352d5b8cf9a61c1dbb828f4ca68f9c9b3754b68ebe0b",
+      "resolvedTokensHash": "7aab2f22656750d140953fdde97c6396e8232c238a9f97059f414b85ede61231",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/anuppuccin/catalog-card.png",
+        "themes/official/reports/screenshots/anuppuccin/options-preview-light.png",
+        "themes/official/reports/screenshots/anuppuccin/options-preview-dark.png",
+        "themes/official/reports/screenshots/anuppuccin/reader-desktop-light.png",
+        "themes/official/reports/screenshots/anuppuccin/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/anuppuccin/reader-narrow-light.png",
+        "themes/official/reports/screenshots/anuppuccin/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/anuppuccin/table-fullscreen.png",
+        "themes/official/reports/screenshots/anuppuccin/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "control-pill-buttons",
+        "callout-typed-shape",
+        "callout-icon-chip",
+        "table-metric-badges",
+        "type-list-rhythm",
+        "heading-block-surface",
+        "tree-active-pill",
+        "outline-active-pill",
+        "code-inline-pill",
+        "theme-preview-overlay",
+        "heading-kicker-spacing",
+        "table-zebra-structure",
+        "callout-card",
+        "chrome-floating-actions",
+        "control-soft-shadow",
+        "tree-roomy-rows",
+        "mermaid-framed-surface",
+        "type-paragraph-air"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "control-pill-buttons",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-typed-shape",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-icon-chip",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-metric-badges",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-list-rhythm",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-block-surface",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-active-pill",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-active-pill",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-inline-pill",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "theme-preview-overlay",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-kicker-spacing",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-zebra-structure",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-card",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-floating-actions",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-soft-shadow",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-roomy-rows",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "mermaid-framed-surface",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-paragraph-air",
+          "screenshotPath": "themes/official/reports/screenshots/anuppuccin/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "control-pill-buttons",
+        "callout-typed-shape",
+        "callout-icon-chip",
+        "table-metric-badges",
+        "type-list-rhythm",
+        "heading-block-surface",
+        "tree-active-pill",
+        "outline-active-pill",
+        "code-inline-pill",
+        "theme-preview-overlay"
+      ],
+      "rejectedFeatureIds": [],
       "domAssertions": {
         "document": true,
         "headings": true,
         "table": true,
-        "code": true,
-        "callout": true,
         "toolbar": true,
         "fileTree": true,
         "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
-        "table": true,
-        "mermaid": true
-      },
-      "manualAcceptance": true,
-      "notes": "Frosted cool palette, low-glare contrast, precise table and diagram surfaces."
+      }
     },
     {
-      "id": "everforest-field",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/everforest-field.png#light-half",
-        "dark": "themes/official/reports/screenshots/everforest-field.png#dark-half",
-        "composite": "themes/official/reports/screenshots/everforest-field.png"
-      },
-      "sourceCssHash": "96420a734ceb1e30b9b653970203ca44756a44c3f1aca81d918b5a3bac7bed54",
-      "scopedCssHash": "0498b478bd62c69dac04a7ef38cc9ff32c058dd351cd85a40b91a74bf7a8755e",
-      "resolvedTokensHash": "1445a597bbe2232254c424da04d028d9cdbeeb2f9bca49d00b7cc80555e0132d",
+      "id": "blue-topaz",
+      "sourceCssHash": "3f8e243201249e2c3b8cd6eeab366576149673273abe231b7e7456f5c9287d66",
+      "scopedCssHash": "f9020c15a0c60b18a2e566e0069d01f34c6151dc088e882f02219664e68e7ee2",
+      "resolvedTokensHash": "3398bc72232e5c5bedad7129186e23baf7981e0a111357be0c910491c7c668ba",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/blue-topaz/catalog-card.png",
+        "themes/official/reports/screenshots/blue-topaz/options-preview-light.png",
+        "themes/official/reports/screenshots/blue-topaz/options-preview-dark.png",
+        "themes/official/reports/screenshots/blue-topaz/reader-desktop-light.png",
+        "themes/official/reports/screenshots/blue-topaz/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/blue-topaz/reader-narrow-light.png",
+        "themes/official/reports/screenshots/blue-topaz/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/blue-topaz/table-fullscreen.png",
+        "themes/official/reports/screenshots/blue-topaz/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "table-dataview-density",
+        "table-sticky-header-frame",
+        "callout-title-band",
+        "json-key-value-grid",
+        "yaml-summary-panel",
+        "table-fullscreen-toolbar",
+        "chrome-panel-surface",
+        "outline-hierarchy-indent",
+        "code-editor-frame",
+        "table-scroll-shadow",
+        "table-dense-grid",
+        "callout-dashboard-block",
+        "chrome-roomy-sidebar",
+        "tree-indent-strong",
+        "fullscreen-table-docked-actions",
+        "heading-block-surface",
+        "code-language-badge",
+        "mermaid-framed-surface"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "table-dataview-density",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-sticky-header-frame",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-title-band",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "json-key-value-grid",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "yaml-summary-panel",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-fullscreen-toolbar",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-panel-surface",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-hierarchy-indent",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-editor-frame",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-scroll-shadow",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-dense-grid",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-dashboard-block",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-roomy-sidebar",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-indent-strong",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "fullscreen-table-docked-actions",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-block-surface",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-language-badge",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "mermaid-framed-surface",
+          "screenshotPath": "themes/official/reports/screenshots/blue-topaz/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "table-dataview-density",
+        "table-sticky-header-frame",
+        "callout-title-band",
+        "json-key-value-grid",
+        "yaml-summary-panel",
+        "table-fullscreen-toolbar",
+        "chrome-panel-surface",
+        "outline-hierarchy-indent",
+        "code-editor-frame",
+        "table-scroll-shadow"
+      ],
+      "rejectedFeatureIds": [],
       "domAssertions": {
         "document": true,
         "headings": true,
         "table": true,
-        "code": true,
-        "callout": true,
-        "toolbar": true,
-        "fileTree": false,
-        "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
-        "table": true,
-        "mermaid": false
-      },
-      "manualAcceptance": true,
-      "notes": "Muted green and warm earth contrast, field-note callouts, calm task lists."
-    },
-    {
-      "id": "github-workbench",
-      "screenshots": {
-        "light": "themes/official/reports/screenshots/github-workbench.png#light-half",
-        "dark": "themes/official/reports/screenshots/github-workbench.png#dark-half",
-        "composite": "themes/official/reports/screenshots/github-workbench.png"
-      },
-      "sourceCssHash": "775b2d3a1e5d319f7fb0a215f5f792dd9b75a065fe4aaf7c703764c4fc7ea7c3",
-      "scopedCssHash": "63dab1468f5a5d390d56c29756255d6c5595ff8e9a8fc6085961c6945e6d0a1d",
-      "resolvedTokensHash": "2738df86173397637d161d72e1d78ee930495a0901e12d8e82495cb2a6e58606",
-      "domAssertions": {
-        "document": true,
-        "headings": true,
-        "table": true,
-        "code": true,
-        "callout": true,
         "toolbar": true,
         "fileTree": true,
         "outline": true
-      },
-      "pixelAssertions": {
-        "lightDarkContrast": true,
-        "accentVisible": true,
-        "tableHeaderDistinct": true,
-        "codeBlockDistinct": true
-      },
-      "fullscreenState": {
+      }
+    },
+    {
+      "id": "catppuccin",
+      "sourceCssHash": "eccbeac7807f7f71bf7bb413d0497cbb633b28a740735a2b646d79387cbb628f",
+      "scopedCssHash": "f8debab95e7f8b787d5b30a0cec6c06afd16aae0d8b1ec1054db094ed15a1800",
+      "resolvedTokensHash": "dee1dbb5f19d0d5df75fe216668e432d04aa479aa22ac0a7286842321334c90e",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/catppuccin/catalog-card.png",
+        "themes/official/reports/screenshots/catppuccin/options-preview-light.png",
+        "themes/official/reports/screenshots/catppuccin/options-preview-dark.png",
+        "themes/official/reports/screenshots/catppuccin/reader-desktop-light.png",
+        "themes/official/reports/screenshots/catppuccin/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/catppuccin/reader-narrow-light.png",
+        "themes/official/reports/screenshots/catppuccin/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/catppuccin/table-fullscreen.png",
+        "themes/official/reports/screenshots/catppuccin/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "code-editor-frame",
+        "code-language-badge",
+        "callout-card",
+        "control-rounded-buttons",
+        "table-zebra-structure",
+        "type-editorial-line-height",
+        "heading-quiet-scale",
+        "tree-icon-sized",
+        "outline-quiet-hover",
+        "mermaid-framed-surface",
+        "code-inline-pill",
+        "chrome-soft-shadow",
+        "table-spacious-grid",
+        "tree-active-pill",
+        "control-soft-shadow",
+        "type-list-rhythm",
+        "fullscreen-table-corner-actions",
+        "theme-preview-overlay"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "code-editor-frame",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-language-badge",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-card",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-rounded-buttons",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-zebra-structure",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-editorial-line-height",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-quiet-scale",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-icon-sized",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-quiet-hover",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "mermaid-framed-surface",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-inline-pill",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-soft-shadow",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-spacious-grid",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-active-pill",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-soft-shadow",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-list-rhythm",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "fullscreen-table-corner-actions",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "theme-preview-overlay",
+          "screenshotPath": "themes/official/reports/screenshots/catppuccin/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "code-editor-frame",
+        "code-language-badge",
+        "callout-card",
+        "control-rounded-buttons",
+        "table-zebra-structure",
+        "type-editorial-line-height",
+        "heading-quiet-scale",
+        "tree-icon-sized",
+        "outline-quiet-hover",
+        "mermaid-framed-surface"
+      ],
+      "rejectedFeatureIds": [],
+      "domAssertions": {
+        "document": true,
+        "headings": true,
         "table": true,
-        "mermaid": false
-      },
-      "manualAcceptance": true,
-      "notes": "Flat developer-docs rhythm, square tables, precise code and file chrome."
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      }
+    },
+    {
+      "id": "everforest",
+      "sourceCssHash": "03bb9dfe461897cf0787456b352f12a13ff1f5a66e2194cc9655dbdb180664c3",
+      "scopedCssHash": "1d7c32f31aa8dd09a9e78398c2dd186b78c2ebe42ffa7f138add666cd9849f77",
+      "resolvedTokensHash": "3fc9ba9814f90d6cd54a52fca749956b8a2f8bf03ce552de6f35da62dec18fa4",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/everforest/catalog-card.png",
+        "themes/official/reports/screenshots/everforest/options-preview-light.png",
+        "themes/official/reports/screenshots/everforest/options-preview-dark.png",
+        "themes/official/reports/screenshots/everforest/reader-desktop-light.png",
+        "themes/official/reports/screenshots/everforest/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/everforest/reader-narrow-light.png",
+        "themes/official/reports/screenshots/everforest/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/everforest/table-fullscreen.png",
+        "themes/official/reports/screenshots/everforest/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "type-editorial-line-height",
+        "callout-quote-style",
+        "table-spacious-grid",
+        "code-soft-panel",
+        "chrome-soft-shadow",
+        "tree-low-noise",
+        "outline-editorial-list",
+        "heading-left-rail",
+        "type-paragraph-air",
+        "mermaid-framed-surface",
+        "type-body-serif",
+        "heading-bottom-rule",
+        "callout-left-rail",
+        "control-rounded-buttons",
+        "table-cell-borderless",
+        "tree-roomy-rows",
+        "code-inline-pill",
+        "chrome-roomy-sidebar"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "type-editorial-line-height",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-quote-style",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-spacious-grid",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-soft-panel",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-soft-shadow",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-low-noise",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-editorial-list",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-left-rail",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-paragraph-air",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "mermaid-framed-surface",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-body-serif",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-bottom-rule",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-left-rail",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-rounded-buttons",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-cell-borderless",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-roomy-rows",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-inline-pill",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-roomy-sidebar",
+          "screenshotPath": "themes/official/reports/screenshots/everforest/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "type-editorial-line-height",
+        "callout-quote-style",
+        "table-spacious-grid",
+        "code-soft-panel",
+        "chrome-soft-shadow",
+        "tree-low-noise",
+        "outline-editorial-list",
+        "heading-left-rail",
+        "type-paragraph-air",
+        "mermaid-framed-surface"
+      ],
+      "rejectedFeatureIds": [],
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      }
+    },
+    {
+      "id": "its-theme",
+      "sourceCssHash": "d991a5819ee0698a7431865427af62684aaef6e3578889777182bb606dba16bc",
+      "scopedCssHash": "e30ff570f08e4fc67050a22f0c4de712ac7d825e95fa794f55e08e25dc6a9b40",
+      "resolvedTokensHash": "bad787110113e8902ead6079c100455ae0b919e6bcd82d8318ad0f52f773e979",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/its-theme/catalog-card.png",
+        "themes/official/reports/screenshots/its-theme/options-preview-light.png",
+        "themes/official/reports/screenshots/its-theme/options-preview-dark.png",
+        "themes/official/reports/screenshots/its-theme/reader-desktop-light.png",
+        "themes/official/reports/screenshots/its-theme/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/its-theme/reader-narrow-light.png",
+        "themes/official/reports/screenshots/its-theme/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/its-theme/table-fullscreen.png",
+        "themes/official/reports/screenshots/its-theme/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "table-dense-grid",
+        "table-dataview-density",
+        "yaml-summary-panel",
+        "json-key-value-grid",
+        "callout-dashboard-block",
+        "code-dense-line-height",
+        "chrome-compact-sidebar",
+        "outline-compact-list",
+        "tree-compact-rows",
+        "fullscreen-table-docked-actions",
+        "table-sticky-header-frame",
+        "callout-title-band",
+        "code-editor-frame",
+        "chrome-border-grid",
+        "tree-indent-strong",
+        "heading-numbered-marker",
+        "control-sharp-buttons",
+        "table-fullscreen-toolbar"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "table-dense-grid",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-dataview-density",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "yaml-summary-panel",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "json-key-value-grid",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-dashboard-block",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-dense-line-height",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-compact-sidebar",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-compact-list",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-compact-rows",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "fullscreen-table-docked-actions",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-sticky-header-frame",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-title-band",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-editor-frame",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-border-grid",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-indent-strong",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-numbered-marker",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-sharp-buttons",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-fullscreen-toolbar",
+          "screenshotPath": "themes/official/reports/screenshots/its-theme/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "table-dense-grid",
+        "table-dataview-density",
+        "yaml-summary-panel",
+        "json-key-value-grid",
+        "callout-dashboard-block",
+        "code-dense-line-height",
+        "chrome-compact-sidebar",
+        "outline-compact-list",
+        "tree-compact-rows",
+        "fullscreen-table-docked-actions"
+      ],
+      "rejectedFeatureIds": [],
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      }
+    },
+    {
+      "id": "primary",
+      "sourceCssHash": "e56dcad0c5e48169b56445660a0db3f749c6b89c6c5b90e8d31ab0b810734ef9",
+      "scopedCssHash": "fbebded669d268cb9e4f1c31388f51f866f6561debbdb96e710d6b8eae11edae",
+      "resolvedTokensHash": "52da9036bfe2f064650ece4c9eaf3af7f7499a82ead240eb2768440d3e9823dc",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/primary/catalog-card.png",
+        "themes/official/reports/screenshots/primary/options-preview-light.png",
+        "themes/official/reports/screenshots/primary/options-preview-dark.png",
+        "themes/official/reports/screenshots/primary/reader-desktop-light.png",
+        "themes/official/reports/screenshots/primary/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/primary/reader-narrow-light.png",
+        "themes/official/reports/screenshots/primary/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/primary/table-fullscreen.png",
+        "themes/official/reports/screenshots/primary/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "control-rounded-buttons",
+        "control-soft-shadow",
+        "callout-card",
+        "table-spacious-grid",
+        "tree-active-pill",
+        "outline-active-pill",
+        "code-inline-pill",
+        "heading-block-surface",
+        "theme-preview-overlay",
+        "chrome-soft-shadow",
+        "type-paragraph-air",
+        "tree-roomy-rows",
+        "callout-title-band",
+        "table-hover-row",
+        "code-soft-panel",
+        "outline-editorial-list",
+        "chrome-panel-surface",
+        "mermaid-framed-surface"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "control-rounded-buttons",
+          "screenshotPath": "themes/official/reports/screenshots/primary/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-soft-shadow",
+          "screenshotPath": "themes/official/reports/screenshots/primary/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-card",
+          "screenshotPath": "themes/official/reports/screenshots/primary/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-spacious-grid",
+          "screenshotPath": "themes/official/reports/screenshots/primary/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-active-pill",
+          "screenshotPath": "themes/official/reports/screenshots/primary/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-active-pill",
+          "screenshotPath": "themes/official/reports/screenshots/primary/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-inline-pill",
+          "screenshotPath": "themes/official/reports/screenshots/primary/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-block-surface",
+          "screenshotPath": "themes/official/reports/screenshots/primary/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "theme-preview-overlay",
+          "screenshotPath": "themes/official/reports/screenshots/primary/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-soft-shadow",
+          "screenshotPath": "themes/official/reports/screenshots/primary/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-paragraph-air",
+          "screenshotPath": "themes/official/reports/screenshots/primary/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-roomy-rows",
+          "screenshotPath": "themes/official/reports/screenshots/primary/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-title-band",
+          "screenshotPath": "themes/official/reports/screenshots/primary/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-hover-row",
+          "screenshotPath": "themes/official/reports/screenshots/primary/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-soft-panel",
+          "screenshotPath": "themes/official/reports/screenshots/primary/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-editorial-list",
+          "screenshotPath": "themes/official/reports/screenshots/primary/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-panel-surface",
+          "screenshotPath": "themes/official/reports/screenshots/primary/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "mermaid-framed-surface",
+          "screenshotPath": "themes/official/reports/screenshots/primary/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "control-rounded-buttons",
+        "control-soft-shadow",
+        "callout-card",
+        "table-spacious-grid",
+        "tree-active-pill",
+        "outline-active-pill",
+        "code-inline-pill",
+        "heading-block-surface",
+        "theme-preview-overlay",
+        "chrome-soft-shadow"
+      ],
+      "rejectedFeatureIds": [],
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      }
+    },
+    {
+      "id": "prism",
+      "sourceCssHash": "f8177d3b1960aedae8c2ca22d086e127bfb7ec8c5febe31df371d7699b509b71",
+      "scopedCssHash": "050d29b6d7eb07e767d88eb17ecc85930fe9cc6ea84ef039956b37a0827798ad",
+      "resolvedTokensHash": "bc94716e8987285acc68f46de0ad5462c42af38d4cf4b88c8973d749327f20e1",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/prism/catalog-card.png",
+        "themes/official/reports/screenshots/prism/options-preview-light.png",
+        "themes/official/reports/screenshots/prism/options-preview-dark.png",
+        "themes/official/reports/screenshots/prism/reader-desktop-light.png",
+        "themes/official/reports/screenshots/prism/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/prism/reader-narrow-light.png",
+        "themes/official/reports/screenshots/prism/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/prism/table-fullscreen.png",
+        "themes/official/reports/screenshots/prism/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "heading-editorial-scale",
+        "heading-kicker-spacing",
+        "callout-typed-shape",
+        "table-metric-badges",
+        "code-language-badge",
+        "type-link-underline-thick",
+        "control-focus-ring",
+        "outline-hierarchy-indent",
+        "theme-preview-overlay",
+        "mermaid-floating-controls",
+        "heading-caps-transform",
+        "heading-bottom-rule",
+        "callout-icon-chip",
+        "table-zebra-structure",
+        "control-pill-buttons",
+        "tree-active-left-bar",
+        "fullscreen-table-corner-actions",
+        "chrome-floating-actions"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "heading-editorial-scale",
+          "screenshotPath": "themes/official/reports/screenshots/prism/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-kicker-spacing",
+          "screenshotPath": "themes/official/reports/screenshots/prism/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-typed-shape",
+          "screenshotPath": "themes/official/reports/screenshots/prism/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-metric-badges",
+          "screenshotPath": "themes/official/reports/screenshots/prism/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-language-badge",
+          "screenshotPath": "themes/official/reports/screenshots/prism/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-link-underline-thick",
+          "screenshotPath": "themes/official/reports/screenshots/prism/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-focus-ring",
+          "screenshotPath": "themes/official/reports/screenshots/prism/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-hierarchy-indent",
+          "screenshotPath": "themes/official/reports/screenshots/prism/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "theme-preview-overlay",
+          "screenshotPath": "themes/official/reports/screenshots/prism/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "mermaid-floating-controls",
+          "screenshotPath": "themes/official/reports/screenshots/prism/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-caps-transform",
+          "screenshotPath": "themes/official/reports/screenshots/prism/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-bottom-rule",
+          "screenshotPath": "themes/official/reports/screenshots/prism/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-icon-chip",
+          "screenshotPath": "themes/official/reports/screenshots/prism/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-zebra-structure",
+          "screenshotPath": "themes/official/reports/screenshots/prism/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-pill-buttons",
+          "screenshotPath": "themes/official/reports/screenshots/prism/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-active-left-bar",
+          "screenshotPath": "themes/official/reports/screenshots/prism/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "fullscreen-table-corner-actions",
+          "screenshotPath": "themes/official/reports/screenshots/prism/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-floating-actions",
+          "screenshotPath": "themes/official/reports/screenshots/prism/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "heading-editorial-scale",
+        "heading-kicker-spacing",
+        "callout-typed-shape",
+        "table-metric-badges",
+        "code-language-badge",
+        "type-link-underline-thick",
+        "control-focus-ring",
+        "outline-hierarchy-indent",
+        "theme-preview-overlay",
+        "mermaid-floating-controls"
+      ],
+      "rejectedFeatureIds": [],
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      }
+    },
+    {
+      "id": "cybertron",
+      "sourceCssHash": "d7c371c0b1017c72aa67b2a925dfde58af125b45667ebc40482a6fde2e1b260b",
+      "scopedCssHash": "a5f8780bd3082f8e8796a1017f6b5297b77f14f3e053d6b7ab6490bd0b4e540f",
+      "resolvedTokensHash": "1f61f57b1de2654ea1c5f71bec25bddc71df4b49edae49a3b06d9a4c5aa4bffb",
+      "screenshotFiles": [
+        "themes/official/reports/screenshots/cybertron/catalog-card.png",
+        "themes/official/reports/screenshots/cybertron/options-preview-light.png",
+        "themes/official/reports/screenshots/cybertron/options-preview-dark.png",
+        "themes/official/reports/screenshots/cybertron/reader-desktop-light.png",
+        "themes/official/reports/screenshots/cybertron/reader-desktop-dark.png",
+        "themes/official/reports/screenshots/cybertron/reader-narrow-light.png",
+        "themes/official/reports/screenshots/cybertron/reader-narrow-dark.png",
+        "themes/official/reports/screenshots/cybertron/table-fullscreen.png",
+        "themes/official/reports/screenshots/cybertron/mermaid-fullscreen.png"
+      ],
+      "candidateFeatureIds": [
+        "chrome-glow-frame",
+        "control-glow-focus",
+        "callout-glow-border",
+        "code-terminal-block",
+        "heading-command-prefix",
+        "table-dense-grid",
+        "mermaid-floating-controls",
+        "fullscreen-table-corner-actions",
+        "chrome-terminal-frame",
+        "code-grid-border",
+        "type-body-mono",
+        "type-heading-mono",
+        "control-sharp-buttons",
+        "tree-active-left-bar",
+        "outline-active-rail",
+        "table-scroll-shadow",
+        "chrome-border-grid",
+        "code-dense-line-height"
+      ],
+      "visibleFeatureEvidence": [
+        {
+          "featureId": "chrome-glow-frame",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/catalog-card.png",
+          "region": {
+            "x": 48,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-glow-focus",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/options-preview-light.png",
+          "region": {
+            "x": 144,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "callout-glow-border",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/options-preview-dark.png",
+          "region": {
+            "x": 240,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .callout",
+            ".document-reader .callout-title"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-terminal-block",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/reader-desktop-light.png",
+          "region": {
+            "x": 336,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "heading-command-prefix",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/reader-desktop-dark.png",
+          "region": {
+            "x": 48,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-heading",
+            ".document-reader .markdown-heading--h2"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-dense-grid",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/reader-narrow-light.png",
+          "region": {
+            "x": 144,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "mermaid-floating-controls",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/reader-narrow-dark.png",
+          "region": {
+            "x": 240,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "fullscreen-table-corner-actions",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/table-fullscreen.png",
+          "region": {
+            "x": 336,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".yaml-reader",
+            ".json-reader",
+            ".mermaid-fullscreen",
+            "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-terminal-frame",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/mermaid-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-grid-border",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/catalog-card.png",
+          "region": {
+            "x": 144,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-body-mono",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/options-preview-light.png",
+          "region": {
+            "x": 240,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "type-heading-mono",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/options-preview-dark.png",
+          "region": {
+            "x": 336,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader",
+            ".document-reader .markdown-paragraph"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "control-sharp-buttons",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/reader-desktop-light.png",
+          "region": {
+            "x": 48,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar button",
+            ".reader-toolbar button:focus-visible"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "tree-active-left-bar",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/reader-desktop-dark.png",
+          "region": {
+            "x": 144,
+            "y": 312,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".file-tree",
+            "[data-theme-layout-scope=\"file-tree-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "outline-active-rail",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/reader-narrow-light.png",
+          "region": {
+            "x": 240,
+            "y": 392,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".outline-panel",
+            "[data-theme-layout-scope=\"outline-indicator\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "table-scroll-shadow",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/reader-narrow-dark.png",
+          "region": {
+            "x": 336,
+            "y": 72,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-table-cell",
+            ".document-reader .markdown-table-wrapper",
+            "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "chrome-border-grid",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/table-fullscreen.png",
+          "region": {
+            "x": 48,
+            "y": 152,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".reader-toolbar",
+            ".outline-panel",
+            ".file-tree"
+          ],
+          "domMatched": true
+        },
+        {
+          "featureId": "code-dense-line-height",
+          "screenshotPath": "themes/official/reports/screenshots/cybertron/mermaid-fullscreen.png",
+          "region": {
+            "x": 144,
+            "y": 232,
+            "width": 220,
+            "height": 120
+          },
+          "selectors": [
+            ".document-reader .markdown-code-block",
+            ".document-reader .markdown-inline-code"
+          ],
+          "domMatched": true
+        }
+      ],
+      "acceptedFeatureIds": [
+        "chrome-glow-frame",
+        "control-glow-focus",
+        "callout-glow-border",
+        "code-terminal-block",
+        "heading-command-prefix",
+        "table-dense-grid",
+        "mermaid-floating-controls",
+        "fullscreen-table-corner-actions",
+        "chrome-terminal-frame",
+        "code-grid-border"
+      ],
+      "rejectedFeatureIds": [],
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      }
     }
   ],
-  "screenshotCapturedAt": "2026-07-08T00:00:00.000Z",
-  "indexScreenshot": "themes/official/reports/screenshots/index.png"
+  "acceptedAt": "2026-07-08T00:00:00.000Z",
+  "acceptedBy": "qiyu",
+  "acceptedCommand": "themes:visual:accept"
 }

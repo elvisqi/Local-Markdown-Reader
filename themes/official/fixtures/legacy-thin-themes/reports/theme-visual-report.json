@@ -1,0 +1,339 @@
+{
+  "generatedAt": "2026-07-08T00:00:00.000Z",
+  "renderer": "google-chrome-headless",
+  "passed": true,
+  "themes": [
+    {
+      "id": "minimal-manuscript",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/minimal-manuscript.png#light-half",
+        "dark": "themes/official/reports/screenshots/minimal-manuscript.png#dark-half",
+        "composite": "themes/official/reports/screenshots/minimal-manuscript.png"
+      },
+      "sourceCssHash": "50815ad8c416225765cfbddef837faa5412c95adea98c1c99d604cfa976db581",
+      "scopedCssHash": "0890924a276321a8e379595970d89d732a219551e2bd70bd7e5a563056b66c91",
+      "resolvedTokensHash": "fa8b0470ece95fd3d1ddfe5d6158c6f17408ceb56f30d8eb0fce182648a25651",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": false,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": false
+      },
+      "manualAcceptance": true,
+      "notes": "Low ornament, generous vertical rhythm, thin dividers, manuscript-like headings."
+    },
+    {
+      "id": "things-native",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/things-native.png#light-half",
+        "dark": "themes/official/reports/screenshots/things-native.png#dark-half",
+        "composite": "themes/official/reports/screenshots/things-native.png"
+      },
+      "sourceCssHash": "9a56eb7ea355ea88565846f99be8183f4beb011a237f050d5dc2935eee19ac8a",
+      "scopedCssHash": "6bbf29ba4d6227ed99e6fa455dd904a10fa12fae45b72d30fa88291407aac3e0",
+      "resolvedTokensHash": "38001cdbe971f84ac8a28005511d6f4b2c744a6e5dc0daff5f04bec2ec9ad217",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": false
+      },
+      "manualAcceptance": true,
+      "notes": "Mac-like control density, rounded selection rails, compact file navigation."
+    },
+    {
+      "id": "topaz-lab",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/topaz-lab.png#light-half",
+        "dark": "themes/official/reports/screenshots/topaz-lab.png#dark-half",
+        "composite": "themes/official/reports/screenshots/topaz-lab.png"
+      },
+      "sourceCssHash": "acee14e11e20710f6f90be709076d9bdae5314f273e43e3f8df6a34f3e3f85b1",
+      "scopedCssHash": "99926914125220d824f05a3fc19b43b4a98da132f32dfa1a5fe59355ded985b3",
+      "resolvedTokensHash": "3d8930e6c04cbe4a120ff10fee4bb2f528267325b96938461b2b2df4379f8574",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": false,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": true
+      },
+      "manualAcceptance": true,
+      "notes": "Layered blue-cyan surfaces, clear table headers, strong callout taxonomy."
+    },
+    {
+      "id": "primary-soft",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/primary-soft.png#light-half",
+        "dark": "themes/official/reports/screenshots/primary-soft.png#dark-half",
+        "composite": "themes/official/reports/screenshots/primary-soft.png"
+      },
+      "sourceCssHash": "1be0d15734cb62a58c586ee0b3eaa4bb4efe2ac1a762c70b057ebc58e148e41a",
+      "scopedCssHash": "7f4e8e800cf6615eb53f09726404dfeba67be9ac400244d7153892a0f83d0335",
+      "resolvedTokensHash": "9636b6463c5f36c289514d63f7f269a3cfd98bfcb5ed8c37da9806227554006b",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": false,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": false
+      },
+      "manualAcceptance": true,
+      "notes": "Soft rounded panels, balanced headings, muted accent hierarchy."
+    },
+    {
+      "id": "prism-spectrum",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/prism-spectrum.png#light-half",
+        "dark": "themes/official/reports/screenshots/prism-spectrum.png#dark-half",
+        "composite": "themes/official/reports/screenshots/prism-spectrum.png"
+      },
+      "sourceCssHash": "3c07215b2ff7ae81759f5223efb1fd85072775848482087a3fcb2902d7498d11",
+      "scopedCssHash": "f0d2f9a8057e451bd4886a03c986b3cb7d02cb048c27d37e0f105948881833de",
+      "resolvedTokensHash": "9a34778b9f20ec0986fcdd7b3a7ced61bf2a89a36a07ae96f5f10a51037114b6",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": false,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": true
+      },
+      "manualAcceptance": true,
+      "notes": "Distinct heading colors, colored tags, lively but bounded accent system."
+    },
+    {
+      "id": "sanctum-archive",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/sanctum-archive.png#light-half",
+        "dark": "themes/official/reports/screenshots/sanctum-archive.png#dark-half",
+        "composite": "themes/official/reports/screenshots/sanctum-archive.png"
+      },
+      "sourceCssHash": "1a5f727fee7113eab144b5c818f74d90e803eae2e16b138b8e2a837d4314fe0e",
+      "scopedCssHash": "01f919eb70dc4a66852197572d35b7e9d0381ce5084f0459ed4a16f6e1d521fa",
+      "resolvedTokensHash": "cac253896d1c9f0dcf78bca6c77688e40abb210923b9a6c7dc3da7bf7f8acb42",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": false,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": false
+      },
+      "manualAcceptance": true,
+      "notes": "Warm archive paper, serif headings, annotation-style quotes and marks."
+    },
+    {
+      "id": "terminal-console",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/terminal-console.png#light-half",
+        "dark": "themes/official/reports/screenshots/terminal-console.png#dark-half",
+        "composite": "themes/official/reports/screenshots/terminal-console.png"
+      },
+      "sourceCssHash": "5f7b886053b7a623437cedc5b54155ca48b29dfbd289991fa4f10a96833b9b50",
+      "scopedCssHash": "78861ee724e0989c7d6c07c92478caa5e3d7881a3c9e732e11f496f8cc3eead2",
+      "resolvedTokensHash": "adc853f41c7244fc43b52d1a8c65806a3a02f98681b3d178cec5d4a45a5fd535",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": false
+      },
+      "manualAcceptance": true,
+      "notes": "Monospace rhythm, compact chrome, strong code and JSON/YAML affordances."
+    },
+    {
+      "id": "nord-research",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/nord-research.png#light-half",
+        "dark": "themes/official/reports/screenshots/nord-research.png#dark-half",
+        "composite": "themes/official/reports/screenshots/nord-research.png"
+      },
+      "sourceCssHash": "44c16944ee131715eabe939e4324a37b9ab523a2a38af9fcdcf2e3653e16bab0",
+      "scopedCssHash": "b5bf02a1cfd70e5df255d4b6ff63878ada0c1c85540855d28cf629f2b3c16914",
+      "resolvedTokensHash": "0eca2c3a77cb0ada42711000773dd1ace4b6513fe09976dd37e18d89cf150f12",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": true
+      },
+      "manualAcceptance": true,
+      "notes": "Frosted cool palette, low-glare contrast, precise table and diagram surfaces."
+    },
+    {
+      "id": "everforest-field",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/everforest-field.png#light-half",
+        "dark": "themes/official/reports/screenshots/everforest-field.png#dark-half",
+        "composite": "themes/official/reports/screenshots/everforest-field.png"
+      },
+      "sourceCssHash": "96420a734ceb1e30b9b653970203ca44756a44c3f1aca81d918b5a3bac7bed54",
+      "scopedCssHash": "0498b478bd62c69dac04a7ef38cc9ff32c058dd351cd85a40b91a74bf7a8755e",
+      "resolvedTokensHash": "1445a597bbe2232254c424da04d028d9cdbeeb2f9bca49d00b7cc80555e0132d",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": false,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": false
+      },
+      "manualAcceptance": true,
+      "notes": "Muted green and warm earth contrast, field-note callouts, calm task lists."
+    },
+    {
+      "id": "github-workbench",
+      "screenshots": {
+        "light": "themes/official/reports/screenshots/github-workbench.png#light-half",
+        "dark": "themes/official/reports/screenshots/github-workbench.png#dark-half",
+        "composite": "themes/official/reports/screenshots/github-workbench.png"
+      },
+      "sourceCssHash": "775b2d3a1e5d319f7fb0a215f5f792dd9b75a065fe4aaf7c703764c4fc7ea7c3",
+      "scopedCssHash": "63dab1468f5a5d390d56c29756255d6c5595ff8e9a8fc6085961c6945e6d0a1d",
+      "resolvedTokensHash": "2738df86173397637d161d72e1d78ee930495a0901e12d8e82495cb2a6e58606",
+      "domAssertions": {
+        "document": true,
+        "headings": true,
+        "table": true,
+        "code": true,
+        "callout": true,
+        "toolbar": true,
+        "fileTree": true,
+        "outline": true
+      },
+      "pixelAssertions": {
+        "lightDarkContrast": true,
+        "accentVisible": true,
+        "tableHeaderDistinct": true,
+        "codeBlockDistinct": true
+      },
+      "fullscreenState": {
+        "table": true,
+        "mermaid": false
+      },
+      "manualAcceptance": true,
+      "notes": "Flat developer-docs rhythm, square tables, precise code and file chrome."
+    }
+  ],
+  "screenshotCapturedAt": "2026-07-08T00:00:00.000Z",
+  "indexScreenshot": "themes/official/reports/screenshots/index.png"
+}

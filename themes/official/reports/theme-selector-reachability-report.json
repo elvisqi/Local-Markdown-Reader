@@ -1,0 +1,170 @@
+{
+  "generatedAt": "2026-07-08T00:00:00.000Z",
+  "fixture": "stable-reader-dom-hooks",
+  "minReachableRatio": 0.8,
+  "passed": true,
+  "themes": [
+    {
+      "id": "minimal",
+      "selectorCount": 79,
+      "reachableCount": 78,
+      "reachableRatio": 0.9873,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "things",
+      "selectorCount": 80,
+      "reachableCount": 78,
+      "reachableRatio": 0.975,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader .markdown-task-checkbox",
+          "query": ".document-reader .markdown-task-checkbox",
+          "reachable": false,
+          "error": null
+        },
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "anuppuccin",
+      "selectorCount": 79,
+      "reachableCount": 78,
+      "reachableRatio": 0.9873,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "blue-topaz",
+      "selectorCount": 79,
+      "reachableCount": 78,
+      "reachableRatio": 0.9873,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "catppuccin",
+      "selectorCount": 79,
+      "reachableCount": 78,
+      "reachableRatio": 0.9873,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "everforest",
+      "selectorCount": 79,
+      "reachableCount": 78,
+      "reachableRatio": 0.9873,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "its-theme",
+      "selectorCount": 79,
+      "reachableCount": 78,
+      "reachableRatio": 0.9873,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "primary",
+      "selectorCount": 79,
+      "reachableCount": 78,
+      "reachableRatio": 0.9873,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "prism",
+      "selectorCount": 80,
+      "reachableCount": 78,
+      "reachableRatio": 0.975,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader .markdown-mark",
+          "query": ".document-reader .markdown-mark",
+          "reachable": false,
+          "error": null
+        },
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "cybertron",
+      "selectorCount": 79,
+      "reachableCount": 78,
+      "reachableRatio": 0.9873,
+      "passed": true,
+      "unreachableSelectors": [
+        {
+          "selector": ".document-reader ol",
+          "query": ".document-reader ol",
+          "reachable": false,
+          "error": null
+        }
+      ]
+    }
+  ]
+}

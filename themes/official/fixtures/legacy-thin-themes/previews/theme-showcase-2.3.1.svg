@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="694" height="1066" viewBox="0 0 694 1066" role="img" aria-label="Official theme showcase">
+  <rect width="694" height="1066" fill="#f4f6f8"/>
+  <text x="18" y="40" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="750" fill="#1f2933">Local Markdown Reader Official Themes</text>
+  <rect x="18" y="82" width="320" height="180" rx="14" fill="#fffefa" stroke="#ddd8cc"/>
+    <rect x="34" y="100" width="72" height="20" rx="10" fill="#edf3f6"/>
+    <text x="120" y="116" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#252a2e">Minimal Manuscript</text>
+    <text x="34" y="152" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#707771">serif heading stack · thin manuscript rules</text>
+    <rect x="34" y="178" width="288" height="54" rx="8" fill="#f0eee8" stroke="#ddd8cc"/>
+    <text x="48" y="210" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#526f8e">minimal-manuscript</text>
+<rect x="356" y="82" width="320" height="180" rx="14" fill="#ffffff" stroke="#d9e1e8"/>
+    <rect x="372" y="100" width="72" height="20" rx="10" fill="#e6f2ff"/>
+    <text x="458" y="116" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#202832">Things Native</text>
+    <text x="372" y="152" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#66717f">rounded native controls · compact tree rows</text>
+    <rect x="372" y="178" width="288" height="54" rx="8" fill="#eef3f8" stroke="#d9e1e8"/>
+    <text x="386" y="210" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#006adc">things-native</text>
+<rect x="18" y="280" width="320" height="180" rx="14" fill="#fbfdff" stroke="#c9dce8"/>
+    <rect x="34" y="298" width="72" height="20" rx="10" fill="#dff5fb"/>
+    <text x="120" y="314" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#18313f">Topaz Lab</text>
+    <text x="34" y="350" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#5f7280">blue-cyan layer stack · dense table treatment</text>
+    <rect x="34" y="376" width="288" height="54" rx="8" fill="#e8f3f8" stroke="#c9dce8"/>
+    <text x="48" y="408" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#087ea4">topaz-lab</text>
+<rect x="356" y="280" width="320" height="180" rx="14" fill="#fffefe" stroke="#ded7ea"/>
+    <rect x="372" y="298" width="72" height="20" rx="10" fill="#eee9fb"/>
+    <text x="458" y="314" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#282433">Primary Soft</text>
+    <text x="372" y="350" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#756d82">large soft radius · muted purple note surface</text>
+    <rect x="372" y="376" width="288" height="54" rx="8" fill="#f1edf8" stroke="#ded7ea"/>
+    <text x="386" y="408" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#6c58a8">primary-soft</text>
+<rect x="18" y="478" width="320" height="180" rx="14" fill="#ffffff" stroke="#d9d8ef"/>
+    <rect x="34" y="496" width="72" height="20" rx="10" fill="#f5e8f4"/>
+    <text x="120" y="512" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#25243a">Prism Spectrum</text>
+    <text x="34" y="548" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#6d6a82">multi-color heading ladder · saturated tag accents</text>
+    <rect x="34" y="574" width="288" height="54" rx="8" fill="#f0effa" stroke="#d9d8ef"/>
+    <text x="48" y="606" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#5a64d8">prism-spectrum</text>
+<rect x="356" y="478" width="320" height="180" rx="14" fill="#fffaf0" stroke="#d8cbb5"/>
+    <rect x="372" y="496" width="72" height="20" rx="10" fill="#f4e6d1"/>
+    <text x="458" y="512" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#332b22">Sanctum Archive</text>
+    <text x="372" y="548" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#7d7163">archive paper palette · serif heading cadence</text>
+    <rect x="372" y="574" width="288" height="54" rx="8" fill="#f1e6d6" stroke="#d8cbb5"/>
+    <text x="386" y="606" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#8a5f2c">sanctum-archive</text>
+<rect x="18" y="676" width="320" height="180" rx="14" fill="#fbfcfc" stroke="#cfd8d8"/>
+    <rect x="34" y="694" width="72" height="20" rx="10" fill="#d9f4f6"/>
+    <text x="120" y="710" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#1d2929">Terminal Console</text>
+    <text x="34" y="746" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#5d6e6e">monospace document identity · 22px compact tree rows</text>
+    <rect x="34" y="772" width="288" height="54" rx="8" fill="#e9eeee" stroke="#cfd8d8"/>
+    <text x="48" y="804" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#0f6c7b">terminal-console</text>
+<rect x="356" y="676" width="320" height="180" rx="14" fill="#fbfdff" stroke="#ccd8e4"/>
+    <rect x="372" y="694" width="72" height="20" rx="10" fill="#e4edf5"/>
+    <text x="458" y="710" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#253142">Nord Research</text>
+    <text x="372" y="746" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#657586">cool frosted surfaces · diagram-oriented palette</text>
+    <rect x="372" y="772" width="288" height="54" rx="8" fill="#e9eef4" stroke="#ccd8e4"/>
+    <text x="386" y="804" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#4f77a6">nord-research</text>
+<rect x="18" y="874" width="320" height="180" rx="14" fill="#fffdf2" stroke="#d8d0b8"/>
+    <rect x="34" y="892" width="72" height="20" rx="10" fill="#e9f0dc"/>
+    <text x="120" y="908" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#2d3326">Everforest Field</text>
+    <text x="34" y="944" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#6f765f">green field-note palette · serif heading mix</text>
+    <rect x="34" y="970" width="288" height="54" rx="8" fill="#eee9d8" stroke="#d8d0b8"/>
+    <text x="48" y="1002" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#4f7a4c">everforest-field</text>
+<rect x="356" y="874" width="320" height="180" rx="14" fill="#ffffff" stroke="#d0d7de"/>
+    <rect x="372" y="892" width="72" height="20" rx="10" fill="#ddf4ff"/>
+    <text x="458" y="908" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#1f2328">GitHub Workbench</text>
+    <text x="372" y="944" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#57606a">developer-docs square rhythm · GitHub-like tables</text>
+    <rect x="372" y="970" width="288" height="54" rx="8" fill="#eff1f3" stroke="#d0d7de"/>
+    <text x="386" y="1002" font-family="SFMono-Regular, Consolas, monospace" font-size="12" fill="#0969da">github-workbench</text>
+</svg>
