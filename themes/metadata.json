@@ -1,16 +1,39 @@
 {
   "version": 1,
   "schemaVersion": 2,
-  "catalogVersion": "2026.07.08.official.2",
-  "updatedAt": "2026-07-08T00:00:00.000Z",
+  "catalogVersion": "2026.07.14.official.4",
+  "updatedAt": "2026-07-14T00:00:00.000Z",
   "packageBaseUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/",
   "previewBaseUrl": "https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/",
   "themes": {
-    "minimal": {
+    "quiet-focus": {
       "tags": [
         "minimal",
+        "focus",
+        "technical",
+        "light-dark"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    "typewriter-studio": {
+      "tags": [
+        "serif",
         "writing",
-        "longform"
+        "paper",
+        "editorial"
       ],
       "previewFixtures": [
         "longform",
@@ -27,158 +50,12 @@
         "note"
       ]
     },
-    "things": {
-      "tags": [
-        "native",
-        "productivity",
-        "notes"
-      ],
-      "previewFixtures": [
-        "longform",
-        "table",
-        "code",
-        "callouts",
-        "tasks",
-        "mermaid",
-        "json-yaml",
-        "file-tree",
-        "toolbar",
-        "outline",
-        "dashboard",
-        "note"
-      ]
-    },
-    "anuppuccin": {
-      "tags": [
-        "pastel",
-        "playful",
-        "notes"
-      ],
-      "previewFixtures": [
-        "longform",
-        "table",
-        "code",
-        "callouts",
-        "tasks",
-        "mermaid",
-        "json-yaml",
-        "file-tree",
-        "toolbar",
-        "outline",
-        "dashboard",
-        "note"
-      ]
-    },
-    "blue-topaz": {
-      "tags": [
-        "research",
-        "tables",
-        "feature-rich"
-      ],
-      "previewFixtures": [
-        "longform",
-        "table",
-        "code",
-        "callouts",
-        "tasks",
-        "mermaid",
-        "json-yaml",
-        "file-tree",
-        "toolbar",
-        "outline",
-        "dashboard",
-        "note"
-      ]
-    },
-    "catppuccin": {
-      "tags": [
-        "palette",
-        "soft",
-        "code"
-      ],
-      "previewFixtures": [
-        "longform",
-        "table",
-        "code",
-        "callouts",
-        "tasks",
-        "mermaid",
-        "json-yaml",
-        "file-tree",
-        "toolbar",
-        "outline",
-        "dashboard",
-        "note"
-      ]
-    },
-    "everforest": {
-      "tags": [
-        "green",
-        "longform",
-        "soft"
-      ],
-      "previewFixtures": [
-        "longform",
-        "table",
-        "code",
-        "callouts",
-        "tasks",
-        "mermaid",
-        "json-yaml",
-        "file-tree",
-        "toolbar",
-        "outline",
-        "dashboard",
-        "note"
-      ]
-    },
-    "its-theme": {
-      "tags": [
-        "dense",
-        "dashboard",
-        "metadata"
-      ],
-      "previewFixtures": [
-        "longform",
-        "table",
-        "code",
-        "callouts",
-        "tasks",
-        "mermaid",
-        "json-yaml",
-        "file-tree",
-        "toolbar",
-        "outline",
-        "dashboard",
-        "note"
-      ]
-    },
-    "primary": {
-      "tags": [
-        "clean",
-        "rounded",
-        "notes"
-      ],
-      "previewFixtures": [
-        "longform",
-        "table",
-        "code",
-        "callouts",
-        "tasks",
-        "mermaid",
-        "json-yaml",
-        "file-tree",
-        "toolbar",
-        "outline",
-        "dashboard",
-        "note"
-      ]
-    },
-    "prism": {
+    "topaz-workbench": {
       "tags": [
         "colorful",
-        "structured",
-        "headings"
+        "knowledge-base",
+        "tables",
+        "callouts"
       ],
       "previewFixtures": [
         "longform",
@@ -195,11 +72,144 @@
         "note"
       ]
     },
-    "cybertron": {
+    "atlas-reference": {
       "tags": [
-        "neon",
+        "dense",
+        "reference",
+        "metadata",
+        "structured"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    "soft-canvas": {
+      "tags": [
+        "soft",
+        "rounded",
+        "tasks",
+        "friendly"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    "palette-code": {
+      "tags": [
+        "code",
+        "syntax",
+        "technical",
+        "palette"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    "desktop-notes": {
+      "tags": [
+        "desktop",
+        "native",
+        "productivity",
+        "clean"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    "terminal-grid": {
+      "tags": [
         "terminal",
-        "contrast"
+        "monospace",
+        "technical",
+        "grid"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    "neon-vault": {
+      "tags": [
+        "cyber",
+        "neon",
+        "glow",
+        "dark-light"
+      ],
+      "previewFixtures": [
+        "longform",
+        "table",
+        "code",
+        "callouts",
+        "tasks",
+        "mermaid",
+        "json-yaml",
+        "file-tree",
+        "toolbar",
+        "outline",
+        "dashboard",
+        "note"
+      ]
+    },
+    "editorial-contrast": {
+      "tags": [
+        "editorial",
+        "contrast",
+        "magazine",
+        "serif"
       ],
       "previewFixtures": [
         "longform",

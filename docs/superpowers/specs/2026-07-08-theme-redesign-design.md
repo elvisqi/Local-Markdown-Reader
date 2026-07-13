@@ -16,6 +16,7 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 - 增加可重复执行的相似度检查，避免以后再次出现主题近似重复的问题。
 - 10 套官方主题必须同时支持浅色和深色模式，不能发布单模式主题。
 - 官方主题必须达到产品内置质量：视觉特征明确、组件覆盖完整、真实页面预览通过，而不是“能安装的示例主题”。
+- 官方主题必须通过“反换色”门槛：去掉颜色后仍然要有足够多的排版、结构、密度、边框、组件和交互特征。
 
 ## 非目标
 
@@ -32,9 +33,10 @@ Local Markdown Reader 现在的主题包能力是 `tokens + scoped css`。现有
 1. **组件级 token**：主题必须能控制正文、标题、表格、代码、callout、标签、任务、文件树、outline、toolbar、Mermaid、JSON/YAML 摘要等区域。
 2. **稳定 DOM 语义钩子**：主题需要根据内容类型和组件状态写样式，不能只能笼统选择 `table`、`pre`、`.callout`。
 3. **风格 profile**：每套主题必须有明确的密度、圆角、标题、表格、callout、代码和应用框架策略，不能从颜色表直接生成。
-4. **视觉与相似度验收**：发布前必须同时通过机器相似度报告和人工预览检查。
+4. **非颜色特征证据**：每套主题必须声明可审计的非颜色特征，并在 CSS、DOM 命中报告和截图验收中提供证据。
+5. **视觉与相似度验收**：发布前必须同时通过机器相似度报告和人工预览检查。
 
-因此，Phase 1 的目标不是“把 token 数量做大”，而是建立一个能表达结构差异的主题系统。
+因此，Phase 1 的目标不是“把 token 数量做大”，而是建立一个能表达结构差异的主题系统。官方主题不能以颜色替换作为主要差异来源；如果把颜色声明剥离后仍然无法识别主题身份，该主题不得发布。
 
 ## 主题定位
 
@@ -470,6 +472,161 @@ type ThemeProfile = {
 };
 ```
 
+### 非颜色特征字典
+
+为了避免主题再次退化成“同一套 CSS 换颜色”，官方主题不能只写自然语言差异点。Phase 1 需要建立受控的 `NonColorFeatureDictionary`，后续合同、CSS 指标、相似度报告、截图验收和官方发布校验都引用同一批 feature id。
+
+非颜色特征指的是去掉颜色、渐变、透明度和色彩 token 后仍然可观察的样式差异，包括排版、密度、边框策略、圆角、阴影形态、组件结构、控件尺寸、交互状态和应用框架布局。颜色可以支撑主题气质，但不能单独算作非颜色特征。
+
+建议字典初始提供以下受控 id。数量可以继续扩展，但官方 10 套主题只能引用字典内 id，不能临时写自由文本绕过校验。
+
+**排版与正文**
+
+- `type-body-serif`
+- `type-body-sans`
+- `type-body-mono`
+- `type-heading-serif`
+- `type-heading-mono`
+- `type-heading-display`
+- `type-compact-line-height`
+- `type-editorial-line-height`
+- `type-paragraph-air`
+- `type-first-line-indent`
+- `type-list-rhythm`
+- `type-link-underline-thick`
+
+**标题系统**
+
+- `heading-quiet-scale`
+- `heading-editorial-scale`
+- `heading-command-prefix`
+- `heading-numbered-marker`
+- `heading-bottom-rule`
+- `heading-left-rail`
+- `heading-caps-transform`
+- `heading-kicker-spacing`
+- `heading-block-surface`
+- `heading-hierarchy-colorless`
+
+**应用框架**
+
+- `chrome-quiet-flat`
+- `chrome-native-toolbar`
+- `chrome-terminal-frame`
+- `chrome-glow-frame`
+- `chrome-panel-surface`
+- `chrome-compact-sidebar`
+- `chrome-roomy-sidebar`
+- `chrome-resize-handle-themed`
+- `chrome-scrollbar-themed`
+- `chrome-floating-actions`
+- `chrome-border-grid`
+- `chrome-soft-shadow`
+
+**表格**
+
+- `table-dense-grid`
+- `table-spacious-grid`
+- `table-sticky-header-frame`
+- `table-zebra-structure`
+- `table-hover-row`
+- `table-metric-badges`
+- `table-fullscreen-toolbar`
+- `table-cell-borderless`
+- `table-dataview-density`
+- `table-scroll-shadow`
+
+**Callout 与引用**
+
+- `callout-left-rail`
+- `callout-card`
+- `callout-title-band`
+- `callout-icon-chip`
+- `callout-typed-shape`
+- `callout-glow-border`
+- `callout-compact`
+- `callout-quote-style`
+- `callout-dashboard-block`
+- `callout-low-noise`
+
+**代码**
+
+- `code-editor-frame`
+- `code-terminal-block`
+- `code-header-strip`
+- `code-inline-pill`
+- `code-grid-border`
+- `code-soft-panel`
+- `code-language-badge`
+- `code-dense-line-height`
+
+**文件树**
+
+- `tree-compact-rows`
+- `tree-roomy-rows`
+- `tree-disclosure-themed`
+- `tree-active-left-bar`
+- `tree-active-pill`
+- `tree-icon-sized`
+- `tree-indent-strong`
+- `tree-low-noise`
+
+**大纲**
+
+- `outline-compact-list`
+- `outline-editorial-list`
+- `outline-active-rail`
+- `outline-active-pill`
+- `outline-hierarchy-indent`
+- `outline-quiet-hover`
+
+**控件与交互态**
+
+- `control-sharp-buttons`
+- `control-rounded-buttons`
+- `control-pill-buttons`
+- `control-pressed-state`
+- `control-focus-ring`
+- `control-soft-shadow`
+- `control-glow-focus`
+- `control-disabled-muted`
+
+**生成型 reader、Mermaid 和全屏**
+
+- `yaml-summary-panel`
+- `json-key-value-grid`
+- `mermaid-framed-surface`
+- `mermaid-floating-controls`
+- `fullscreen-table-docked-actions`
+- `fullscreen-table-corner-actions`
+- `theme-preview-overlay`
+- `selection-themed`
+
+每个 feature id 必须有一条机器可校验的定义：
+
+```ts
+type NonColorFeatureDefinition = {
+  id: string;
+  category:
+    | 'typography'
+    | 'heading'
+    | 'chrome'
+    | 'table'
+    | 'callout'
+    | 'code'
+    | 'file-tree'
+    | 'outline'
+    | 'control'
+    | 'generated-reader';
+  description: string;
+  evidenceSelectors: string[];
+  evidenceProperties: string[];
+  requiresScreenshotEvidence: boolean;
+};
+```
+
+`evidenceProperties` 不能只包含 `color`、`background-color`、`border-color`、`box-shadow` 中的颜色部分或 CSS 变量颜色赋值。可以使用 `box-shadow` 证明 glow / elevation，但必须同时有 blur、spread、offset 或容器结构证据，不能只靠 shadow 颜色变化。
+
 每套主题必须定义：
 
 - 主导特征：用户一眼能记住的视觉点。
@@ -497,6 +654,7 @@ type OfficialThemeContract = {
   references: string[];
   profile: ThemeProfile;
   dominantMemoryPoint: string;
+  signatureFeatureIds: string[];
   lightModeStrategy: string;
   darkModeStrategy: string;
   requiredComponentCoverage: Array<
@@ -511,7 +669,14 @@ type OfficialThemeContract = {
     | 'generated-reader'
     | 'mermaid'
   >;
-  nonColorDifferentiators: string[];
+  nonColorFeatureIds: string[];
+  nonColorFeatureEvidence: Array<{
+    featureId: string;
+    component: string;
+    selectors: string[];
+    properties: string[];
+    visibleInScreenshots: string[];
+  }>;
   requiredFixtures: Array<
     | 'longform'
     | 'technical'
@@ -528,7 +693,8 @@ type OfficialThemeContract = {
   }>;
   screenshotAcceptance: Array<{
     file: string;
-    expectedVisibleFeature: string;
+    expectedVisibleFeatureIds: string[];
+    evidenceRegion: string;
   }>;
   releaseDescription: {
     bestFor: string;
@@ -545,11 +711,15 @@ type OfficialThemeContract = {
 - `contract.id`、主题包 `id`、远程 index entry `id` 必须完全一致。
 - `contract.name` 和主题包 `name` 可以有展示差异，但官方发布校验器必须在报告中列出差异。
 - `dominantMemoryPoint` 必须能在主题弹窗预览首屏看到。
+- `signatureFeatureIds` 至少 3 项，必须来自 `NonColorFeatureDictionary`，用于定义用户一眼能记住的招牌特征。
 - `lightModeStrategy` 和 `darkModeStrategy` 必须分别描述，而不是写“反色”或“同浅色”。
-- `requiredComponentCoverage` 至少 6 项，并且必须和实际 token / CSS 覆盖报告一致。
-- `nonColorDifferentiators` 至少 3 项，且必须能在截图或 CSS 规则中找到对应证据。
+- `requiredComponentCoverage` 至少 7 项，并且必须和实际 token / CSS 覆盖报告一致。
+- `nonColorFeatureIds` 至少 18 项，必须来自 `NonColorFeatureDictionary`。
+- `nonColorFeatureEvidence` 必须覆盖全部 `signatureFeatureIds` 和至少 18 个 `nonColorFeatureIds`；每项 evidence 都要能在 selector reachability 或 CSS metrics 中找到对应命中。
 - `forbiddenOverlap` 用来防止两个主题在同一方向上重复，例如 Minimal Focus 和 Yin Editorial 都不能只表现为“黑白简洁”。
-- `screenshotAcceptance` 明确每张真实浏览器截图里要看到什么特征，人工验收时逐项勾选。
+- `screenshotAcceptance` 明确每张真实浏览器截图里要看到哪些 feature id 和截图区域，人工验收时逐项勾选。
+- 每套主题至少 10 个非颜色 feature id 必须能在真实截图里被人工确认，其中至少 3 个来自 `signatureFeatureIds`。
+- 每套主题必须回答发布前问题：“去掉颜色后，这套主题还剩下什么独特性？”答案写入 release description 或 visual report，空泛回答视为失败。
 
 如果主题包实现和设计合同不一致，应该调整主题包或合同，不能只修改相似度阈值来通过验收。
 
@@ -573,7 +743,8 @@ type OfficialThemeContract = {
   "darkTokens": {},
   "css": "",
   "features": ["tables", "callouts", "chrome"],
-  "previewFixtures": ["longform", "technical", "data-table"]
+  "previewFixtures": ["longform", "technical", "data-table"],
+  "signatureFeatureIds": ["heading-command-prefix", "table-dense-grid", "code-terminal-block"]
 }
 ```
 
@@ -585,6 +756,7 @@ type OfficialThemeContract = {
 - `darkTokens` 在 reader 解析为深色模式时应用。
 - `features` 用于目录筛选和预览徽章。
 - `previewFixtures` 声明哪些预览样例最能展示该主题。
+- `signatureFeatureIds` 用于远程主题详情、预览弹窗和发布报告展示主题招牌特征；第三方旧主题缺失该字段时继续兼容，官方主题必须提供。
 - 官方主题必须同时提供 `lightTokens` 和 `darkTokens`，且两套模式都要有对应预览截图和人工验收记录。
 
 明暗 token 合并顺序固定为：
@@ -598,11 +770,12 @@ DEFAULT_READER_THEME_TOKENS
 
 resolved color mode 来自 reader 的颜色模式计算结果：当用户选择浅色或深色时直接使用该模式；当用户选择跟随系统时，使用当前系统匹配结果。options 预览和 reader 实际渲染必须使用同一套 resolved color mode 逻辑。
 
-`features` 和 `previewFixtures` 不只存在于主题包，也必须同步进入远程 `themes/index.json`。原因是远程目录在下载主题包之前就需要展示筛选、徽章和预览信息。
+`features`、`previewFixtures` 和 `signatureFeatureIds` 不只存在于主题包，也必须同步进入远程 `themes/index.json`。原因是远程目录在下载主题包之前就需要展示筛选、徽章、预览信息和主题招牌特征。
 
 字段约束：
 
 - `features` 和 `previewFixtures` 都是受控字符串数组。
+- `signatureFeatureIds` 必须引用 `NonColorFeatureDictionary`，官方主题至少 3 项，第三方主题最多展示 6 项。
 - 解析时必须去重、排序，并限制最大数量。
 - 未识别值应在导入或 index 生成时失败，不能静默忽略。
 
@@ -838,7 +1011,9 @@ typed/component token
 - `domAssertions`
 - `pixelAssertions`
 - `fullscreenState`
-- `expectedVisibleFeature`
+- `expectedVisibleFeatureIds`
+- `visibleFeatureEvidence`
+- `missingFeatureIds`
 - `manualAcceptance`
 
 自动断言要求：
@@ -850,13 +1025,16 @@ typed/component token
 - `table-fullscreen.png` 必须断言全屏表格容器存在且处于打开状态。
 - `mermaid-fullscreen.png` 必须断言 Mermaid 全屏容器存在且处于打开状态。
 - light 和 dark 截图需要输出差异摘要，例如背景、文字、accent、surface token 至少有一组实际差异。
-- `expectedVisibleFeature` 必须来自设计合同的 `screenshotAcceptance`，不能由截图脚本临时生成。
+- `expectedVisibleFeatureIds` 必须来自设计合同的 `screenshotAcceptance`，不能由截图脚本临时生成。
+- `visibleFeatureEvidence` 必须记录每个 feature id 的截图区域、关联 selector 和人工验收状态；不能只记录“截图存在”。
 
 人工验收要求：
 
-- 人工验收结果写回 `manualAcceptance`，至少包含 `accepted`、`reviewer`、`reviewedAt`、`notes`。
+- 人工验收结果写回 `manualAcceptance`，至少包含 `accepted`、`reviewer`、`reviewedAt`、`notes`、`acceptedFeatureIds`、`rejectedFeatureIds`。
 - 如果人工验收拒绝，官方主题发布校验器必须失败。
 - 如果自动断言通过但人工认为主题视觉记忆点不明显，应调整主题而不是只改合同描述。
+- 每套主题至少 10 个非颜色 feature id 必须被人工接受；少于 10 个视为“视觉差异不足”。
+- `signatureFeatureIds` 必须全部被人工接受，否则不得发布。
 
 失败标准：
 
@@ -864,6 +1042,8 @@ typed/component token
 - 主题 CSS 未应用到 reader 或 options 预览。
 - 表格全屏或 Mermaid 全屏截图没有进入全屏状态。
 - 预览首屏无法展示该主题的主导视觉记忆点。
+- 视觉报告没有逐项列出非颜色 feature id 的证据。
+- `acceptedFeatureIds` 少于 10 个，或缺少任一 `signatureFeatureIds`。
 
 ## 相似度检查
 
@@ -874,6 +1054,9 @@ typed/component token
 - 颜色桶相似度
 - CSS selector 相似度
 - 类别覆盖：标题、表格、callout、代码、列表、应用框架、生成型 reader、控件
+- 非颜色声明比例
+- 非颜色 feature id 重叠度
+- 去色后 CSS profile 相似度
 
 token key 不纳入整体相似度公式。原因是 10 套主题应该共同覆盖最小能力集，key 重合高是好事，不代表视觉相似。token key 只作为覆盖率检查：每套主题必须覆盖足够多的组件区域。
 
@@ -881,14 +1064,24 @@ token key 不纳入整体相似度公式。原因是 10 套主题应该共同覆
 
 ```text
 overall =
-  0.25 * tokenValueSimilarity +
-  0.20 * selectorSimilarity +
-  0.15 * colorBucketSimilarity +
-  0.25 * featureCoverageSimilarity +
-  0.15 * profileDistanceSimilarity
+  0.15 * tokenValueSimilarity +
+  0.15 * selectorSimilarity +
+  0.05 * colorBucketSimilarity +
+  0.20 * featureCoverageSimilarity +
+  0.25 * nonColorProfileSimilarity +
+  0.20 * profileDistanceSimilarity
 ```
 
 `profileDistanceSimilarity` 根据 `ThemeProfile` 的维度计算。两个主题在 density、radius、chrome、heading、table、callout、code、contentFocus 上越一致，相似度越高。
+
+`nonColorProfileSimilarity` 基于剥离颜色后的 CSS 和合同 feature id 计算，包括：
+
+- 非颜色声明集合相似度。
+- 非颜色 feature id Jaccard 相似度。
+- 组件内结构属性相似度，例如 spacing、radius、border width、shadow geometry、row height、toolbar height。
+- selector 命中到同一组件区域后的布局属性相似度。
+
+颜色相似度权重保持很低。两套主题只要非颜色 profile 高度相似，即使颜色完全不同，也必须判定为风险对。
 
 报告输出到 `themes/previews/theme-similarity-report.json`，并在命令行输出最相似的 10 对主题、最相异的 10 对主题、每套主题的主导特征覆盖。
 
@@ -896,10 +1089,14 @@ overall =
 
 - 平均整体相似度低于 35%。
 - 除非刻意做同家族主题，否则任意一对主题相似度不应超过 65%。
+- 任意一对主题的非颜色 profile 相似度不得超过 55%。
+- 任意一对主题的非颜色 feature id 重叠度不得超过 50%。
 - 至少 8 套主题拥有独立的主导特征类别。
-- 每套主题至少覆盖 6 个组件区域。
-- 每套主题至少包含 3 个非颜色差异点。
-- 每套主题至少有 1 个主题专属视觉记忆点。
+- 每套主题至少覆盖 7 个组件区域。
+- 每套主题至少包含 18 个非颜色 feature id。
+- 每套主题至少有 3 个主题招牌 feature id。
+- 每套主题至少有 10 个截图可见的非颜色 feature id。
+- 每套主题 CSS 的非颜色声明比例不得低于 45%；颜色声明、token 赋值和纯色彩变量不能计入。
 - 每套主题在预览首屏内必须能识别出主导特征。
 - 每套官方主题的 light 和 dark 模式都必须独立通过上述验收，不能只保证其中一种模式有特色。
 
@@ -908,13 +1105,17 @@ overall =
 10 套主题按官方主题交付，不按示例包交付。每套主题发布前必须满足：
 
 - 同时具备浅色和深色模式，且不是简单反色；两种模式都要有完整 token、CSS、截图和人工验收记录。
-- 至少覆盖正文、标题、表格、callout、代码、文件树、toolbar、outline、生成型 reader 中的 6 个区域。
-- 至少包含 3 个非颜色差异点，例如密度、圆角、边框策略、标题节奏、表格结构、callout 形态、代码块布局、应用框架尺寸。
-- 至少 1 个首屏可识别的视觉记忆点，且必须能在远程主题弹窗预览里看到。
+- 至少覆盖正文、标题、表格、callout、代码、文件树、toolbar、outline、生成型 reader 中的 7 个区域。
+- 至少包含 18 个受控非颜色 feature id，例如密度、圆角、边框策略、标题节奏、表格结构、callout 形态、代码块布局、应用框架尺寸。
+- 至少 3 个首屏可识别的招牌 feature id，且必须能在远程主题弹窗预览里看到。
+- 至少 10 个非颜色 feature id 在真实浏览器截图中有人工验收证据。
+- CSS 非颜色声明比例不得低于 45%；如果 CSS 体积达标但主要由颜色变量、重复选择器或未命中规则组成，仍然失败。
+- 任意两套主题的非颜色 profile 相似度不得超过 55%，非颜色 feature id 重叠度不得超过 50%。
 - 所有截图必须来自真实浏览器渲染，不能只依赖静态 SVG。
 - 桌面、窄屏、宽表格全屏、Mermaid 全屏、JSON/YAML reader、文件树展开状态都不能出现布局遮挡、文字溢出、交互控件不可见。
 - 主题 CSS 不能靠过度复杂选择器堆叠制造差异；如果需要大量 CSS，必须能说明它们分别服务于哪些组件特征。
 - 每套主题都要有一段发布说明，明确它适合的阅读场景、主导特征和不适合的场景。
+- 每套主题都要回答“去掉颜色后，这套主题还剩下什么独特性？”并在发布报告中列出证据。
 
 如果一套主题只是替换颜色、背景和少量字体，即使相似度报告通过，也不能发布为官方主题。
 
@@ -943,10 +1144,13 @@ npm run themes:validate-official
 - 任一官方主题缺少 light / dark 的 options 预览截图和 reader 真实截图。
 - 任一官方主题缺少窄屏、表格全屏、Mermaid 全屏截图。
 - 任一官方主题截图缺少 DOM 断言、像素断言、主题 CSS hash、resolved token hash 或人工验收记录。
-- 任一官方主题截图的 `expectedVisibleFeature` 和设计合同不一致。
+- 任一官方主题截图的 `expectedVisibleFeatureIds`、`visibleFeatureEvidence` 和设计合同不一致。
 - 任一官方主题截图自动断言失败，或人工验收未通过。
-- 任一官方主题 `requiredComponentCoverage` 少于 6 项。
-- 任一官方主题 `nonColorDifferentiators` 少于 3 项。
+- 任一官方主题 `requiredComponentCoverage` 少于 7 项。
+- 任一官方主题 `signatureFeatureIds` 少于 3 项，或任一 id 不在 `NonColorFeatureDictionary` 中。
+- 任一官方主题 `nonColorFeatureIds` 少于 18 项，或证据覆盖不足 18 项。
+- 任一官方主题截图人工接受的非颜色 feature id 少于 10 项。
+- 任一官方主题 CSS 非颜色声明比例低于 45%。
 - 任一官方主题的 CSS 命中 deny 清单。
 - 任一官方主题相似度超过阈值，且没有在合同中明确说明同家族关系。
 - 任一官方主题发布说明缺少适合场景、视觉签名或不适合场景。
@@ -1033,7 +1237,7 @@ npm run themes:validate-official
 
 - 用 10 个风格 profile 替代已经删除的 Obsidian 草稿生成器。
 - 每个 profile 必须定义 typography、layout、table、callout、code、chrome 和 generated-reader 行为。
-- 为每套官方主题创建设计合同，写清楚双模式策略、主导视觉记忆点、组件覆盖、非颜色差异点、禁止重叠项和截图验收点。
+- 为每套官方主题创建设计合同，写清楚双模式策略、主导视觉记忆点、组件覆盖、非颜色 feature id、证据 selector、禁止重叠项和截图验收点。
 - 校验 `themes/official/contracts/<theme-id>.json`、主题包 id 和远程 index id 三者一致。
 - 根据 profile 生成主题包和预览图。
 - 生成后立即运行相似度报告，未达标时必须调整 profile，而不是只改颜色。

@@ -25,7 +25,7 @@ const LEGACY_THIN_OFFICIAL_THEME_IDS = [
   'things-native',
   'topaz-lab',
 ];
-const DEEP_REPLICA_OFFICIAL_THEME_IDS = [
+const REMOVED_DEEP_REPLICA_OFFICIAL_THEME_IDS = [
   'anuppuccin',
   'blue-topaz',
   'catppuccin',
@@ -61,9 +61,15 @@ describe('removed Obsidian draft theme packages', () => {
     }
   });
 
-  it('ships the deep replica official remote theme packages', () => {
+  it('does not ship the failed deep replica official remote theme packages', () => {
     const index = JSON.parse(readFileSync(resolve(process.cwd(), 'themes', 'index.json'), 'utf8'));
 
-    expect((index.themes ?? []).map((theme) => theme.id).sort()).toEqual(DEEP_REPLICA_OFFICIAL_THEME_IDS);
+    const indexIds = new Set((index.themes ?? []).map((theme) => theme.id));
+
+    for (const themeId of REMOVED_DEEP_REPLICA_OFFICIAL_THEME_IDS) {
+      expect(existsSync(resolve(process.cwd(), 'themes', 'packages', `${themeId}.mdv-theme.json`))).toBe(false);
+      expect(existsSync(resolve(process.cwd(), 'themes', 'previews', `${themeId}.svg`))).toBe(false);
+      expect(indexIds.has(themeId), `${themeId} should not be in index`).toBe(false);
+    }
   });
 });

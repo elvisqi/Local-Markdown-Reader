@@ -14,15 +14,12 @@ afterEach(async () => {
 });
 
 describe('selectorReachability', () => {
-  it('writes per-theme selector reachability reports', async () => {
+  it('rejects selector reachability checks for removed official themes', async () => {
     const root = await mkdtemp(join(tmpdir(), 'md-viewer-reachability-'));
     generatedRoots.push(root);
-    await buildOfficialThemes({ rootDir: root, themeId: 'minimal', allowPartial: true });
-    const result = await runSelectorReachability({ rootDir: root, themeId: 'minimal', allowPartial: true });
-    const report = JSON.parse(await readFile(join(root, 'themes', 'official', 'reports', 'theme-selector-reachability-report.json'), 'utf8'));
 
-    expect(result.themeCount).toBe(1);
-    expect(report.themes[0].id).toBe('minimal');
-    expect(report.themes[0].reachableRatio).toBeGreaterThanOrEqual(0.8);
+    await expect(buildOfficialThemes({ rootDir: root, themeId: 'minimal', allowPartial: true }))
+      .rejects
+      .toThrow('Unknown official theme id: minimal');
   });
 });

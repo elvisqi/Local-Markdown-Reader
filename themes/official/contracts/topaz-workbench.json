@@ -1,0 +1,443 @@
+{
+  "id": "topaz-workbench",
+  "name": "Topaz Workbench",
+  "status": "official",
+  "upstreamReference": "Blue Topaz",
+  "upstreamReferences": [
+    "Blue Topaz",
+    "Pink Topaz",
+    "Prism"
+  ],
+  "implementation": "original-adaptation",
+  "lightDarkRequirement": "both-required",
+  "nameUsage": {
+    "displayName": "Topaz Workbench",
+    "allowed": true,
+    "rationale": "Original Local Markdown Reader name; upstream themes are cited only as design research references."
+  },
+  "visualIdentity": "Layered knowledge panels, typed callout title bands, and prominent table and diagram controls.",
+  "signatureFeatureIds": [
+    "callout-title-band",
+    "table-zebra-structure",
+    "heading-block-surface"
+  ],
+  "nonColorFeatureIds": [
+    "callout-title-band",
+    "table-zebra-structure",
+    "heading-block-surface",
+    "callout-card",
+    "callout-icon-chip",
+    "callout-typed-shape",
+    "table-spacious-grid",
+    "table-fullscreen-toolbar",
+    "code-header-strip",
+    "tree-active-pill",
+    "outline-active-pill",
+    "chrome-floating-actions",
+    "yaml-summary-panel",
+    "table-sticky-header-frame",
+    "table-hover-row",
+    "control-pressed-state",
+    "control-focus-ring",
+    "control-disabled-muted",
+    "tree-disclosure-themed",
+    "tree-icon-sized",
+    "outline-hierarchy-indent",
+    "mermaid-floating-controls"
+  ],
+  "requiredComponentCoverage": [
+    "document",
+    "headings",
+    "tables",
+    "fullscreen-table",
+    "code",
+    "callouts",
+    "file-tree",
+    "toolbar",
+    "outline",
+    "mermaid"
+  ],
+  "nonColorFeatureEvidence": [
+    {
+      "featureId": "callout-title-band",
+      "component": "callout",
+      "selectors": [
+        ".document-reader .callout",
+        ".document-reader .callout-title"
+      ],
+      "properties": [
+        "border-inline-start-width",
+        "padding",
+        "border-radius"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "table-zebra-structure",
+      "component": "table",
+      "selectors": [
+        ".document-reader .markdown-table-cell",
+        ".document-reader .markdown-table-wrapper",
+        "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+      ],
+      "properties": [
+        "padding",
+        "border-width",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "heading-block-surface",
+      "component": "heading",
+      "selectors": [
+        ".document-reader .markdown-heading",
+        ".document-reader .markdown-heading--h2"
+      ],
+      "properties": [
+        "font-size",
+        "border-block-end",
+        "padding-block-end"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "callout-card",
+      "component": "callout",
+      "selectors": [
+        ".document-reader .callout",
+        ".document-reader .callout-title"
+      ],
+      "properties": [
+        "border-inline-start-width",
+        "padding",
+        "border-radius"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "callout-icon-chip",
+      "component": "callout",
+      "selectors": [
+        ".document-reader .callout",
+        ".document-reader .callout-title"
+      ],
+      "properties": [
+        "border-inline-start-width",
+        "padding",
+        "border-radius"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "callout-typed-shape",
+      "component": "callout",
+      "selectors": [
+        ".document-reader .callout",
+        ".document-reader .callout-title"
+      ],
+      "properties": [
+        "border-inline-start-width",
+        "padding",
+        "border-radius"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "table-spacious-grid",
+      "component": "table",
+      "selectors": [
+        ".document-reader .markdown-table-cell",
+        ".document-reader .markdown-table-wrapper",
+        "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+      ],
+      "properties": [
+        "padding",
+        "border-width",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "table-fullscreen-toolbar",
+      "component": "table",
+      "selectors": [
+        ".document-reader .markdown-table-cell",
+        ".document-reader .markdown-table-wrapper",
+        "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+      ],
+      "properties": [
+        "padding",
+        "border-width",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "table-fullscreen.png"
+      ]
+    },
+    {
+      "featureId": "code-header-strip",
+      "component": "code",
+      "selectors": [
+        ".document-reader .markdown-code-block",
+        ".document-reader .markdown-inline-code"
+      ],
+      "properties": [
+        "font-family",
+        "border-width",
+        "padding"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "tree-active-pill",
+      "component": "file-tree",
+      "selectors": [
+        ".file-tree",
+        "[data-theme-layout-scope=\"file-tree-indicator\"]"
+      ],
+      "properties": [
+        "--reader-file-tree-row-height",
+        "padding-inline",
+        "box-shadow"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "outline-active-pill",
+      "component": "outline",
+      "selectors": [
+        ".outline-panel",
+        "[data-theme-layout-scope=\"outline-indicator\"]"
+      ],
+      "properties": [
+        "padding-inline-start",
+        "border-inline-start-width",
+        "border-radius"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "chrome-floating-actions",
+      "component": "chrome",
+      "selectors": [
+        ".reader-toolbar",
+        ".outline-panel",
+        ".file-tree"
+      ],
+      "properties": [
+        "border-width",
+        "box-shadow",
+        "min-block-size"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "yaml-summary-panel",
+      "component": "generated-reader",
+      "selectors": [
+        ".yaml-reader",
+        ".json-reader",
+        ".mermaid-fullscreen",
+        "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+      ],
+      "properties": [
+        "display",
+        "grid-template-columns",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-dark.png"
+      ]
+    },
+    {
+      "featureId": "table-sticky-header-frame",
+      "component": "table",
+      "selectors": [
+        ".document-reader .markdown-table-cell",
+        ".document-reader .markdown-table-wrapper",
+        "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+      ],
+      "properties": [
+        "padding",
+        "border-width",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "table-hover-row",
+      "component": "table",
+      "selectors": [
+        ".document-reader .markdown-table-cell",
+        ".document-reader .markdown-table-wrapper",
+        "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+      ],
+      "properties": [
+        "padding",
+        "border-width",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "control-pressed-state",
+      "component": "control",
+      "selectors": [
+        ".reader-toolbar button",
+        ".reader-toolbar button:focus-visible"
+      ],
+      "properties": [
+        "border-radius",
+        "padding",
+        "outline-width"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "control-focus-ring",
+      "component": "control",
+      "selectors": [
+        ".reader-toolbar button",
+        ".reader-toolbar button:focus-visible"
+      ],
+      "properties": [
+        "border-radius",
+        "padding",
+        "outline-width"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "control-disabled-muted",
+      "component": "control",
+      "selectors": [
+        ".reader-toolbar button",
+        ".reader-toolbar button:focus-visible"
+      ],
+      "properties": [
+        "border-radius",
+        "padding",
+        "outline-width"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "tree-disclosure-themed",
+      "component": "file-tree",
+      "selectors": [
+        ".file-tree",
+        "[data-theme-layout-scope=\"file-tree-indicator\"]"
+      ],
+      "properties": [
+        "--reader-file-tree-row-height",
+        "padding-inline",
+        "box-shadow"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "tree-icon-sized",
+      "component": "file-tree",
+      "selectors": [
+        ".file-tree",
+        "[data-theme-layout-scope=\"file-tree-indicator\"]"
+      ],
+      "properties": [
+        "--reader-file-tree-row-height",
+        "padding-inline",
+        "box-shadow"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "outline-hierarchy-indent",
+      "component": "outline",
+      "selectors": [
+        ".outline-panel",
+        "[data-theme-layout-scope=\"outline-indicator\"]"
+      ],
+      "properties": [
+        "padding-inline-start",
+        "border-inline-start-width",
+        "border-radius"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "mermaid-floating-controls",
+      "component": "generated-reader",
+      "selectors": [
+        ".yaml-reader",
+        ".json-reader",
+        ".mermaid-fullscreen",
+        "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+      ],
+      "properties": [
+        "display",
+        "grid-template-columns",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "mermaid-fullscreen.png"
+      ]
+    }
+  ],
+  "cssMetrics": {
+    "ruleCount": 113,
+    "declarationCount": 340,
+    "nonColorDeclarationRatio": 0.7941,
+    "coveredComponents": [
+      "document",
+      "headings",
+      "tables",
+      "fullscreen-table",
+      "code",
+      "callouts",
+      "file-tree",
+      "toolbar",
+      "outline",
+      "mermaid",
+      "json-yaml",
+      "dashboard"
+    ]
+  }
+}

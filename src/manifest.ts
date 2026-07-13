@@ -1,10 +1,10 @@
 import type { ManifestV3Export } from '@crxjs/vite-plugin';
 
-const manifest: ManifestV3Export = {
+const manifest = {
   manifest_version: 3,
   name: '__MSG_extensionName__',
   description: '__MSG_extensionDescription__',
-  version: '2.3.2',
+  version: '2.4.0',
   default_locale: 'en',
   icons: {
     16: 'icons/icon-16.png',
@@ -53,6 +53,6 @@ const manifest: ManifestV3Export = {
       run_at: 'document_idle',
     },
   ],
-};
+} satisfies ManifestV3Export;
 
 export default manifest;

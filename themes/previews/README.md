@@ -1,6 +1,6 @@
 # Theme Previews
 
-Generated visual preview and release materials for Local Markdown Reader 2.3.2.
+Generated visual preview and release materials for Local Markdown Reader 2.4.0.
 
 Run:
 
@@ -10,18 +10,18 @@ npm run themes:previews
 
 Generated assets:
 
-- [Theme showcase](./theme-showcase-2.3.2.svg)
-- [Release Markdown](./release-2.3.2.md)
+- [Theme showcase](./theme-showcase-2.4.0.svg)
+- [Release Markdown](./release-2.4.0.md)
 - [HTML gallery](./index.html)
 
 Themes:
-- [AnuPpuccin for Local Markdown Reader](./anuppuccin.svg)
-- [Blue Topaz for Local Markdown Reader](./blue-topaz.svg)
-- [Catppuccin for Local Markdown Reader](./catppuccin.svg)
-- [Cybertron for Local Markdown Reader](./cybertron.svg)
-- [Everforest for Local Markdown Reader](./everforest.svg)
-- [ITS for Local Markdown Reader](./its-theme.svg)
-- [Minimal for Local Markdown Reader](./minimal.svg)
-- [Primary for Local Markdown Reader](./primary.svg)
-- [Prism for Local Markdown Reader](./prism.svg)
-- [Things for Local Markdown Reader](./things.svg)
+- [Atlas Reference](./atlas-reference.svg)
+- [Desktop Notes](./desktop-notes.svg)
+- [Editorial Contrast](./editorial-contrast.svg)
+- [Neon Vault](./neon-vault.svg)
+- [Palette Code](./palette-code.svg)
+- [Quiet Focus](./quiet-focus.svg)
+- [Soft Canvas](./soft-canvas.svg)
+- [Terminal Grid](./terminal-grid.svg)
+- [Topaz Workbench](./topaz-workbench.svg)
+- [Typewriter Studio](./typewriter-studio.svg)

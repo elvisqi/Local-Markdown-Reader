@@ -21,7 +21,7 @@ const PLACEHOLDER_PNG = Buffer.from(
   'base64',
 );
 
-export async function captureThemePreviewScreenshots({ rootDir = ROOT, skipCapture = false } = {}) {
+export async function captureThemePreviewScreenshots({ rootDir = ROOT, skipCapture = false, screenshotFiles = OFFICIAL_SCREENSHOT_FILES } = {}) {
   const packagesDir = resolve(rootDir, 'themes/packages');
   const contractsDir = resolve(rootDir, 'themes/official/contracts');
   const previewsDir = resolve(rootDir, 'themes/previews');
@@ -39,9 +39,9 @@ export async function captureThemePreviewScreenshots({ rootDir = ROOT, skipCaptu
     const realDomUrl = pathToFileURL(resolve(previewsDir, 'real-dom', `${theme.id}.html`)).href;
     const svgUrl = pathToFileURL(resolve(previewsDir, `${theme.id}.svg`)).href;
 
-    for (const screenshotFile of OFFICIAL_SCREENSHOT_FILES) {
+    for (const screenshotFile of screenshotFiles) {
       const outputPath = resolve(themeScreenshotDir, screenshotFile);
-      const url = screenshotFile === 'catalog-card.png' ? svgUrl : realDomUrl;
+      const url = buildCaptureUrl({ screenshotFile, realDomUrl, svgUrl });
       const windowSize = screenshotFile.includes('narrow') ? '760,1100' : '1480,960';
       if (skipCapture) {
         await writeFile(outputPath, PLACEHOLDER_PNG);
@@ -56,6 +56,18 @@ export async function captureThemePreviewScreenshots({ rootDir = ROOT, skipCaptu
   await writeFile(resolve(reportsDir, 'theme-visual-report.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 
   return { screenshots: screenshotCount };
+}
+
+export function buildCaptureUrl({ screenshotFile, realDomUrl, svgUrl }) {
+  if (screenshotFile === 'catalog-card.png') return svgUrl;
+  if (screenshotFile === 'table-fullscreen.png') return `${realDomUrl}?mode=light&target=table`;
+  if (screenshotFile === 'mermaid-fullscreen.png') return `${realDomUrl}?mode=dark&target=mermaid`;
+  if (screenshotFile.startsWith('reader-details-')) {
+    const mode = screenshotFile.includes('dark') ? 'dark' : 'light';
+    return `${realDomUrl}?mode=${mode}&target=details`;
+  }
+  const mode = screenshotFile.includes('dark') ? 'dark' : 'light';
+  return `${realDomUrl}?mode=${mode}`;
 }
 
 export function buildThemeVisualReport({ themes, contracts }) {

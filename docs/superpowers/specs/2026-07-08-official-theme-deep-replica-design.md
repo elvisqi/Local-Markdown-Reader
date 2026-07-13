@@ -233,7 +233,10 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - 每套主题 CSS 源码不少于 12KB，除非设计合同明确说明是极简主题；极简主题也不得少于 8KB。
 - 每套主题 CSS 规则数量不少于 90；Minimal 可放宽到 70。
 - 每套主题必须覆盖至少 8 个组件区域。
-- 每套主题必须拥有至少 6 个非颜色差异点。
+- 每套主题必须拥有至少 18 个受控非颜色 feature id，且这些 id 必须来自统一的 `NonColorFeatureDictionary`。
+- 每套主题必须拥有至少 3 个招牌 feature id，用于定义去掉颜色后仍可识别的主题记忆点。
+- 每套主题必须有至少 10 个非颜色 feature id 在真实浏览器截图中被人工验收。
+- 每套主题 CSS 的非颜色声明比例不得低于 45%；颜色声明、纯 token 换色和未命中规则不能计入。
 - 每套主题必须有 `lightTokens` 和 `darkTokens`，且每组不少于 50 个 token。
 - 每套主题必须通过 sanitizer。
 - 每套主题必须有许可证策略记录。
@@ -259,9 +262,30 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
   - token 相似度
   - selector 相似度
   - component coverage overlap
+  - non-color feature overlap
+  - non-color declaration ratio
+  - stripped-color CSS profile similarity
   - CSS size/rule count 分布
 - 任何两套主题的 selector 相似度不得高于 0.72。
-- 任何两套主题的非颜色差异点重叠不得高于 0.5。
+- 任何两套主题的非颜色 feature id 重叠不得高于 0.5。
+- 任何两套主题的去色后 CSS profile 相似度不得高于 0.55。
+
+### 非颜色特征证据
+
+官方主题合同不能再使用自由文本描述差异点。每份合同必须包含：
+
+- `signatureFeatureIds`：至少 3 项，来自 `NonColorFeatureDictionary`。
+- `nonColorFeatureIds`：至少 18 项，来自 `NonColorFeatureDictionary`。
+- `nonColorFeatureEvidence`：逐项列出 feature id、组件、selector、非颜色 CSS 属性和截图证据。
+- `screenshotAcceptance.expectedVisibleFeatureIds`：每张截图需要确认的 feature id 列表。
+
+官方校验器必须拒绝以下情况：
+
+- feature id 不在字典中。
+- 18 个非颜色 feature id 中有任何一项缺少 selector 或 CSS 属性证据。
+- 招牌 feature id 没有进入截图人工验收。
+- 截图人工接受的非颜色 feature id 少于 10 个。
+- 去掉颜色后无法说明主题独特性，只剩背景、文字和 accent 颜色变化。
 
 ### 受限许可证防复制校验
 
@@ -352,7 +376,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 ### Phase 3：逐套主题合同
 
 - 为 10 套主题写设计合同。
-- 合同必须包含视觉记忆点、light/dark 策略、组件覆盖、非颜色差异、禁止项、参考源。
+- 合同必须包含视觉记忆点、light/dark 策略、组件覆盖、非颜色 feature id、feature 证据、禁止项、参考源。
 
 ### Phase 4：逐套实现
 
@@ -392,7 +416,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 - **许可证风险**：GPL / 无许可证主题不能复制源码，只能原创复刻。
 - **主题过大风险**：CSS 上限 128KB，深度主题必须控制在可安装范围内。
 - **DOM 能力不足风险**：如果某主题关键特征无法通过现有 DOM hooks 表达，应先补稳定 hook 和测试，再做主题 CSS。
-- **视觉差异不足风险**：官方校验器必须量化 CSS 厚度、组件覆盖和相似度，不能靠主观确认。
+- **视觉差异不足风险**：官方校验器必须量化 CSS 厚度、组件覆盖、非颜色 feature id、去色相似度和截图证据，不能靠主观确认。
 - **假覆盖风险**：CSS 规则数量不足以证明生效，必须通过 selector reachability 校验确认规则命中真实 DOM。
 - **兼容风险**：主题 schema 扩展只能向后兼容，旧主题包仍可安装。
 
@@ -400,7 +424,7 @@ Cybertron 上游主要是深色主题。官方版本仍必须提供 light mode�
 
 - 旧 10 套官方主题已从远程主题库删除。
 - 新 10 套官方主题均可安装、可预览、可切换 light/dark。
-- 每套主题有独立设计合同、许可证审计、CSS 分析摘要和视觉报告。
+- 每套主题有独立设计合同、许可证审计、CSS 分析摘要、非颜色特征证据和视觉报告。
 - 每套主题通过真实 DOM selector reachability 校验。
 - 官方校验器会拒绝薄主题。
 - `themes/index.json` 指向新 10 套主题。

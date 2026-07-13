@@ -85,7 +85,16 @@ export async function buildThemeIndex({ rootDir = process.cwd() } = {}) {
     seenIds.add(theme.id);
 
     const remoteMetadata = normalizeRemoteMetadata(theme.id, metadata.themes[theme.id]);
-    const downloadUrl = normalizeVersionedUrl(normalizeDownloadUrl(metadata.packageBaseUrl, packageName), theme.version);
+    const packageHash = createHash('sha256').update(text).digest('hex');
+    const previewHash = await readOptionalFileHash(resolve(themesDir, 'previews', `${theme.id}.svg`));
+    const downloadUrl = normalizeAssetUrl(
+      normalizeDownloadUrl(metadata.packageBaseUrl, packageName),
+      theme.version,
+      packageHash,
+    );
+    const previewUrl = remoteMetadata.previewUrl
+      ? normalizeAssetUrl(remoteMetadata.previewUrl, theme.version, previewHash ?? packageHash)
+      : normalizePreviewUrl(metadata.previewBaseUrl, theme.id, theme.version, previewHash ?? packageHash);
     entries.push(removeUndefined({
       id: theme.id,
       name: theme.name,
@@ -96,8 +105,8 @@ export async function buildThemeIndex({ rootDir = process.cwd() } = {}) {
       colorScheme: theme.colorScheme,
       downloadUrl,
       packageUrl: downloadUrl,
-      sha256: createHash('sha256').update(text).digest('hex'),
-      previewUrl: remoteMetadata.previewUrl ?? normalizePreviewUrl(metadata.previewBaseUrl, theme.id, theme.version),
+      sha256: packageHash,
+      previewUrl,
       tags: remoteMetadata.tags,
       features: theme.features,
       previewFixtures: remoteMetadata.previewFixtures.length ? remoteMetadata.previewFixtures : theme.previewFixtures,
@@ -302,19 +311,35 @@ function normalizeDownloadUrl(packageBaseUrl, packageName) {
   return normalizeHttpsUrl(new URL(packageName, base).href, `${packageName} downloadUrl`);
 }
 
-function normalizePreviewUrl(previewBaseUrl, themeId, version) {
+function normalizePreviewUrl(previewBaseUrl, themeId, version, hash) {
   if (!previewBaseUrl) {
     return undefined;
   }
 
   const base = previewBaseUrl.endsWith('/') ? previewBaseUrl : `${previewBaseUrl}/`;
-  return normalizeVersionedUrl(normalizeHttpsUrl(new URL(`${themeId}.svg`, base).href, `${themeId} previewUrl`), version);
+  return normalizeAssetUrl(
+    normalizeHttpsUrl(new URL(`${themeId}.svg`, base).href, `${themeId} previewUrl`),
+    version,
+    hash,
+  );
 }
 
-function normalizeVersionedUrl(value, version) {
+function normalizeAssetUrl(value, version, hash) {
   const url = new URL(value);
   url.searchParams.set('v', version);
+  url.searchParams.set('h', hash.slice(0, 16));
   return normalizeHttpsUrl(url.href, `${value} versionedUrl`);
+}
+
+async function readOptionalFileHash(path) {
+  try {
+    return createHash('sha256').update(await readFile(path)).digest('hex');
+  } catch (error) {
+    if (error && typeof error === 'object' && error.code === 'ENOENT') {
+      return undefined;
+    }
+    throw error;
+  }
 }
 
 function normalizeRequiredString(value, label) {

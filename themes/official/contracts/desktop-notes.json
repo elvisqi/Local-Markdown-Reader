@@ -1,0 +1,445 @@
+{
+  "id": "desktop-notes",
+  "name": "Desktop Notes",
+  "status": "official",
+  "upstreamReference": "Cupertino",
+  "upstreamReferences": [
+    "Cupertino",
+    "Border",
+    "GitHub Theme",
+    "Obuntu"
+  ],
+  "implementation": "original-adaptation",
+  "lightDarkRequirement": "both-required",
+  "nameUsage": {
+    "displayName": "Desktop Notes",
+    "allowed": true,
+    "rationale": "Original Local Markdown Reader name; upstream themes are cited only as design research references."
+  },
+  "visualIdentity": "Native application chrome, segmented toolbar controls, sidebar selection rails, and compact outline navigation.",
+  "signatureFeatureIds": [
+    "chrome-native-toolbar",
+    "chrome-resize-handle-themed",
+    "tree-active-left-bar"
+  ],
+  "nonColorFeatureIds": [
+    "chrome-native-toolbar",
+    "chrome-resize-handle-themed",
+    "tree-active-left-bar",
+    "type-body-sans",
+    "chrome-panel-surface",
+    "chrome-compact-sidebar",
+    "control-rounded-buttons",
+    "control-soft-shadow",
+    "table-sticky-header-frame",
+    "callout-left-rail",
+    "code-editor-frame",
+    "outline-compact-list",
+    "table-fullscreen-toolbar",
+    "table-hover-row",
+    "control-pressed-state",
+    "control-focus-ring",
+    "control-disabled-muted",
+    "tree-disclosure-themed",
+    "tree-icon-sized",
+    "outline-hierarchy-indent",
+    "mermaid-floating-controls",
+    "fullscreen-table-docked-actions"
+  ],
+  "requiredComponentCoverage": [
+    "document",
+    "headings",
+    "tables",
+    "fullscreen-table",
+    "code",
+    "callouts",
+    "file-tree",
+    "toolbar",
+    "outline",
+    "mermaid"
+  ],
+  "nonColorFeatureEvidence": [
+    {
+      "featureId": "chrome-native-toolbar",
+      "component": "chrome",
+      "selectors": [
+        ".reader-toolbar",
+        ".outline-panel",
+        ".file-tree"
+      ],
+      "properties": [
+        "border-width",
+        "box-shadow",
+        "min-block-size"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "chrome-resize-handle-themed",
+      "component": "chrome",
+      "selectors": [
+        ".reader-toolbar",
+        ".outline-panel",
+        ".file-tree"
+      ],
+      "properties": [
+        "border-width",
+        "box-shadow",
+        "min-block-size"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "tree-active-left-bar",
+      "component": "file-tree",
+      "selectors": [
+        ".file-tree",
+        "[data-theme-layout-scope=\"file-tree-indicator\"]"
+      ],
+      "properties": [
+        "--reader-file-tree-row-height",
+        "padding-inline",
+        "box-shadow"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "type-body-sans",
+      "component": "typography",
+      "selectors": [
+        ".document-reader",
+        ".document-reader .markdown-paragraph"
+      ],
+      "properties": [
+        "font-family",
+        "line-height",
+        "margin-block"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "chrome-panel-surface",
+      "component": "chrome",
+      "selectors": [
+        ".reader-toolbar",
+        ".outline-panel",
+        ".file-tree"
+      ],
+      "properties": [
+        "border-width",
+        "box-shadow",
+        "min-block-size"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "chrome-compact-sidebar",
+      "component": "chrome",
+      "selectors": [
+        ".reader-toolbar",
+        ".outline-panel",
+        ".file-tree"
+      ],
+      "properties": [
+        "border-width",
+        "box-shadow",
+        "min-block-size"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "control-rounded-buttons",
+      "component": "control",
+      "selectors": [
+        ".reader-toolbar button",
+        ".reader-toolbar button:focus-visible"
+      ],
+      "properties": [
+        "border-radius",
+        "padding",
+        "outline-width"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "control-soft-shadow",
+      "component": "control",
+      "selectors": [
+        ".reader-toolbar button",
+        ".reader-toolbar button:focus-visible"
+      ],
+      "properties": [
+        "border-radius",
+        "padding",
+        "outline-width"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "table-sticky-header-frame",
+      "component": "table",
+      "selectors": [
+        ".document-reader .markdown-table-cell",
+        ".document-reader .markdown-table-wrapper",
+        "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+      ],
+      "properties": [
+        "padding",
+        "border-width",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "callout-left-rail",
+      "component": "callout",
+      "selectors": [
+        ".document-reader .callout",
+        ".document-reader .callout-title"
+      ],
+      "properties": [
+        "border-inline-start-width",
+        "padding",
+        "border-radius"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "code-editor-frame",
+      "component": "code",
+      "selectors": [
+        ".document-reader .markdown-code-block",
+        ".document-reader .markdown-inline-code"
+      ],
+      "properties": [
+        "font-family",
+        "border-width",
+        "padding"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "outline-compact-list",
+      "component": "outline",
+      "selectors": [
+        ".outline-panel",
+        "[data-theme-layout-scope=\"outline-indicator\"]"
+      ],
+      "properties": [
+        "padding-inline-start",
+        "border-inline-start-width",
+        "border-radius"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "table-fullscreen-toolbar",
+      "component": "table",
+      "selectors": [
+        ".document-reader .markdown-table-cell",
+        ".document-reader .markdown-table-wrapper",
+        "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+      ],
+      "properties": [
+        "padding",
+        "border-width",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "table-fullscreen.png"
+      ]
+    },
+    {
+      "featureId": "table-hover-row",
+      "component": "table",
+      "selectors": [
+        ".document-reader .markdown-table-cell",
+        ".document-reader .markdown-table-wrapper",
+        "[data-theme-layout-scope=\"table-fullscreen-actions\"]"
+      ],
+      "properties": [
+        "padding",
+        "border-width",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "reader-details-light.png"
+      ]
+    },
+    {
+      "featureId": "control-pressed-state",
+      "component": "control",
+      "selectors": [
+        ".reader-toolbar button",
+        ".reader-toolbar button:focus-visible"
+      ],
+      "properties": [
+        "border-radius",
+        "padding",
+        "outline-width"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "control-focus-ring",
+      "component": "control",
+      "selectors": [
+        ".reader-toolbar button",
+        ".reader-toolbar button:focus-visible"
+      ],
+      "properties": [
+        "border-radius",
+        "padding",
+        "outline-width"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "control-disabled-muted",
+      "component": "control",
+      "selectors": [
+        ".reader-toolbar button",
+        ".reader-toolbar button:focus-visible"
+      ],
+      "properties": [
+        "border-radius",
+        "padding",
+        "outline-width"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "tree-disclosure-themed",
+      "component": "file-tree",
+      "selectors": [
+        ".file-tree",
+        "[data-theme-layout-scope=\"file-tree-indicator\"]"
+      ],
+      "properties": [
+        "--reader-file-tree-row-height",
+        "padding-inline",
+        "box-shadow"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "tree-icon-sized",
+      "component": "file-tree",
+      "selectors": [
+        ".file-tree",
+        "[data-theme-layout-scope=\"file-tree-indicator\"]"
+      ],
+      "properties": [
+        "--reader-file-tree-row-height",
+        "padding-inline",
+        "box-shadow"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "outline-hierarchy-indent",
+      "component": "outline",
+      "selectors": [
+        ".outline-panel",
+        "[data-theme-layout-scope=\"outline-indicator\"]"
+      ],
+      "properties": [
+        "padding-inline-start",
+        "border-inline-start-width",
+        "border-radius"
+      ],
+      "visibleInScreenshots": [
+        "reader-desktop-light.png"
+      ]
+    },
+    {
+      "featureId": "mermaid-floating-controls",
+      "component": "generated-reader",
+      "selectors": [
+        ".yaml-reader",
+        ".json-reader",
+        ".mermaid-fullscreen",
+        "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+      ],
+      "properties": [
+        "display",
+        "grid-template-columns",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "mermaid-fullscreen.png"
+      ]
+    },
+    {
+      "featureId": "fullscreen-table-docked-actions",
+      "component": "generated-reader",
+      "selectors": [
+        ".yaml-reader",
+        ".json-reader",
+        ".mermaid-fullscreen",
+        "[data-theme-layout-scope=\"theme-preview-overlay\"]"
+      ],
+      "properties": [
+        "display",
+        "grid-template-columns",
+        "position"
+      ],
+      "visibleInScreenshots": [
+        "table-fullscreen.png"
+      ]
+    }
+  ],
+  "cssMetrics": {
+    "ruleCount": 113,
+    "declarationCount": 322,
+    "nonColorDeclarationRatio": 0.7981,
+    "coveredComponents": [
+      "document",
+      "headings",
+      "tables",
+      "fullscreen-table",
+      "code",
+      "callouts",
+      "file-tree",
+      "toolbar",
+      "outline",
+      "mermaid",
+      "json-yaml",
+      "dashboard"
+    ]
+  }
+}

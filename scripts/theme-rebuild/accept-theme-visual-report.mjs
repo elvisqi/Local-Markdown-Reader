@@ -63,7 +63,7 @@ export async function acceptThemeVisualReport({
   const errors = [];
 
   if (Object.keys(reviewDecisions).join('\n') !== OFFICIAL_THEME_IDS.join('\n')) {
-    errors.push('review decisions must contain the 10 official themes in official order.');
+    errors.push('review decisions must contain the official themes in official order.');
   }
 
   for (const themeId of OFFICIAL_THEME_IDS) {

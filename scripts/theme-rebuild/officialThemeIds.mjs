@@ -1,14 +1,14 @@
 export const OFFICIAL_THEME_IDS = Object.freeze([
-  'minimal',
-  'things',
-  'anuppuccin',
-  'blue-topaz',
-  'catppuccin',
-  'everforest',
-  'its-theme',
-  'primary',
-  'prism',
-  'cybertron',
+  'quiet-focus',
+  'typewriter-studio',
+  'topaz-workbench',
+  'atlas-reference',
+  'soft-canvas',
+  'palette-code',
+  'desktop-notes',
+  'terminal-grid',
+  'neon-vault',
+  'editorial-contrast',
 ]);
 
 export const LEGACY_OFFICIAL_THEME_IDS = Object.freeze([

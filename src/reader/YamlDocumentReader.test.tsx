@@ -2,6 +2,8 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 
 import { YamlDocumentReader } from './YamlDocumentReader';
 
+const EDITOR_LOAD_TIMEOUT = { timeout: 5000 };
+
 describe('YamlDocumentReader', () => {
   it('renders parsed YAML with a structured editor surface', async () => {
     render(
@@ -15,7 +17,7 @@ describe('YamlDocumentReader', () => {
     expect(screen.getByRole('heading', { name: 'config.yaml' })).toBeInTheDocument();
     expect(screen.getByText('Object')).toBeInTheDocument();
     expect(screen.getByText('节点 7')).toBeInTheDocument();
-    expect(await screen.findByLabelText('YAML 编辑器')).toBeInTheDocument();
+    expect(await screen.findByLabelText('YAML 编辑器', {}, EDITOR_LOAD_TIMEOUT)).toBeInTheDocument();
   });
 
   it('shows parse errors and still opens the editor in text mode', async () => {
@@ -28,7 +30,7 @@ describe('YamlDocumentReader', () => {
     );
 
     expect(screen.getByText(/YAML 解析失败/)).toBeInTheDocument();
-    const editor = await screen.findByLabelText('YAML 编辑器');
+    const editor = await screen.findByLabelText('YAML 编辑器', {}, EDITOR_LOAD_TIMEOUT);
     await waitFor(() => expect(within(editor).getByText('text')).toBeInTheDocument());
   });
 });

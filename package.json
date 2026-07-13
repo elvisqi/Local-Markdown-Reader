@@ -1,6 +1,6 @@
 {
   "name": "local-markdown-reader",
-  "version": "2.3.2",
+  "version": "2.4.0",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "themes:obsidian-css": "node scripts/build-obsidian-theme-css.mjs",
+    "themes:obsidian:analyze": "node scripts/theme-rebuild/analyze-obsidian-top-40.mjs",
     "themes:sources:verify": "node scripts/theme-rebuild/verify-theme-sources.mjs",
     "themes:sources:refresh": "node scripts/theme-rebuild/refresh-theme-sources.mjs",
     "themes:sources:update-lock": "node scripts/theme-rebuild/update-theme-source-lock.mjs",

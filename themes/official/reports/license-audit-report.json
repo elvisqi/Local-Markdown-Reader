@@ -2,7 +2,7 @@
   "generatedAt": "2026-07-08T00:00:00.000Z",
   "sources": [
     {
-      "id": "minimal",
+      "id": "quiet-focus",
       "license": {
         "status": "unknown",
         "spdx": null,
@@ -11,43 +11,28 @@
       },
       "usage": "inspiration-only",
       "nameUsage": {
-        "displayName": "Minimal for Local Markdown Reader",
+        "displayName": "Quiet Focus",
         "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
       }
     },
     {
-      "id": "things",
+      "id": "typewriter-studio",
       "license": {
         "status": "unknown",
         "spdx": null,
-        "url": "https://github.com/colineckert/obsidian-things",
-        "sha256": "db2d33a8a8789a855823b0c83dee2501bebe6059cc10612f8722dda66b046e54"
+        "url": "https://github.com/crashmoney/obsidian-typewriter",
+        "sha256": "842a10a379a67f2cd1181ade5513636d984f88aab344baaa3d3f60581627f75a"
       },
       "usage": "inspiration-only",
       "nameUsage": {
-        "displayName": "Things for Local Markdown Reader",
+        "displayName": "Typewriter Studio",
         "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
       }
     },
     {
-      "id": "anuppuccin",
-      "license": {
-        "status": "unknown",
-        "spdx": null,
-        "url": "https://github.com/anubisnekhet/AnuPpuccin",
-        "sha256": "c5d1966014f4e6f87c85b1f04a8611f0e6c169487b3b95c2c8c3f8a15cdfbd20"
-      },
-      "usage": "inspiration-only",
-      "nameUsage": {
-        "displayName": "AnuPpuccin for Local Markdown Reader",
-        "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
-      }
-    },
-    {
-      "id": "blue-topaz",
+      "id": "topaz-workbench",
       "license": {
         "status": "unknown",
         "spdx": null,
@@ -56,43 +41,13 @@
       },
       "usage": "inspiration-only",
       "nameUsage": {
-        "displayName": "Blue Topaz for Local Markdown Reader",
+        "displayName": "Topaz Workbench",
         "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
       }
     },
     {
-      "id": "catppuccin",
-      "license": {
-        "status": "unknown",
-        "spdx": null,
-        "url": "https://github.com/catppuccin/obsidian",
-        "sha256": "1b5314a73640992e0b4905a79c653ac799788c291833dcb8dd961bee500033d5"
-      },
-      "usage": "inspiration-only",
-      "nameUsage": {
-        "displayName": "Catppuccin for Local Markdown Reader",
-        "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
-      }
-    },
-    {
-      "id": "everforest",
-      "license": {
-        "status": "unknown",
-        "spdx": null,
-        "url": "https://github.com/0xglitchbyte/obsidian_everforest",
-        "sha256": "5f6f8dddcec35ae27594da2efb24989ff2b51ee50341a54d3c011bbb09176a3b"
-      },
-      "usage": "inspiration-only",
-      "nameUsage": {
-        "displayName": "Everforest for Local Markdown Reader",
-        "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
-      }
-    },
-    {
-      "id": "its-theme",
+      "id": "atlas-reference",
       "license": {
         "status": "unknown",
         "spdx": null,
@@ -101,13 +56,13 @@
       },
       "usage": "inspiration-only",
       "nameUsage": {
-        "displayName": "ITS for Local Markdown Reader",
+        "displayName": "Atlas Reference",
         "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
       }
     },
     {
-      "id": "primary",
+      "id": "soft-canvas",
       "license": {
         "status": "unknown",
         "spdx": null,
@@ -116,28 +71,58 @@
       },
       "usage": "inspiration-only",
       "nameUsage": {
-        "displayName": "Primary for Local Markdown Reader",
+        "displayName": "Soft Canvas",
         "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
       }
     },
     {
-      "id": "prism",
+      "id": "palette-code",
       "license": {
         "status": "unknown",
         "spdx": null,
-        "url": "https://github.com/damiankorcz/Prism-Theme",
-        "sha256": "5ca189248ba314a2f4206ac0b80ddb4fe9f31dddccb0e1a9a0279ce0850ef9af"
+        "url": "https://github.com/catppuccin/obsidian",
+        "sha256": "1b5314a73640992e0b4905a79c653ac799788c291833dcb8dd961bee500033d5"
       },
       "usage": "inspiration-only",
       "nameUsage": {
-        "displayName": "Prism for Local Markdown Reader",
+        "displayName": "Palette Code",
         "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
       }
     },
     {
-      "id": "cybertron",
+      "id": "desktop-notes",
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/aaaaalexis/obsidian-cupertino",
+        "sha256": "fb7cc50b609df0d87f3edea601ac192f1a199e071a18eb3bb4db45c5231a1d36"
+      },
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Desktop Notes",
+        "allowed": true,
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
+      }
+    },
+    {
+      "id": "terminal-grid",
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/zcysxy/Obsidian-Terminal-Theme",
+        "sha256": "fd815d55182a85aed6ed5e37ba8bc7f800ef9417e48935159b12b4d51c20341b"
+      },
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Terminal Grid",
+        "allowed": true,
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
+      }
+    },
+    {
+      "id": "neon-vault",
       "license": {
         "status": "unknown",
         "spdx": null,
@@ -146,9 +131,24 @@
       },
       "usage": "inspiration-only",
       "nameUsage": {
-        "displayName": "Cybertron for Local Markdown Reader",
+        "displayName": "Neon Vault",
         "allowed": true,
-        "rationale": "Reference name is used descriptively for an original Local Markdown Reader adaptation."
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
+      }
+    },
+    {
+      "id": "editorial-contrast",
+      "license": {
+        "status": "unknown",
+        "spdx": null,
+        "url": "https://github.com/chetachiezikeuzor/Yin-and-Yang-Theme",
+        "sha256": "444721513ae0de6aa9af30b630b087f3bdd1e1cc49e967673418891b855fb806"
+      },
+      "usage": "inspiration-only",
+      "nameUsage": {
+        "displayName": "Editorial Contrast",
+        "allowed": true,
+        "rationale": "Original product name; upstream reference is recorded for research traceability only."
       }
     }
   ]

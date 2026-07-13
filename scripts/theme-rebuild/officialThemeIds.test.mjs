@@ -7,18 +7,18 @@ import {
 } from './officialThemeIds.mjs';
 
 describe('officialThemeIds', () => {
-  it('locks the new official theme ids', () => {
+  it('ships the ten source-clustered replacement themes', () => {
     expect(OFFICIAL_THEME_IDS).toEqual([
-      'minimal',
-      'things',
-      'anuppuccin',
-      'blue-topaz',
-      'catppuccin',
-      'everforest',
-      'its-theme',
-      'primary',
-      'prism',
-      'cybertron',
+      'quiet-focus',
+      'typewriter-studio',
+      'topaz-workbench',
+      'atlas-reference',
+      'soft-canvas',
+      'palette-code',
+      'desktop-notes',
+      'terminal-grid',
+      'neon-vault',
+      'editorial-contrast',
     ]);
   });
 
@@ -39,8 +39,7 @@ describe('officialThemeIds', () => {
 
   it('rejects legacy theme ids in official output', () => {
     expect(() => assertOnlyOfficialThemeIds(OFFICIAL_THEME_IDS)).not.toThrow();
-    expect(() => assertOnlyOfficialThemeIds(['minimal', 'topaz-lab'])).toThrow(
-      /Unexpected official theme id: topaz-lab/,
-    );
+    expect(() => assertOnlyOfficialThemeIds(['minimal'])).toThrow(/Unexpected official theme id: minimal/);
+    expect(() => assertOnlyOfficialThemeIds(['topaz-lab'])).toThrow(/Unexpected official theme id: topaz-lab/);
   });
 });

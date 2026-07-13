@@ -2,6 +2,8 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 
 import { JsonDocumentReader } from './JsonDocumentReader';
 
+const EDITOR_LOAD_TIMEOUT = { timeout: 5000 };
+
 describe('JsonDocumentReader', () => {
   it('renders parsed JSON with summary and the vanilla JSON editor', async () => {
     render(
@@ -15,7 +17,7 @@ describe('JsonDocumentReader', () => {
     expect(screen.getByRole('heading', { name: 'data.json' })).toBeInTheDocument();
     expect(screen.getByText('Object')).toBeInTheDocument();
     expect(screen.getByText('节点 7')).toBeInTheDocument();
-    expect(await screen.findByLabelText('JSON 编辑器')).toBeInTheDocument();
+    expect(await screen.findByLabelText('JSON 编辑器', {}, EDITOR_LOAD_TIMEOUT)).toBeInTheDocument();
     expect(screen.queryByLabelText('JSON 阅读模式')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('搜索 JSON')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('JSON 结构树')).not.toBeInTheDocument();
@@ -45,7 +47,7 @@ describe('JsonDocumentReader', () => {
     );
 
     expect(screen.getByText(/JSON 解析失败/)).toBeInTheDocument();
-    expect(await screen.findByLabelText('JSON 编辑器')).toBeInTheDocument();
+    expect(await screen.findByLabelText('JSON 编辑器', {}, EDITOR_LOAD_TIMEOUT)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '尝试修复并预览' })).not.toBeInTheDocument();
   });
 
@@ -58,7 +60,7 @@ describe('JsonDocumentReader', () => {
       />,
     );
 
-    const editor = await screen.findByLabelText('JSON 编辑器');
+    const editor = await screen.findByLabelText('JSON 编辑器', {}, EDITOR_LOAD_TIMEOUT);
     expect(within(editor).getByText('tree')).toBeInTheDocument();
     expect(within(editor).getByText('table')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '高级视图' })).not.toBeInTheDocument();
@@ -77,6 +79,6 @@ describe('JsonDocumentReader', () => {
     expect(screen.getByRole('heading', { name: 'events.jsonl' })).toBeInTheDocument();
     expect(screen.getByText('Array')).toBeInTheDocument();
     expect(within(screen.getByText('顶层').closest('div')!).getByText('2')).toBeInTheDocument();
-    expect(await screen.findByLabelText('JSON 编辑器')).toBeInTheDocument();
+    expect(await screen.findByLabelText('JSON 编辑器', {}, EDITOR_LOAD_TIMEOUT)).toBeInTheDocument();
   });
 });

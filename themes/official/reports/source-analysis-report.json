@@ -2,84 +2,84 @@
   "generatedAt": "2026-07-08T00:00:00.000Z",
   "sources": [
     {
-      "id": "minimal",
-      "bytes": 196,
-      "normalizedBytes": 146,
-      "declarationBlocks": 2,
-      "selectorTrigrams": 29,
-      "textWindows": 27
+      "id": "quiet-focus",
+      "bytes": 282,
+      "normalizedBytes": 214,
+      "declarationBlocks": 1,
+      "selectorTrigrams": 26,
+      "textWindows": 95
     },
     {
-      "id": "things",
-      "bytes": 194,
-      "normalizedBytes": 145,
-      "declarationBlocks": 2,
-      "selectorTrigrams": 28,
-      "textWindows": 26
-    },
-    {
-      "id": "anuppuccin",
-      "bytes": 201,
-      "normalizedBytes": 154,
-      "declarationBlocks": 2,
+      "id": "typewriter-studio",
+      "bytes": 282,
+      "normalizedBytes": 211,
+      "declarationBlocks": 1,
       "selectorTrigrams": 32,
-      "textWindows": 35
+      "textWindows": 92
     },
     {
-      "id": "blue-topaz",
-      "bytes": 205,
-      "normalizedBytes": 152,
-      "declarationBlocks": 2,
-      "selectorTrigrams": 32,
-      "textWindows": 33
+      "id": "topaz-workbench",
+      "bytes": 292,
+      "normalizedBytes": 221,
+      "declarationBlocks": 1,
+      "selectorTrigrams": 30,
+      "textWindows": 102
     },
     {
-      "id": "catppuccin",
-      "bytes": 207,
-      "normalizedBytes": 154,
-      "declarationBlocks": 2,
-      "selectorTrigrams": 32,
-      "textWindows": 35
+      "id": "atlas-reference",
+      "bytes": 289,
+      "normalizedBytes": 219,
+      "declarationBlocks": 1,
+      "selectorTrigrams": 30,
+      "textWindows": 100
     },
     {
-      "id": "everforest",
-      "bytes": 205,
-      "normalizedBytes": 152,
-      "declarationBlocks": 2,
-      "selectorTrigrams": 32,
-      "textWindows": 33
+      "id": "soft-canvas",
+      "bytes": 280,
+      "normalizedBytes": 212,
+      "declarationBlocks": 1,
+      "selectorTrigrams": 26,
+      "textWindows": 93
     },
     {
-      "id": "its-theme",
-      "bytes": 201,
-      "normalizedBytes": 149,
-      "declarationBlocks": 2,
-      "selectorTrigrams": 28,
-      "textWindows": 30
-    },
-    {
-      "id": "primary",
-      "bytes": 198,
-      "normalizedBytes": 148,
-      "declarationBlocks": 2,
-      "selectorTrigrams": 29,
-      "textWindows": 29
-    },
-    {
-      "id": "prism",
-      "bytes": 190,
-      "normalizedBytes": 142,
-      "declarationBlocks": 2,
+      "id": "palette-code",
+      "bytes": 284,
+      "normalizedBytes": 213,
+      "declarationBlocks": 1,
       "selectorTrigrams": 27,
-      "textWindows": 23
+      "textWindows": 94
     },
     {
-      "id": "cybertron",
-      "bytes": 202,
-      "normalizedBytes": 150,
-      "declarationBlocks": 2,
-      "selectorTrigrams": 31,
-      "textWindows": 31
+      "id": "desktop-notes",
+      "bytes": 285,
+      "normalizedBytes": 215,
+      "declarationBlocks": 1,
+      "selectorTrigrams": 28,
+      "textWindows": 96
+    },
+    {
+      "id": "terminal-grid",
+      "bytes": 279,
+      "normalizedBytes": 210,
+      "declarationBlocks": 1,
+      "selectorTrigrams": 27,
+      "textWindows": 91
+    },
+    {
+      "id": "neon-vault",
+      "bytes": 274,
+      "normalizedBytes": 204,
+      "declarationBlocks": 1,
+      "selectorTrigrams": 25,
+      "textWindows": 85
+    },
+    {
+      "id": "editorial-contrast",
+      "bytes": 293,
+      "normalizedBytes": 220,
+      "declarationBlocks": 1,
+      "selectorTrigrams": 33,
+      "textWindows": 101
     }
   ]
 }

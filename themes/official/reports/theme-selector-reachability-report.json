@@ -5,166 +5,84 @@
   "passed": true,
   "themes": [
     {
-      "id": "minimal",
-      "selectorCount": 79,
-      "reachableCount": 78,
-      "reachableRatio": 0.9873,
+      "id": "quiet-focus",
+      "selectorCount": 98,
+      "reachableCount": 98,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     },
     {
-      "id": "things",
-      "selectorCount": 80,
-      "reachableCount": 78,
-      "reachableRatio": 0.975,
+      "id": "typewriter-studio",
+      "selectorCount": 101,
+      "reachableCount": 101,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader .markdown-task-checkbox",
-          "query": ".document-reader .markdown-task-checkbox",
-          "reachable": false,
-          "error": null
-        },
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     },
     {
-      "id": "anuppuccin",
-      "selectorCount": 79,
-      "reachableCount": 78,
-      "reachableRatio": 0.9873,
+      "id": "topaz-workbench",
+      "selectorCount": 99,
+      "reachableCount": 99,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     },
     {
-      "id": "blue-topaz",
-      "selectorCount": 79,
-      "reachableCount": 78,
-      "reachableRatio": 0.9873,
+      "id": "atlas-reference",
+      "selectorCount": 100,
+      "reachableCount": 100,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     },
     {
-      "id": "catppuccin",
-      "selectorCount": 79,
-      "reachableCount": 78,
-      "reachableRatio": 0.9873,
+      "id": "soft-canvas",
+      "selectorCount": 100,
+      "reachableCount": 100,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     },
     {
-      "id": "everforest",
-      "selectorCount": 79,
-      "reachableCount": 78,
-      "reachableRatio": 0.9873,
+      "id": "palette-code",
+      "selectorCount": 102,
+      "reachableCount": 102,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     },
     {
-      "id": "its-theme",
-      "selectorCount": 79,
-      "reachableCount": 78,
-      "reachableRatio": 0.9873,
+      "id": "desktop-notes",
+      "selectorCount": 99,
+      "reachableCount": 99,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     },
     {
-      "id": "primary",
-      "selectorCount": 79,
-      "reachableCount": 78,
-      "reachableRatio": 0.9873,
+      "id": "terminal-grid",
+      "selectorCount": 102,
+      "reachableCount": 102,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     },
     {
-      "id": "prism",
-      "selectorCount": 80,
-      "reachableCount": 78,
-      "reachableRatio": 0.975,
+      "id": "neon-vault",
+      "selectorCount": 98,
+      "reachableCount": 98,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader .markdown-mark",
-          "query": ".document-reader .markdown-mark",
-          "reachable": false,
-          "error": null
-        },
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     },
     {
-      "id": "cybertron",
-      "selectorCount": 79,
-      "reachableCount": 78,
-      "reachableRatio": 0.9873,
+      "id": "editorial-contrast",
+      "selectorCount": 99,
+      "reachableCount": 99,
+      "reachableRatio": 1,
       "passed": true,
-      "unreachableSelectors": [
-        {
-          "selector": ".document-reader ol",
-          "query": ".document-reader ol",
-          "reachable": false,
-          "error": null
-        }
-      ]
+      "unreachableSelectors": []
     }
   ]
 }

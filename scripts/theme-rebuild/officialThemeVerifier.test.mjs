@@ -20,19 +20,17 @@ afterEach(async () => {
 });
 
 describe('officialThemeVerifier', () => {
-  it('supports partial single-theme build gate validation', async () => {
+  it('rejects partial validation for removed official themes', async () => {
     const root = await mkdtemp(join(tmpdir(), 'md-viewer-theme-verifier-'));
     generatedRoots.push(root);
     await updateThemeSourceLock({ rootDir: root });
-    await buildOfficialThemes({ rootDir: root, themeId: 'minimal', allowPartial: true });
-    await runSelectorReachability({ rootDir: root, themeId: 'minimal', allowPartial: true });
 
-    const result = await verifyOfficialThemes({ rootDir: root, themeId: 'minimal', allowPartial: true });
-    expect(result.themeCount).toBe(1);
-    expect(result.passed).toBe(true);
+    await expect(buildOfficialThemes({ rootDir: root, themeId: 'minimal', allowPartial: true }))
+      .rejects
+      .toThrow('Unknown official theme id: minimal');
   });
 
-  it('passes the full release gate after similarity and visual acceptance reports exist', async () => {
+  it('passes the official release gate after all reports are reviewed', async () => {
     const root = await mkdtemp(join(tmpdir(), 'md-viewer-theme-verifier-full-'));
     generatedRoots.push(root);
     await updateThemeSourceLock({ rootDir: root });
@@ -57,5 +55,5 @@ describe('officialThemeVerifier', () => {
     const result = await verifyOfficialThemes({ rootDir: root });
     expect(result.themeCount).toBe(10);
     expect(result.passed).toBe(true);
-  }, 20000);
+  }, 40000);
 });

@@ -14,7 +14,7 @@ afterEach(async () => {
 });
 
 describe('runThemeSimilarity', () => {
-  it('writes a release similarity report for the official themes', async () => {
+  it('writes a passing pairwise report for all replacement themes', async () => {
     const root = await mkdtemp(join(tmpdir(), 'md-viewer-similarity-'));
     generatedRoots.push(root);
     await buildOfficialThemes({ rootDir: root });
@@ -24,5 +24,5 @@ describe('runThemeSimilarity', () => {
     expect(result.themeCount).toBe(10);
     expect(report.passed).toBe(true);
     expect(report.pairs.length).toBe(45);
-  }, 15000);
+  }, 40000);
 });

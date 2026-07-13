@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 
 import { buildRealPreviewPages } from './theme-rebuild/build-real-preview-page.mjs';
 
-const RELEASE_VERSION = '2.3.2';
+const RELEASE_VERSION = '2.4.0';
 const PREVIEW_DIR = 'themes/previews';
 const THEME_BASE_URL = 'https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/';
 const PREVIEW_BASE_URL = `${THEME_BASE_URL}previews/`;
