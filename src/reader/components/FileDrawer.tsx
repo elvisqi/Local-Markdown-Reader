@@ -30,8 +30,10 @@ type FileDrawerProps = {
   onAiProjectExpandedPathsChange: (project: AiProjectEntry, paths: Set<string>) => void;
   onLoadProjectDirectory: (project: AiProjectEntry, path: string) => void;
   onSelectAiProjectFile: (project: AiProjectEntry, path: string) => void;
+  onPinAiProjectFile?: (project: AiProjectEntry, path: string) => void;
   onClose: () => void;
   onSelect: (path: string) => void;
+  onPin?: (path: string) => void;
   onResizeStart?: (event: PointerEvent<HTMLDivElement>) => void;
   onResizeKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 };
@@ -60,8 +62,10 @@ export function FileDrawer({
   onAiProjectExpandedPathsChange,
   onLoadProjectDirectory,
   onSelectAiProjectFile,
+  onPinAiProjectFile,
   onClose,
   onSelect,
+  onPin,
   onResizeStart,
   onResizeKeyDown,
 }: FileDrawerProps) {
@@ -120,6 +124,7 @@ export function FileDrawer({
             onExpandedPathsChange={onFolderExpandedPathsChange}
             onLoadDirectory={onLoadFolderDirectory}
             onSelectFile={onSelect}
+            onPinFile={onPin}
           />
         </section>
       ) : (
@@ -137,6 +142,7 @@ export function FileDrawer({
           onProjectExpandedPathsChange={onAiProjectExpandedPathsChange}
           onLoadProjectDirectory={onLoadProjectDirectory}
           onSelectProjectFile={onSelectAiProjectFile}
+          onPinProjectFile={onPinAiProjectFile}
         />
       )}
       {(onResizeStart || onResizeKeyDown) && (
@@ -168,6 +174,7 @@ type AiProjectsPanelProps = {
   onProjectExpandedPathsChange: (project: AiProjectEntry, paths: Set<string>) => void;
   onLoadProjectDirectory: (project: AiProjectEntry, path: string) => void;
   onSelectProjectFile: (project: AiProjectEntry, path: string) => void;
+  onPinProjectFile?: (project: AiProjectEntry, path: string) => void;
 };
 
 function AiProjectsPanel({
@@ -184,6 +191,7 @@ function AiProjectsPanel({
   onProjectExpandedPathsChange,
   onLoadProjectDirectory,
   onSelectProjectFile,
+  onPinProjectFile,
 }: AiProjectsPanelProps) {
   const hasSources = Boolean(sources.codex || sources.claude);
   const summary = formatAiProjectSummary(sources, projects.length);
@@ -323,6 +331,20 @@ function AiProjectsPanel({
     onSelectProjectFile(project, location.relativePath);
   }
 
+  function handleWorkspacePinFile(path: string) {
+    const location = parseAiProjectWorkspacePath(path);
+    if (!location?.relativePath) {
+      return;
+    }
+
+    const project = projectById.get(location.projectId);
+    if (!project) {
+      return;
+    }
+
+    onPinProjectFile?.(project, location.relativePath);
+  }
+
   return (
     <section className="file-drawer__panel ai-projects" role="tabpanel" aria-label="AI 项目">
       <div className="ai-projects__toolbar">
@@ -353,6 +375,7 @@ function AiProjectsPanel({
             onExpandedPathsChange={handleWorkspaceExpandedPathsChange}
             onLoadDirectory={handleWorkspaceLoadDirectory}
             onSelectFile={handleWorkspaceSelectFile}
+            onPinFile={handleWorkspacePinFile}
           />
         </div>
       ) : (

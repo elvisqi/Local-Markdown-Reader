@@ -4,82 +4,82 @@
 
 本次发布包含 10 个参考 Obsidian 流行风格方向制作的原创远程主题包，下面的预览图由仓库内主题 token 自动生成，可直接用于 GitHub Release 描述。
 
-### AnuPpuccin for Local Markdown Reader
+### Atlas Reference
 
-![AnuPpuccin for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/anuppuccin.svg)
+![Atlas Reference preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/atlas-reference.svg)
 
-Playful pastel workspace with shaped callouts and pill controls.
+A dense reference theme for metadata, ledgers, structured notes, and large technical documents.
 
-主题包：[`anuppuccin.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/anuppuccin.mdv-theme.json)
+主题包：[`atlas-reference.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/atlas-reference.mdv-theme.json)
 
-### Blue Topaz for Local Markdown Reader
+### Desktop Notes
 
-![Blue Topaz for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/blue-topaz.svg)
+![Desktop Notes preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/desktop-notes.svg)
 
-Information-rich research theme with dense tables and data panels.
+A native desktop document workspace with segmented controls, panel dividers, and compact navigation.
 
-主题包：[`blue-topaz.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/blue-topaz.mdv-theme.json)
+主题包：[`desktop-notes.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/desktop-notes.mdv-theme.json)
 
-### Catppuccin for Local Markdown Reader
+### Editorial Contrast
 
-![Catppuccin for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/catppuccin.svg)
+![Editorial Contrast preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/editorial-contrast.svg)
 
-Soft palette theme with editor-like code and rounded reading surfaces.
+A high-contrast editorial reader with magazine headings, archival quotes, and open body rhythm.
 
-主题包：[`catppuccin.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/catppuccin.mdv-theme.json)
+主题包：[`editorial-contrast.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/editorial-contrast.mdv-theme.json)
 
-### Cybertron for Local Markdown Reader
+### Neon Vault
 
-![Cybertron for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/cybertron.svg)
+![Neon Vault preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/neon-vault.svg)
 
-High-contrast neon console theme with angular chrome and glowing panels.
+A restrained cyber workspace with luminous focus, floating diagram controls, and dark console surfaces.
 
-主题包：[`cybertron.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/cybertron.mdv-theme.json)
+主题包：[`neon-vault.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/neon-vault.mdv-theme.json)
 
-### Everforest for Local Markdown Reader
+### Palette Code
 
-![Everforest for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/everforest.svg)
+![Palette Code preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/palette-code.svg)
 
-Muted green long-reading theme with warm editorial spacing.
+A syntax-led technical theme built from the structural lessons of popular editor palettes.
 
-主题包：[`everforest.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/everforest.mdv-theme.json)
+主题包：[`palette-code.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/palette-code.mdv-theme.json)
 
-### ITS for Local Markdown Reader
+### Quiet Focus
 
-![ITS for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/its-theme.svg)
+![Quiet Focus preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/quiet-focus.svg)
 
-Dense dashboard and metadata theme for complex technical notes.
+A restrained, low-noise reading theme informed by Minimal, Shimmering Focus, and Notation.
 
-主题包：[`its-theme.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/its-theme.mdv-theme.json)
+主题包：[`quiet-focus.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/quiet-focus.mdv-theme.json)
 
-### Minimal for Local Markdown Reader
+### Soft Canvas
 
-![Minimal for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/minimal.svg)
+![Soft Canvas preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/soft-canvas.svg)
 
-Quiet writing-first theme adapted for long Markdown reading.
+A friendly, rounded workspace with task-first reading rhythm and gentle raised surfaces.
 
-主题包：[`minimal.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/minimal.mdv-theme.json)
+主题包：[`soft-canvas.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/soft-canvas.mdv-theme.json)
 
-### Primary for Local Markdown Reader
+### Terminal Grid
 
-![Primary for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/primary.svg)
+![Terminal Grid preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/terminal-grid.svg)
 
-Balanced rounded note theme with soft controls and calm callouts.
+A monospace technical reader with command headings, console frames, and compact grid tables.
 
-主题包：[`primary.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/primary.mdv-theme.json)
+主题包：[`terminal-grid.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/terminal-grid.mdv-theme.json)
 
-### Prism for Local Markdown Reader
+### Topaz Workbench
 
-![Prism for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/prism.svg)
+![Topaz Workbench preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/topaz-workbench.svg)
 
-Colorful structured note theme with editorial heading markers.
+A component-rich knowledge workbench with expressive callouts, tables, and structured readers.
 
-主题包：[`prism.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/prism.mdv-theme.json)
+主题包：[`topaz-workbench.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/topaz-workbench.mdv-theme.json)
 
-### Things for Local Markdown Reader
+### Typewriter Studio
 
-![Things for Local Markdown Reader preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/things.svg)
+![Typewriter Studio preview](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/previews/typewriter-studio.svg)
 
-Native productivity notes with crisp controls and compact navigation.
+A manuscript-oriented theme with print rhythm, pull quotes, and a quiet typewriter desk.
 
-主题包：[`things.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/things.mdv-theme.json)
+主题包：[`typewriter-studio.mdv-theme.json`](https://fe-docs.baiteda.com/Local-Markdown-Reader/themes/packages/typewriter-studio.mdv-theme.json)

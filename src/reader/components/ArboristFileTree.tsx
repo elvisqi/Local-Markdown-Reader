@@ -18,6 +18,7 @@ type ArboristFileTreeProps = {
   onExpandedPathsChange: (paths: Set<string>) => void;
   onLoadDirectory: (path: string) => void;
   onSelectFile: (path: string) => void;
+  onPinFile?: (path: string) => void;
 };
 
 const DEFAULT_ROW_HEIGHT = 24;
@@ -36,6 +37,7 @@ export function ArboristFileTree({
   onExpandedPathsChange,
   onLoadDirectory,
   onSelectFile,
+  onPinFile,
 }: ArboristFileTreeProps) {
   const treeRef = useRef<TreeApi<LazyFileTreeNode> | undefined>(undefined);
   const containerRef = useRef<HTMLElement | null>(null);
@@ -210,6 +212,7 @@ export function ArboristFileTree({
             {...props}
             activePath={activePath}
             rowHeight={rowHeight}
+            onPinFile={onPinFile}
           />
         )}
       >
@@ -227,9 +230,10 @@ export function ArboristFileTree({
 type FileTreeRowContainerProps = RowRendererProps<LazyFileTreeNode> & {
   activePath: string | null;
   rowHeight: number;
+  onPinFile?: (path: string) => void;
 };
 
-function FileTreeRowContainer({ node, attrs, innerRef, children, activePath, rowHeight }: FileTreeRowContainerProps) {
+function FileTreeRowContainer({ node, attrs, innerRef, children, activePath, rowHeight, onPinFile }: FileTreeRowContainerProps) {
   const active = node.data.type === 'file' && node.data.path === activePath;
   const depth = Math.max(0, node.level);
 
@@ -238,6 +242,12 @@ function FileTreeRowContainer({ node, attrs, innerRef, children, activePath, row
 
     if (node.data.type === 'directory') {
       node.toggle();
+    }
+  }
+
+  function handleDoubleClick() {
+    if (node.data.type === 'file') {
+      onPinFile?.(node.data.path);
     }
   }
 
@@ -253,6 +263,7 @@ function FileTreeRowContainer({ node, attrs, innerRef, children, activePath, row
         '--file-tree-depth': depth,
       } as CSSProperties}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       onFocus={(event) => event.stopPropagation()}
     >
       <span className="file-tree__indent-guides" aria-hidden="true">

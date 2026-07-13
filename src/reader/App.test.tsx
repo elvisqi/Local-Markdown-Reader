@@ -735,6 +735,87 @@ describe('App file navigation and drawer behavior', () => {
     await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
   });
 
+  it('reuses one preview tab, pins files on double-click, and restores the previous reading position', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getByRole('tab', { name: '切换到 docs/01-intro.md' })).toBeInTheDocument());
+    expect(screen.getByRole('tab', { name: '切换到 docs/01-intro.md' }).parentElement).toHaveAttribute('data-pinned', 'false');
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.dblClick(getDrawerFileItem('01-intro.md'));
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: '切换到 docs/01-intro.md' }).parentElement).toHaveAttribute('data-pinned', 'true'),
+    );
+
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 480 });
+    await user.click(getDrawerFileItem('02-design.md'));
+
+    await waitFor(() => expect(screen.getByRole('tab', { name: '切换到 docs/02-design.md' })).toBeInTheDocument());
+    expect(within(screen.getByRole('tablist', { name: '打开的文档' })).getAllByRole('tab')).toHaveLength(2);
+    expect(screen.getByRole('tab', { name: '切换到 docs/02-design.md' }).parentElement).toHaveAttribute('data-pinned', 'false');
+
+    await user.click(screen.getByRole('tab', { name: '切换到 docs/01-intro.md' }));
+
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
+    await waitFor(() =>
+      expect(window.scrollTo).toHaveBeenCalledWith({ top: 480, left: 0, behavior: 'instant' }),
+    );
+    expect(screen.getByRole('tab', { name: '切换到 docs/01-intro.md' })).toHaveAttribute('aria-selected', 'true');
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+  });
+
+  it('replaces the preview tab on single-click and preserves fixed tabs', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getByRole('tab', { name: '切换到 docs/01-intro.md' })).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(getDrawerFileItem('02-design.md'));
+
+    await waitFor(() => expect(screen.getByRole('tab', { name: '切换到 docs/02-design.md' })).toBeInTheDocument());
+    expect(screen.queryByRole('tab', { name: '切换到 docs/01-intro.md' })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('tablist', { name: '打开的文档' })).getAllByRole('tab')).toHaveLength(1);
+
+    await user.dblClick(getDrawerFileItem('02-design.md'));
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: '切换到 docs/02-design.md' }).parentElement).toHaveAttribute('data-pinned', 'true'),
+    );
+
+    await user.click(getDrawerFileItem('03-api.md'));
+
+    await waitFor(() => expect(screen.getByRole('tab', { name: '切换到 docs/03-api.md' })).toBeInTheDocument());
+    expect(screen.getByRole('tab', { name: '切换到 docs/02-design.md' }).parentElement).toHaveAttribute('data-pinned', 'true');
+    expect(screen.getByRole('tab', { name: '切换到 docs/03-api.md' }).parentElement).toHaveAttribute('data-pinned', 'false');
+    expect(within(screen.getByRole('tablist', { name: '打开的文档' })).getAllByRole('tab')).toHaveLength(2);
+  });
+
+  it('closes the active document tab and switches to its neighbor', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.dblClick(getDrawerFileItem('01-intro.md'));
+    await user.click(getDrawerFileItem('02-design.md'));
+    await waitFor(() => expect(screen.getByRole('tab', { name: '切换到 docs/02-design.md' })).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: '关闭 docs/02-design.md' }));
+
+    await waitFor(() => expect(screen.queryByRole('tab', { name: '切换到 docs/02-design.md' })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByRole('heading', { name: 'docs/01-intro.md' })).not.toHaveLength(0));
+    expect(screen.getByRole('tab', { name: '切换到 docs/01-intro.md' })).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('prints the current reader content from the toolbar', async () => {
     const user = userEvent.setup();
     const print = vi.fn();
@@ -3497,6 +3578,44 @@ describe('App file navigation and drawer behavior', () => {
 
     await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
     expect(fileSystemAccess.readDocumentFile).not.toHaveBeenCalled();
+  });
+
+  it('releases the active large-document worker before opening another document tab', async () => {
+    const user = userEvent.setup();
+    const largeFile = new File(['# Big\n'.padEnd(2 * 1024 * 1024, 'x')], 'big.md', {
+      type: 'text/markdown',
+    });
+    const smallFile = new File(['# Small'], 'small.md', { type: 'text/markdown' });
+
+    vi.mocked(fileSystemAccess.scanMarkdownDirectory).mockResolvedValue([
+      { type: 'file', name: 'big.md', path: 'big.md' },
+      { type: 'file', name: 'small.md', path: 'small.md' },
+    ]);
+    vi.mocked(fileSystemAccess.readDocumentFileSnapshot).mockImplementation(async (_handle, path) => {
+      const file = path === 'big.md' ? largeFile : smallFile;
+
+      return {
+        path,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file,
+      };
+    });
+    vi.mocked(fileSystemAccess.readMarkdownFileSlice).mockResolvedValue('# Big\n');
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(within(screen.getByLabelText('文件列表')).getByRole('button', { name: '打开文件夹' }));
+    await waitFor(() => expect(screen.getByText('大文件安全模式')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: '文件' }));
+    await user.click(getDrawerFileItem('small.md'));
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Small' })).toBeInTheDocument());
+    expect(largeDocumentClient.terminate).toHaveBeenCalled();
   });
 
   it('opens large YAML documents in raw large-file mode without markdown chunk preview', async () => {

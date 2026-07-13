@@ -38,6 +38,7 @@ import {
   type AiProjectEntry,
   type AiProjectState,
 } from './aiProjects';
+import { DocumentTabs, type DocumentTabItem } from './components/DocumentTabs';
 import { FileDrawer } from './components/FileDrawer';
 import { LargeDocumentReader } from './components/LargeDocumentReader';
 import { OutlinePanel } from './components/OutlinePanel';
@@ -145,6 +146,31 @@ type DocumentSource =
   | { type: 'ai-project'; projectId: string; handle: FileSystemDirectoryHandle }
   | { type: 'standalone' }
   | null;
+type ReaderTab = {
+  id: string;
+  key: string;
+  label: string;
+  path: string;
+  source: Exclude<DocumentSource, null>;
+  documentKind: ActiveDocumentKind;
+  isLargeDocument: boolean;
+  isPinned: boolean;
+  scrollY: number;
+  activeHeadingId: string | null;
+  largeAnchorLine: number;
+  snapshot?: DocumentFileSnapshot;
+  temporaryDocument?: TemporaryMarkdownDocument;
+};
+type ReaderTabOpenBehavior = 'open' | 'preview' | 'pinned' | 'replace' | 'keep';
+type ReaderTabOpenOptions = {
+  tabBehavior?: ReaderTabOpenBehavior;
+  tabId?: string;
+};
+type OpenFileOptions = ReaderTabOpenOptions & {
+  anchorLine?: number;
+  source?: DocumentSource;
+  requestId?: number;
+};
 type ReaderHistoryState = {
   marker: 'local-markdown-reader';
   path: string;
@@ -170,6 +196,8 @@ export function App() {
   const [folderTree, setFolderTree] = useState(createEmptyLazyFileTree);
   const [folderActivePath, setFolderActivePath] = useState<string | null>(null);
   const [activePath, setActivePath] = useState<string | null>(null);
+  const [readerTabs, setReaderTabs] = useState<ReaderTab[]>([]);
+  const [activeReaderTabId, setActiveReaderTabIdState] = useState<string | null>(null);
   const [activeAiProjectId, setActiveAiProjectId] = useState<string | null>(null);
   const [aiProjectState, setAiProjectState] = useState<AiProjectState>(EMPTY_AI_PROJECT_STATE);
   const [aiProjectTrees, setAiProjectTrees] = useState<Record<string, LazyFileTreeState>>({});
@@ -189,6 +217,9 @@ export function App() {
   const [largeDocument, setLargeDocument] = useState<LargeDocumentSession | null>(null);
   const [largeAnchorLine, setLargeAnchorLine] = useState(1);
   const openRequestIdRef = useRef(0);
+  const readerTabsRef = useRef<ReaderTab[]>([]);
+  const activeReaderTabIdRef = useRef<string | null>(null);
+  const readerTabSequenceRef = useRef(0);
   const folderScanSessionRef = useRef<DirectoryScanSession | null>(null);
   const aiProjectScanSessionsRef = useRef<Record<string, DirectoryScanSession>>({});
   const renderedContentRef = useRef<HTMLDivElement | null>(null);
@@ -224,6 +255,10 @@ export function App() {
   const fileNavigation = useMemo(
     () => selectSiblingDocumentNavigationFromLazyTree(activeNavigationTree, activePath),
     [activeNavigationTree, activePath],
+  );
+  const documentTabItems = useMemo<DocumentTabItem[]>(
+    () => readerTabs.map(({ id, label, path, isPinned }) => ({ id, label, path, isPinned })),
+    [readerTabs],
   );
   useEffect(() => {
     void loadSettings().then((loadedSettings) => {
@@ -497,6 +532,291 @@ export function App() {
     return () => window.removeEventListener('keydown', handleKeydown);
   }, [activeDocumentSource, fileNavigation.next, fileNavigation.previous]);
 
+  function replaceReaderTabs(nextTabs: ReaderTab[]) {
+    readerTabsRef.current = nextTabs;
+    setReaderTabs(nextTabs);
+  }
+
+  function setActiveReaderTabId(nextTabId: string | null) {
+    activeReaderTabIdRef.current = nextTabId;
+    setActiveReaderTabIdState(nextTabId);
+  }
+
+  function createReaderTabId(): string {
+    readerTabSequenceRef.current += 1;
+    return `reader-tab-${readerTabSequenceRef.current}`;
+  }
+
+  function createReaderTabKey(
+    source: Exclude<DocumentSource, null>,
+    path: string,
+    snapshot?: DocumentFileSnapshot,
+    temporaryDocument?: TemporaryMarkdownDocument,
+  ): string {
+    if (temporaryDocument) {
+      return `temporary:${temporaryDocument.url}:${temporaryDocument.createdAt}`;
+    }
+
+    if (source.type === 'folder') {
+      return `folder:${source.handle.name}:${path}`;
+    }
+
+    if (source.type === 'ai-project') {
+      return `ai-project:${source.projectId}:${path}`;
+    }
+
+    return `standalone:${snapshot?.name ?? path}:${snapshot?.size ?? 0}:${snapshot?.lastModified ?? 0}`;
+  }
+
+  function createReaderTab(
+    source: Exclude<DocumentSource, null>,
+    path: string,
+    documentKind: ActiveDocumentKind,
+    options: {
+      isLargeDocument?: boolean;
+      isPinned?: boolean;
+      anchorLine?: number;
+      snapshot?: DocumentFileSnapshot;
+      temporaryDocument?: TemporaryMarkdownDocument;
+    } = {},
+  ): ReaderTab {
+    return {
+      id: createReaderTabId(),
+      key: createReaderTabKey(source, path, options.snapshot, options.temporaryDocument),
+      label: options.snapshot?.name ?? path.split('/').filter(Boolean).at(-1) ?? path,
+      path,
+      source,
+      documentKind,
+      isLargeDocument: options.isLargeDocument ?? false,
+      isPinned: options.isPinned ?? true,
+      scrollY: 0,
+      activeHeadingId: null,
+      largeAnchorLine: options.anchorLine ?? 1,
+      snapshot: options.snapshot,
+      temporaryDocument: options.temporaryDocument,
+    };
+  }
+
+  function findReaderTabByKey(key: string): ReaderTab | null {
+    return readerTabsRef.current.find((tab) => tab.key === key) ?? null;
+  }
+
+  function pinReaderTab(tabId: string) {
+    const tab = readerTabsRef.current.find((currentTab) => currentTab.id === tabId);
+    if (!tab || tab.isPinned) {
+      return;
+    }
+
+    replaceReaderTabs(readerTabsRef.current.map((currentTab) =>
+      currentTab.id === tabId ? { ...currentTab, isPinned: true } : currentTab,
+    ));
+  }
+
+  function persistActiveReaderTabViewState() {
+    const activeTabId = activeReaderTabIdRef.current;
+    if (!activeTabId) {
+      return;
+    }
+
+    const currentTabs = readerTabsRef.current;
+    const activeTab = currentTabs.find((tab) => tab.id === activeTabId);
+    if (!activeTab) {
+      return;
+    }
+
+    replaceReaderTabs(
+      currentTabs.map((tab) =>
+        tab.id === activeTabId
+          ? {
+              ...tab,
+              scrollY: typeof window === 'undefined' ? 0 : window.scrollY,
+              activeHeadingId,
+              largeAnchorLine,
+            }
+          : tab,
+      ),
+    );
+  }
+
+  function releaseInactiveDocumentResources() {
+    closeLargeDocument();
+    setHtmlPreviewDocument(null);
+    setPendingHtmlPreviewHash(null);
+    htmlPreviewLastRenderRef.current = null;
+  }
+
+  function completeReaderTabOpen(
+    source: Exclude<DocumentSource, null>,
+    path: string,
+    documentKind: ActiveDocumentKind,
+    options: ReaderTabOpenOptions & {
+      isLargeDocument?: boolean;
+      anchorLine?: number;
+      snapshot?: DocumentFileSnapshot;
+      temporaryDocument?: TemporaryMarkdownDocument;
+    },
+  ) {
+    const behavior = options.tabBehavior ?? 'open';
+    if (behavior === 'keep') {
+      return;
+    }
+
+    const targetTabId = options.tabId ?? activeReaderTabIdRef.current;
+    const replacementTarget = behavior === 'replace' && targetTabId
+      ? readerTabsRef.current.find((currentTab) => currentTab.id === targetTabId) ?? null
+      : null;
+    const tab = createReaderTab(source, path, documentKind, {
+      ...options,
+      isPinned: behavior === 'preview'
+        ? false
+        : replacementTarget?.isPinned ?? true,
+    });
+    const existing = findReaderTabByKey(tab.key);
+
+    if ((behavior === 'open' || behavior === 'preview' || behavior === 'pinned') && existing) {
+      if (behavior === 'pinned') {
+        pinReaderTab(existing.id);
+      }
+      setActiveReaderTabId(existing.id);
+      return;
+    }
+
+    if (behavior === 'preview') {
+      const previewTab = readerTabsRef.current.find((currentTab) => !currentTab.isPinned);
+      if (previewTab) {
+        tab.id = previewTab.id;
+        replaceReaderTabs(readerTabsRef.current.map((currentTab) => currentTab.id === previewTab.id ? tab : currentTab));
+        setActiveReaderTabId(previewTab.id);
+        return;
+      }
+    }
+
+    if (behavior === 'replace') {
+      if (replacementTarget) {
+        tab.id = replacementTarget.id;
+        replaceReaderTabs(readerTabsRef.current.map((currentTab) => currentTab.id === replacementTarget.id ? tab : currentTab));
+        setActiveReaderTabId(replacementTarget.id);
+        return;
+      }
+    }
+
+    replaceReaderTabs([...readerTabsRef.current, tab]);
+    setActiveReaderTabId(tab.id);
+  }
+
+  function restoreReaderTabViewState(tab: ReaderTab, requestId: number) {
+    window.requestAnimationFrame(() => {
+      if (!isCurrentOpenRequest(requestId) || activeReaderTabIdRef.current !== tab.id) {
+        return;
+      }
+
+      if (tab.documentKind === 'html' && tab.activeHeadingId) {
+        setPendingHtmlPreviewHash(tab.activeHeadingId);
+        return;
+      }
+
+      if (!tab.isLargeDocument) {
+        window.scrollTo({ top: tab.scrollY, left: 0, behavior: 'instant' });
+      }
+
+      if (tab.activeHeadingId) {
+        setActiveHeadingId(tab.activeHeadingId);
+      }
+    });
+  }
+
+  async function activateReaderTab(tabId: string): Promise<boolean> {
+    const tab = readerTabsRef.current.find((currentTab) => currentTab.id === tabId);
+    if (!tab) {
+      return false;
+    }
+
+    if (activeReaderTabIdRef.current === tabId) {
+      return true;
+    }
+
+    persistActiveReaderTabViewState();
+    const requestId = beginOpenRequest();
+    releaseInactiveDocumentResources();
+    setError(null);
+    setStatus(`正在切换到 ${tab.label}`);
+
+    let opened = false;
+
+    if (tab.source.type === 'standalone') {
+      if (tab.snapshot) {
+        opened = await openStandaloneSnapshot(tab.snapshot, requestId, { tabBehavior: 'keep', tabId });
+      } else if (tab.temporaryDocument) {
+        opened = await openTemporaryDocument(tab.temporaryDocument, { requestId, tabBehavior: 'keep', tabId });
+      } else {
+        setStatus(null);
+        setError(`无法重新打开 ${tab.label}。`);
+      }
+    } else {
+      if (tab.source.type === 'folder') {
+        setDrawerTab('folder');
+      } else {
+        setDrawerTab('ai-projects');
+        setActiveAiProjectId(tab.source.projectId);
+      }
+
+      opened = await openFile(tab.source.handle, tab.path, false, {
+        source: tab.source,
+        anchorLine: tab.largeAnchorLine,
+        requestId,
+        tabBehavior: 'keep',
+        tabId,
+      });
+    }
+
+    if (!opened || !isCurrentOpenRequest(requestId)) {
+      return false;
+    }
+
+    setActiveReaderTabId(tab.id);
+    restoreReaderTabViewState(tab, requestId);
+    return true;
+  }
+
+  function closeReaderTab(tabId: string) {
+    const tabs = readerTabsRef.current;
+    const index = tabs.findIndex((tab) => tab.id === tabId);
+    if (index < 0) {
+      return;
+    }
+
+    const closingActiveTab = activeReaderTabIdRef.current === tabId;
+    if (closingActiveTab) {
+      persistActiveReaderTabViewState();
+    }
+
+    const nextTab = closingActiveTab ? tabs[index + 1] ?? tabs[index - 1] ?? null : null;
+    replaceReaderTabs(tabs.filter((tab) => tab.id !== tabId));
+
+    if (!closingActiveTab) {
+      return;
+    }
+
+    beginOpenRequest();
+    setActiveReaderTabId(null);
+    releaseInactiveDocumentResources();
+
+    if (nextTab) {
+      void activateReaderTab(nextTab.id);
+      return;
+    }
+
+    clearReaderForSource(activeDocumentSource);
+    setStatus(null);
+    setError(null);
+  }
+
+  function resetReaderTabs() {
+    replaceReaderTabs([]);
+    setActiveReaderTabId(null);
+    releaseInactiveDocumentResources();
+  }
+
   async function openFolder() {
     const requestId = beginOpenRequest();
     setError(null);
@@ -517,6 +837,7 @@ export function App() {
       const nextTree = replaceDirectoryChildren(createEmptyLazyFileTree(), '', rootChildren);
       const defaultPath = selectDefaultLoadedDocument(nextTree.nodes);
 
+      resetReaderTabs();
       folderScanSessionRef.current = scanSession;
       setFolderDirectoryHandle(handle);
       setFolderTree(nextTree);
@@ -525,7 +846,11 @@ export function App() {
       setStatus(nextTree.nodes.length ? null : '这个文件夹根目录没有可显示的文件或子目录。');
 
       if (defaultPath) {
-        await openFile(handle, defaultPath, true, { source: { type: 'folder', handle }, requestId });
+        await openFile(handle, defaultPath, true, {
+          source: { type: 'folder', handle },
+          requestId,
+          tabBehavior: 'preview',
+        });
       } else {
         clearReaderForSource({ type: 'folder', handle });
       }
@@ -592,17 +917,46 @@ export function App() {
     }
   }
 
-  async function openStandaloneSnapshot(snapshot: DocumentFileSnapshot, requestId: number): Promise<boolean> {
+  async function openStandaloneSnapshot(
+    snapshot: DocumentFileSnapshot,
+    requestId: number,
+    options: ReaderTabOpenOptions = {},
+  ): Promise<boolean> {
     if (!isCurrentOpenRequest(requestId)) {
       return false;
     }
 
     const documentKind = getSnapshotDocumentKind(snapshot);
-    const source: DocumentSource = { type: 'standalone' };
-    setDrawerOpen(false);
+    const source: Exclude<DocumentSource, null> = { type: 'standalone' };
+    const tabBehavior = options.tabBehavior ?? 'open';
+    const tabKey = createReaderTabKey(source, snapshot.path, snapshot);
+    const existingTab = tabBehavior === 'keep' ? null : findReaderTabByKey(tabKey);
+
+    if (existingTab && (tabBehavior === 'open' || tabBehavior === 'preview' || tabBehavior === 'pinned' || existingTab.id !== options.tabId)) {
+      if (tabBehavior === 'pinned') {
+        pinReaderTab(existingTab.id);
+      }
+      return activateReaderTab(existingTab.id);
+    }
+
+    if (tabBehavior !== 'keep') {
+      persistActiveReaderTabViewState();
+      releaseInactiveDocumentResources();
+      setDrawerOpen(false);
+    }
+
+    let opened: boolean;
 
     if (isAlwaysNormalDocumentKind(documentKind)) {
-      return openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
+      opened = await openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
+      if (opened) {
+        completeReaderTabOpen(source, snapshot.path, documentKind, {
+          ...options,
+          snapshot,
+          isLargeDocument: false,
+        });
+      }
+      return opened;
     }
 
     const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
@@ -613,23 +967,57 @@ export function App() {
     const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
 
     if (classification.kind !== 'normal') {
-      return openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+      opened = await openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
         anchorLine: 1,
         source,
         requestId,
       });
+      if (opened) {
+        completeReaderTabOpen(source, snapshot.path, documentKind, {
+          ...options,
+          snapshot,
+          isLargeDocument: true,
+          anchorLine: 1,
+        });
+      }
+      return opened;
     }
 
-    return openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
+    opened = await openNormalDocumentSnapshot(snapshot, documentKind, undefined, undefined, source, requestId);
+    if (opened) {
+      completeReaderTabOpen(source, snapshot.path, documentKind, {
+        ...options,
+        snapshot,
+        isLargeDocument: false,
+      });
+    }
+    return opened;
   }
 
   async function openFile(
     handle: FileSystemDirectoryHandle,
     path: string,
     remember = true,
-    options: { anchorLine?: number; source?: DocumentSource; requestId?: number } = {},
+    options: OpenFileOptions = {},
   ): Promise<boolean> {
     const requestId = options.requestId ?? beginOpenRequest();
+    const source = options.source ?? activeDocumentSource ?? { type: 'folder', handle };
+    const tabBehavior = options.tabBehavior ?? 'open';
+    const tabKey = createReaderTabKey(source, path);
+    const existingTab = tabBehavior === 'keep' ? null : findReaderTabByKey(tabKey);
+
+    if (existingTab && (tabBehavior === 'open' || tabBehavior === 'preview' || tabBehavior === 'pinned' || existingTab.id !== options.tabId)) {
+      if (tabBehavior === 'pinned') {
+        pinReaderTab(existingTab.id);
+      }
+      return activateReaderTab(existingTab.id);
+    }
+
+    if (tabBehavior !== 'keep') {
+      persistActiveReaderTabViewState();
+      releaseInactiveDocumentResources();
+    }
+
     setError(null);
     setStatus(`正在打开 ${path}`);
 
@@ -640,11 +1028,11 @@ export function App() {
       }
 
       const documentKind = getSnapshotDocumentKind(snapshot);
-      const source = options.source ?? activeDocumentSource ?? { type: 'folder', handle };
       const rememberRecord = remember ? createLastDocumentRecord(source, path) : undefined;
+      let opened: boolean;
 
       if (isAlwaysNormalDocumentKind(documentKind)) {
-        return openNormalDocumentSnapshot(
+        opened = await openNormalDocumentSnapshot(
           snapshot,
           documentKind,
           rememberRecord,
@@ -652,6 +1040,14 @@ export function App() {
           source,
           requestId,
         );
+        if (opened) {
+          completeReaderTabOpen(source, path, documentKind, {
+            ...options,
+            snapshot,
+            isLargeDocument: false,
+          });
+        }
+        return opened;
       }
 
       const sample = await readMarkdownFileSlice(snapshot.file, 0, Math.min(snapshot.size, LARGE_SAMPLE_BYTES));
@@ -662,15 +1058,24 @@ export function App() {
       const classification = classifyMarkdownDocument({ size: snapshot.size, sample });
 
       if (classification.kind !== 'normal') {
-        return openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
+        opened = await openLargeDocument(snapshot, documentKind, classification.kind, classification.reason ?? '已进入大文件安全模式。', {
           rememberRecord,
           anchorLine: options.anchorLine ?? 1,
           source,
           requestId,
         });
+        if (opened) {
+          completeReaderTabOpen(source, path, documentKind, {
+            ...options,
+            snapshot,
+            isLargeDocument: true,
+            anchorLine: options.anchorLine ?? 1,
+          });
+        }
+        return opened;
       }
 
-      return openNormalDocumentSnapshot(
+      opened = await openNormalDocumentSnapshot(
         snapshot,
         documentKind,
         rememberRecord,
@@ -678,6 +1083,14 @@ export function App() {
         source,
         requestId,
       );
+      if (opened) {
+        completeReaderTabOpen(source, path, documentKind, {
+          ...options,
+          snapshot,
+          isLargeDocument: false,
+        });
+      }
+      return opened;
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
         return false;
@@ -847,6 +1260,8 @@ export function App() {
     const opened = await openFile(documentSource.handle, state.path, true, {
       source: documentSource,
       requestId,
+      tabBehavior: 'replace',
+      tabId: activeReaderTabIdRef.current ?? undefined,
     });
 
     if (!opened) {
@@ -931,48 +1346,75 @@ export function App() {
     await restoreLastDocument();
   }
 
-  async function openTemporaryDocument(temporaryDocument: TemporaryMarkdownDocument) {
-    const requestId = beginOpenRequest();
+  async function openTemporaryDocument(
+    temporaryDocument: TemporaryMarkdownDocument,
+    options: ReaderTabOpenOptions & { requestId?: number } = {},
+  ): Promise<boolean> {
+    const requestId = options.requestId ?? beginOpenRequest();
     const { name } = temporaryDocument;
+    const source: Exclude<DocumentSource, null> = { type: 'standalone' };
+    const tabBehavior = options.tabBehavior ?? 'open';
+    const tabKey = createReaderTabKey(source, name, undefined, temporaryDocument);
+    const existingTab = tabBehavior === 'keep' ? null : findReaderTabByKey(tabKey);
+
+    if (existingTab && (tabBehavior === 'open' || tabBehavior === 'preview' || tabBehavior === 'pinned' || existingTab.id !== options.tabId)) {
+      if (tabBehavior === 'pinned') {
+        pinReaderTab(existingTab.id);
+      }
+      return activateReaderTab(existingTab.id);
+    }
+
+    if (tabBehavior !== 'keep') {
+      persistActiveReaderTabViewState();
+      releaseInactiveDocumentResources();
+    }
+
     setError(null);
     setStatus(`正在打开 ${name}`);
 
     try {
       if (shouldRequestTemporaryDocumentAuthorization(temporaryDocument)) {
         showTemporaryDocumentAuthorizationPrompt();
-        return;
+        return false;
       }
 
-      const source = await readTemporaryDocumentSource(temporaryDocument);
+      const sourceText = await readTemporaryDocumentSource(temporaryDocument);
       if (!isCurrentOpenRequest(requestId)) {
-        return;
+        return false;
       }
 
-      const result = await renderMarkdown(source);
+      const result = await renderMarkdown(sourceText);
       if (!isCurrentOpenRequest(requestId)) {
-        return;
+        return false;
       }
 
       closeLargeDocument();
       setActivePath(name);
-      setActiveDocumentSource({ type: 'standalone' });
+      setActiveDocumentSource(source);
       setActiveDocumentKind('markdown');
-      setDocumentSourceText(source);
+      setDocumentSourceText(sourceText);
       setRendered(result);
       setHtmlPreviewDocument(null);
       setStatus(null);
+      completeReaderTabOpen(source, name, 'markdown', {
+        ...options,
+        temporaryDocument,
+        isLargeDocument: false,
+      });
+      return true;
     } catch (err) {
       if (!isCurrentOpenRequest(requestId)) {
-        return;
+        return false;
       }
 
       if (temporaryDocument.sourceAvailable === false) {
         showTemporaryDocumentAuthorizationPrompt();
-        return;
+        return false;
       }
 
       setStatus(null);
       setError(err instanceof Error ? err.message : `无法打开 ${name}。`);
+      return false;
     }
   }
 
@@ -1073,7 +1515,11 @@ export function App() {
       }
 
       if (rememberedPath) {
-        await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path, { source, requestId });
+        await openFile(record.directoryHandle, rememberedPath, rememberedPath !== record.path, {
+          source,
+          requestId,
+          tabBehavior: 'preview',
+        });
       } else {
         clearReaderForSource(source);
         setStatus('上次打开的文件夹里没有找到 Markdown、HTML、JSON、JSONL 或 YAML 文件。');
@@ -1096,9 +1542,14 @@ export function App() {
 
     if (largeDocument && activePath) {
       const currentLine = largeAnchorLine;
+      const requestId = beginOpenRequest();
+      releaseInactiveDocumentResources();
       await openFile(activeDocumentSource.handle, activePath, false, {
         anchorLine: currentLine,
         source: activeDocumentSource,
+        requestId,
+        tabBehavior: 'keep',
+        tabId: activeReaderTabIdRef.current ?? undefined,
       });
       return;
     }
@@ -1106,9 +1557,12 @@ export function App() {
     if (activePath) {
       const scrollY = window.scrollY;
       const requestId = beginOpenRequest();
+      releaseInactiveDocumentResources();
       const opened = await openFile(activeDocumentSource.handle, activePath, false, {
         source: activeDocumentSource,
         requestId,
+        tabBehavior: 'keep',
+        tabId: activeReaderTabIdRef.current ?? undefined,
       });
       if (!opened) {
         return;
@@ -1178,6 +1632,7 @@ export function App() {
         await openFile(folderDirectoryHandle, fallbackPath, true, {
           source: { type: 'folder', handle: folderDirectoryHandle },
           requestId,
+          tabBehavior: 'preview',
         });
         return;
       }
@@ -1234,6 +1689,7 @@ export function App() {
 
     void openFile(folderDirectoryHandle, folderActivePath, false, {
       source: { type: 'folder', handle: folderDirectoryHandle },
+      tabBehavior: 'preview',
     });
   }
 
@@ -1256,6 +1712,7 @@ export function App() {
 
     void openFile(handle, path, false, {
       source: { type: 'ai-project', projectId: activeAiProjectId, handle },
+      tabBehavior: 'preview',
     });
   }
 
@@ -1398,7 +1855,7 @@ export function App() {
     }
 
     if (fallbackPath) {
-      await openFile(handle, fallbackPath, true, { source, requestId });
+      await openFile(handle, fallbackPath, true, { source, requestId, tabBehavior: 'preview' });
       return;
     }
 
@@ -1446,12 +1903,12 @@ export function App() {
     const pathToOpen = activeFileExists ? projectActivePath : defaultPath;
 
     if (openDefaultFile && pathToOpen) {
-      await openFile(handle, pathToOpen, true, { source, requestId });
+      await openFile(handle, pathToOpen, true, { source, requestId, tabBehavior: 'preview' });
       return;
     }
 
     if (!activeFileExists && defaultPath) {
-      await openFile(handle, defaultPath, true, { source, requestId });
+      await openFile(handle, defaultPath, true, { source, requestId, tabBehavior: 'preview' });
       return;
     }
 
@@ -1498,7 +1955,7 @@ export function App() {
     }
   }
 
-  function selectAiProjectFile(project: AiProjectEntry, path: string) {
+  function selectAiProjectFile(project: AiProjectEntry, path: string, tabBehavior: 'preview' | 'pinned' = 'preview') {
     const handle = project.directoryHandle;
 
     if (!handle) {
@@ -1507,7 +1964,10 @@ export function App() {
     }
 
     setActiveAiProjectId(project.id);
-    void openFile(handle, path, true, { source: { type: 'ai-project', projectId: project.id, handle } });
+    void openFile(handle, path, true, {
+      source: { type: 'ai-project', projectId: project.id, handle },
+      tabBehavior,
+    });
   }
 
   async function copyMarkdownSource() {
@@ -1556,7 +2016,11 @@ export function App() {
       return;
     }
 
-    void openFile(activeDocumentSource.handle, path, true, { source: activeDocumentSource });
+    void openFile(activeDocumentSource.handle, path, true, {
+      source: activeDocumentSource,
+      tabBehavior: 'replace',
+      tabId: activeReaderTabIdRef.current ?? undefined,
+    });
   }
 
   function navigateHtmlPreview(id: string) {
@@ -1701,6 +2165,8 @@ export function App() {
     const opened = await openFile(documentSource.handle, path, true, {
       source: documentSource,
       requestId,
+      tabBehavior: 'replace',
+      tabId: activeReaderTabIdRef.current ?? undefined,
     });
 
     if (opened) {
@@ -2000,6 +2466,13 @@ export function App() {
           })
         }
       />
+      <DocumentTabs
+        tabs={documentTabItems}
+        activeTabId={activeReaderTabId}
+        onSelect={(tabId) => void activateReaderTab(tabId)}
+        onClose={closeReaderTab}
+        onPin={pinReaderTab}
+      />
       <div
         className={`reader-shell${drawerOpen ? ' has-file-drawer' : ''}${isResizingFileDrawer ? ' is-resizing-file-drawer' : ''}${isResizingOutlinePanel ? ' is-resizing-outline-panel' : ''}`}
         style={readerShellStyle}
@@ -2033,11 +2506,21 @@ export function App() {
           }
           onLoadProjectDirectory={(project, path) => void loadAiProjectDirectory(project, path)}
           onSelectAiProjectFile={selectAiProjectFile}
+          onPinAiProjectFile={(project, path) => selectAiProjectFile(project, path, 'pinned')}
           onClose={() => setDrawerOpen(false)}
           onSelect={(path) => {
             if (folderDirectoryHandle) {
               void openFile(folderDirectoryHandle, path, true, {
                 source: { type: 'folder', handle: folderDirectoryHandle },
+                tabBehavior: 'preview',
+              });
+            }
+          }}
+          onPin={(path) => {
+            if (folderDirectoryHandle) {
+              void openFile(folderDirectoryHandle, path, true, {
+                source: { type: 'folder', handle: folderDirectoryHandle },
+                tabBehavior: 'pinned',
               });
             }
           }}
@@ -2082,7 +2565,7 @@ export function App() {
               </section>
             ) : activeDocumentKind === 'html' ? (
               <HtmlDocumentPreview
-                key={activePath ?? 'html-preview'}
+                key={`${activeReaderTabId ?? 'document'}:${activePath ?? 'html-preview'}`}
                 ref={htmlPreviewRef}
                 sourceUrl={htmlPreviewDocument?.url ?? null}
                 title={activePath}
